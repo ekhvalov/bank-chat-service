@@ -4,3 +4,10 @@
 [cc-by-nc-sa-shield]: https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg
 
 # Bank Support Chat System
+
+## Development
+
+### Setup environment
+
+1. Install [Task](https://taskfile.dev/installation/)
+2. Run `task dev-tools:install`
