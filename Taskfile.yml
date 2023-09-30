@@ -1,0 +1,83 @@
+# https://taskfile.dev
+version: '3'
+
+silent: true
+
+vars:
+  GO_MODULE: github.com/ekhvalov/bank-chat-service
+  GO_FILES:
+    sh: find . -type f -name '*.go' -not -path "./vendor/*" -not -path "*.gen.go" | tr "\n" " "
+
+  TOOLS_DIR:
+    sh: echo "$(pwd)/tools"
+  TOOLS_DIR_BIN:
+    sh: echo "{{.TOOLS_DIR}}/bin"
+
+  GOLANGCI_LINT_VERSION: "1.54.2"
+  GOLANGCI_LINT_URL: "https://github.com/golangci/golangci-lint/releases/download/v{{.GOLANGCI_LINT_VERSION}}"
+  GOLANGCI_LINT_DIR: "golangci-lint-{{.GOLANGCI_LINT_VERSION}}-{{OS}}-amd64"
+  GOLANGCI_LINT_ARCHIVE_FILE: "{{.GOLANGCI_LINT_DIR}}.tar.gz"
+  GOLANGCI_LINT_CHECKSUMS_FILE: "golangci-lint-{{.GOLANGCI_LINT_VERSION}}-checksums.txt"
+
+
+tasks:
+  default:
+    cmds:
+      - task: tidy
+      - task: fmt
+      - task: lint
+      - task: tests
+      - task: build
+
+  tidy:
+    - echo "- Tidy"
+    - go mod tidy
+    - task: vendor
+
+  vendor:
+    - echo "- Vendor"
+    - go mod vendor
+
+  fmt:
+    - echo "- Format"
+    - "{{.TOOLS_DIR_BIN}}/gofumpt -l -d {{.GO_FILES}}"
+    - "{{.TOOLS_DIR_BIN}}/gci diff {{.GO_FILES}}"
+
+  lint:
+    cmds:
+      - echo "- Lint"
+      - task: lint:cmd
+        vars: { CLI_ARGS: "run -v --fix --timeout=5m ./..." }
+
+  lint:cmd:
+    cmds:
+      - "{{.TOOLS_DIR_BIN}}/golangci-lint run -v --fix --timeout=5m ./..."
+
+  tests:
+    cmds:
+      - echo "- Tests"
+      - go test -race ./...
+
+  build:
+    cmds:
+      - echo "- Build"
+      - go build ./cmd/chat-service
+
+  dev-tools:install:
+    cmds:
+      - echo "- Install dev tools"
+      - mkdir -p "{{.TOOLS_DIR_BIN}}"
+      - GOBIN="{{.TOOLS_DIR_BIN}}" go install github.com/daixiang0/gci@v0.11.2
+      - GOBIN="{{.TOOLS_DIR_BIN}}" go install mvdan.cc/gofumpt@v0.5.0
+      - task: golangci:install
+
+  golangci:install:
+    dir: "{{.TOOLS_DIR_BIN}}"
+    cmds:
+      - wget -q "{{.GOLANGCI_LINT_URL}}/{{.GOLANGCI_LINT_ARCHIVE_FILE}}"
+      - wget -q "{{.GOLANGCI_LINT_URL}}/{{.GOLANGCI_LINT_CHECKSUMS_FILE}}"
+      - grep "$(sha256sum {{.GOLANGCI_LINT_ARCHIVE_FILE}})" "{{.GOLANGCI_LINT_CHECKSUMS_FILE}}" > /dev/null
+      - tar xf "{{.GOLANGCI_LINT_ARCHIVE_FILE}}" --strip-components 1 "{{.GOLANGCI_LINT_DIR}}/golangci-lint"
+      - rm -f "{{.GOLANGCI_LINT_ARCHIVE_FILE}}" "{{.GOLANGCI_LINT_CHECKSUMS_FILE}}"
+    status:
+      - test -f "golangci-lint"
