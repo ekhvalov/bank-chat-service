@@ -19,6 +19,8 @@ vars:
   GOLANGCI_LINT_ARCHIVE_FILE: "{{.GOLANGCI_LINT_DIR}}.tar.gz"
   GOLANGCI_LINT_CHECKSUMS_FILE: "golangci-lint-{{.GOLANGCI_LINT_VERSION}}-checksums.txt"
 
+  PATH: 'PATH="{{.TOOLS_DIR_BIN}}:$PATH"'
+
 
 tasks:
   default:
@@ -62,6 +64,10 @@ tasks:
     cmds:
       - echo "- Build"
       - go build ./cmd/chat-service
+
+  generate:
+    cmds:
+      - '{{.PATH}} go generate {{.GO_MODULE}}/internal/logger'
 
   dev-tools:install:
     vars:
