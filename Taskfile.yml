@@ -40,8 +40,8 @@ tasks:
 
   fmt:
     - echo "- Format"
-    - "{{.TOOLS_DIR_BIN}}/gofumpt -l -d {{.GO_FILES}}"
-    - "{{.TOOLS_DIR_BIN}}/gci diff {{.GO_FILES}}"
+    - "{{.TOOLS_DIR_BIN}}/gofumpt -w {{.GO_FILES}}"
+    - "{{.TOOLS_DIR_BIN}}/gci write {{.GO_FILES}} --custom-order -s standard -s default -s Prefix\\({{.GO_MODULE}}\\)"
 
   lint:
     cmds:
