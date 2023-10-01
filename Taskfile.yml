@@ -64,11 +64,16 @@ tasks:
       - go build ./cmd/chat-service
 
   dev-tools:install:
+    vars:
+      DEV_TOOLS: |
+        github.com/daixiang0/gci@v0.11.2
+        github.com/kazhuravlev/options-gen/cmd/options-gen@v0.30.0
+        mvdan.cc/gofumpt@v0.5.0
     cmds:
       - echo "- Install dev tools"
       - mkdir -p "{{.TOOLS_DIR_BIN}}"
-      - GOBIN="{{.TOOLS_DIR_BIN}}" go install github.com/daixiang0/gci@v0.11.2
-      - GOBIN="{{.TOOLS_DIR_BIN}}" go install mvdan.cc/gofumpt@v0.5.0
+      - for: { var: DEV_TOOLS }
+        cmd: GOBIN="{{.TOOLS_DIR_BIN}}" go install "{{ .ITEM }}"
       - task: golangci:install
 
   golangci:install:
