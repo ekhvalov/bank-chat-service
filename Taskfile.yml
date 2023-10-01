@@ -9,9 +9,7 @@ vars:
     sh: find . -type f -name '*.go' -not -path "./vendor/*" -not -path "*.gen.go" | tr "\n" " "
 
   TOOLS_DIR:
-    sh: echo "$(pwd)/tools"
-  TOOLS_DIR_BIN:
-    sh: echo "{{.TOOLS_DIR}}/bin"
+    sh: echo "$(pwd)/tools/bin"
 
   GOLANGCI_LINT_VERSION: "1.54.2"
   GOLANGCI_LINT_URL: "https://github.com/golangci/golangci-lint/releases/download/v{{.GOLANGCI_LINT_VERSION}}"
@@ -19,7 +17,7 @@ vars:
   GOLANGCI_LINT_ARCHIVE_FILE: "{{.GOLANGCI_LINT_DIR}}.tar.gz"
   GOLANGCI_LINT_CHECKSUMS_FILE: "golangci-lint-{{.GOLANGCI_LINT_VERSION}}-checksums.txt"
 
-  PATH: 'PATH="{{.TOOLS_DIR_BIN}}:$PATH"'
+  PATH: 'PATH="{{.TOOLS_DIR}}:$PATH"'
 
 
 tasks:
@@ -42,8 +40,8 @@ tasks:
 
   fmt:
     - echo "- Format"
-    - "{{.TOOLS_DIR_BIN}}/gofumpt -w {{.GO_FILES}}"
-    - "{{.TOOLS_DIR_BIN}}/gci write {{.GO_FILES}} --custom-order -s standard -s default -s Prefix\\({{.GO_MODULE}}\\)"
+    - "{{.TOOLS_DIR}}/gofumpt -w {{.GO_FILES}}"
+    - "{{.TOOLS_DIR}}/gci write {{.GO_FILES}} --custom-order -s standard -s default -s Prefix\\({{.GO_MODULE}}\\)"
 
   lint:
     cmds:
@@ -53,7 +51,7 @@ tasks:
 
   lint:cmd:
     cmds:
-      - "{{.TOOLS_DIR_BIN}}/golangci-lint run -v --fix --timeout=5m ./..."
+      - "{{.TOOLS_DIR}}/golangci-lint run -v --fix --timeout=5m ./..."
 
   tests:
     cmds:
@@ -77,13 +75,13 @@ tasks:
         mvdan.cc/gofumpt@v0.5.0
     cmds:
       - echo "- Install dev tools"
-      - mkdir -p "{{.TOOLS_DIR_BIN}}"
+      - mkdir -p "{{.TOOLS_DIR}}"
       - for: { var: DEV_TOOLS }
-        cmd: GOBIN="{{.TOOLS_DIR_BIN}}" go install "{{ .ITEM }}"
+        cmd: GOBIN="{{.TOOLS_DIR}}" go install "{{ .ITEM }}"
       - task: golangci:install
 
   golangci:install:
-    dir: "{{.TOOLS_DIR_BIN}}"
+    dir: "{{.TOOLS_DIR}}"
     cmds:
       - wget -q "{{.GOLANGCI_LINT_URL}}/{{.GOLANGCI_LINT_ARCHIVE_FILE}}"
       - wget -q "{{.GOLANGCI_LINT_URL}}/{{.GOLANGCI_LINT_CHECKSUMS_FILE}}"
