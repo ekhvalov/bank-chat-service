@@ -12,13 +12,37 @@ linters-settings:
     sections:
       - standard
       - default
-      - prefix(github.com/ekhvalov/bank-support-chat)
+      - prefix(github.com/ekhvalov/bank-chat-service)
     custom-order: true
 
   godox:
     keywords:
       - FIXME
       - TODO
+
+  depguard:
+    rules:
+      main:
+        files:
+          - $all
+          - "!$test"
+        allow:
+          - $gostd
+          - github.com/ekhvalov/bank-chat-service
+          - github.com/kazhuravlev/options-gen
+          - github.com/go-playground/validator
+          - github.com/BurntSushi/toml
+      test:
+        files:
+          - $test
+        allow:
+          - $gostd
+          - github.com/ekhvalov/bank-chat-service
+          - github.com/stretchr/testify
+          - go.uber.org/mock
+        deny:
+          - pkg: github.com/golang/mock
+            desc: Should be replaced by go.uber.org/mock
 
   lll:
     line-length: 130
