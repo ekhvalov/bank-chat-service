@@ -40,6 +40,7 @@ linters-settings:
           - github.com/ekhvalov/bank-chat-service
           - github.com/stretchr/testify
           - go.uber.org/mock
+          - go.uber.org/zap
         deny:
           - pkg: github.com/golang/mock
             desc: Should be replaced by go.uber.org/mock
