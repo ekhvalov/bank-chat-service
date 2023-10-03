@@ -60,9 +60,8 @@ func run() (errReturned error) {
 }
 
 func initLogger(cfg config.Config) {
-	productionMode := cfg.Global.Env == config.EnvProd
 	logger.MustInit(logger.NewOptions(
 		cfg.Log.Level,
-		logger.WithProductionMode(productionMode),
+		logger.WithProductionMode(cfg.Global.IsProduction()),
 	))
 }

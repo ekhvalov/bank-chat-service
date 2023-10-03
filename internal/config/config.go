@@ -1,11 +1,5 @@
 package config
 
-const (
-	EnvProd  = "prod"
-	EnvDev   = "dev"
-	EnvStage = "stage"
-)
-
 type Config struct {
 	Global  GlobalConfig  `toml:"global"`
 	Log     LogConfig     `toml:"log"`
@@ -14,6 +8,10 @@ type Config struct {
 
 type GlobalConfig struct {
 	Env string `toml:"env" validate:"required,oneof=dev stage prod"`
+}
+
+func (gc GlobalConfig) IsProduction() bool {
+	return gc.Env == "prod"
 }
 
 type LogConfig struct {
