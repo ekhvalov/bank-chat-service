@@ -112,22 +112,10 @@ func (s *Server) debugPprof(g *echo.Group) {
 	}
 	g.GET("", indexHandler)
 	g.GET("/", indexHandler)
-	g.GET("/heap", func(ctx echo.Context) error {
-		pprof.Handler("heap").ServeHTTP(ctx.Response(), ctx.Request())
-		return nil
-	})
-	g.GET("/goroutine", func(ctx echo.Context) error {
-		pprof.Handler("goroutine").ServeHTTP(ctx.Response().Writer, ctx.Request())
-		return nil
-	})
-	g.GET("/block", func(ctx echo.Context) error {
-		pprof.Handler("block").ServeHTTP(ctx.Response().Writer, ctx.Request())
-		return nil
-	})
-	g.GET("/threadcreate", func(ctx echo.Context) error {
-		pprof.Handler("threadcreate").ServeHTTP(ctx.Response().Writer, ctx.Request())
-		return nil
-	})
+	g.GET("/heap", echo.WrapHandler(pprof.Handler("heap")))
+	g.GET("/goroutine", echo.WrapHandler(pprof.Handler("goroutine")))
+	g.GET("/block", echo.WrapHandler(pprof.Handler("block")))
+	g.GET("/threadcreate", echo.WrapHandler(pprof.Handler("threadcreate")))
 	g.GET("/cmdline", func(ctx echo.Context) error {
 		pprof.Cmdline(ctx.Response().Writer, ctx.Request())
 		return nil
@@ -146,8 +134,5 @@ func (s *Server) debugPprof(g *echo.Group) {
 		pprof.Trace(ctx.Response().Writer, ctx.Request())
 		return nil
 	})
-	g.GET("/mutex", func(ctx echo.Context) error {
-		pprof.Handler("mutex").ServeHTTP(ctx.Response().Writer, ctx.Request())
-		return nil
-	})
+	g.GET("/mutex", echo.WrapHandler(pprof.Handler("mutex")))
 }
