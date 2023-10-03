@@ -52,7 +52,7 @@ func Init(opts Options) error {
 		encoder = zapcore.NewConsoleEncoder(cfg)
 	}
 
-	lvl, err := zapLevel(opts.level)
+	lvl, err := zapcore.ParseLevel(opts.level)
 	if err != nil {
 		return fmt.Errorf("log level error: %v", err)
 	}
@@ -73,25 +73,10 @@ func Sync() {
 }
 
 func ChangeLevel(level string) error {
-	lvl, err := zapLevel(level)
+	lvl, err := zapcore.ParseLevel(level)
 	if err != nil {
 		return err
 	}
 	atomicLevel.SetLevel(lvl)
 	return nil
-}
-
-func zapLevel(level string) (zapcore.Level, error) {
-	switch level {
-	case LevelDebug:
-		return zapcore.DebugLevel, nil
-	case LevelInfo:
-		return zapcore.InfoLevel, nil
-	case LevelWarn:
-		return zapcore.WarnLevel, nil
-	case LevelError:
-		return zapcore.ErrorLevel, nil
-	default:
-		return zap.ErrorLevel, fmt.Errorf("invalid log level: %q", level)
-	}
 }
