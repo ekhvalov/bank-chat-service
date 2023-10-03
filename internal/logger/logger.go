@@ -1,5 +1,7 @@
 package logger
 
+//go:generate options-gen -out-filename=logger_options.gen.go -from-struct=Options
+
 import (
 	"errors"
 	"fmt"
@@ -11,7 +13,17 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-//go:generate options-gen -out-filename=logger_options.gen.go -from-struct=Options
+const (
+	LevelDebug = "debug"
+	LevelInfo  = "info"
+	LevelWarn  = "warn"
+	LevelError = "error"
+)
+
+var Levels = []string{LevelDebug, LevelInfo, LevelWarn, LevelError}
+
+var atomicLevel zap.AtomicLevel
+
 type Options struct {
 	level          string `option:"mandatory" validate:"required,oneof=debug info warn error"`
 	productionMode bool
@@ -40,8 +52,13 @@ func Init(opts Options) error {
 		encoder = zapcore.NewConsoleEncoder(cfg)
 	}
 
+	lvl, err := zapLevel(opts.level)
+	if err != nil {
+		return fmt.Errorf("log level error: %v", err)
+	}
+	atomicLevel = zap.NewAtomicLevelAt(lvl)
 	cores := []zapcore.Core{
-		zapcore.NewCore(encoder, os.Stdout, level(opts)),
+		zapcore.NewCore(encoder, os.Stdout, atomicLevel),
 	}
 	l := zap.New(zapcore.NewTee(cores...))
 	zap.ReplaceGlobals(l)
@@ -55,15 +72,26 @@ func Sync() {
 	}
 }
 
-func level(options Options) zapcore.Level {
-	switch options.level {
-	case "debug":
-		return zapcore.DebugLevel
-	case "info":
-		return zapcore.InfoLevel
-	case "warn":
-		return zapcore.WarnLevel
+func ChangeLevel(level string) error {
+	lvl, err := zapLevel(level)
+	if err != nil {
+		return err
+	}
+	atomicLevel.SetLevel(lvl)
+	return nil
+}
+
+func zapLevel(level string) (zapcore.Level, error) {
+	switch level {
+	case LevelDebug:
+		return zapcore.DebugLevel, nil
+	case LevelInfo:
+		return zapcore.InfoLevel, nil
+	case LevelWarn:
+		return zapcore.WarnLevel, nil
+	case LevelError:
+		return zapcore.ErrorLevel, nil
 	default:
-		return zapcore.ErrorLevel
+		return zap.ErrorLevel, fmt.Errorf("invalid log level: %q", level)
 	}
 }

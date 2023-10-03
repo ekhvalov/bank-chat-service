@@ -30,6 +30,7 @@ linters-settings:
           - $gostd
           - github.com/ekhvalov/bank-chat-service
           - github.com/kazhuravlev/options-gen
+          - github.com/labstack/echo/v4
           - github.com/go-playground/validator
           - github.com/BurntSushi/toml
       test:

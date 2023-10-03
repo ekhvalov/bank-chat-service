@@ -1,5 +1,11 @@
 package config
 
+const (
+	EnvProd  = "prod"
+	EnvDev   = "dev"
+	EnvStage = "stage"
+)
+
 type Config struct {
 	Global  GlobalConfig  `toml:"global"`
 	Log     LogConfig     `toml:"log"`
