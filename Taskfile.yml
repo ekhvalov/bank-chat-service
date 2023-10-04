@@ -4,6 +4,11 @@ version: '3'
 silent: true
 
 vars:
+  DOCKER_COMPOSE_FILES: |-
+    ./deploy/local/docker-compose.yml
+  DOCKER_COMPOSE_CMD: |-
+    docker compose {{range $file := .DOCKER_COMPOSE_FILES | splitLines -}} -f {{$file}} {{end}}
+
   GO_MODULE: github.com/ekhvalov/bank-chat-service
   GO_FILES:
     sh: find . -type f -name '*.go' -not -path "./vendor/*" -not -path "*.gen.go" | tr "\n" " "
@@ -17,6 +22,9 @@ vars:
   TOOLS_DIR:
     sh: echo "$(pwd)/tools/bin"
 
+env:
+  COMPOSE_PROJECT_NAME: bankchat
+
 tasks:
   default:
     cmds:
@@ -25,6 +33,37 @@ tasks:
       - task: lint
       - task: tests
       - task: build
+
+  deps:
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} up -d"
+
+  deps:cmd:
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} {{.CLI_ARGS}}"
+
+  deps:status:
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} ps -a"
+
+  deps:logs:
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} logs {{.CLI_ARGS}}"
+
+  deps:stop:
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} stop"
+
+  deps:reset-psql:
+    cmds:
+      - task: deps:reset
+        vars:
+          SERVICE: postgres
+
+  deps:reset:
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} rm -fsv {{.SERVICE}}"
+      - "{{.DOCKER_COMPOSE_CMD}} up -d {{.SERVICE}}"
 
   tidy:
     - echo "- Tidy"
