@@ -5,9 +5,10 @@ silent: true
 
 vars:
   DOCKER_COMPOSE_FILES: |-
-    ./deploy/local/docker-compose.yml
+    docker-compose.yml
+    docker-compose.sentry.yml
   DOCKER_COMPOSE_CMD: |-
-    docker compose {{range $file := .DOCKER_COMPOSE_FILES | splitLines -}} -f {{$file}} {{end}}
+    docker compose {{range $file := .DOCKER_COMPOSE_FILES | splitLines -}} -f ./deploy/local/{{$file}} {{end}}
 
   GO_MODULE: github.com/ekhvalov/bank-chat-service
   GO_FILES:
@@ -64,6 +65,17 @@ tasks:
     cmds:
       - "{{.DOCKER_COMPOSE_CMD}} rm -fsv {{.SERVICE}}"
       - "{{.DOCKER_COMPOSE_CMD}} up -d {{.SERVICE}}"
+
+  deps:sentry-key:
+    dir: ./deploy/local # TODO: duplication
+    cmds:
+      - 'echo "SENTRY_SECRET_KEY=\"{{.SENTRY_KEY}}\"" >> .env'
+    vars:
+      SENTRY_KEY:
+        sh: docker run --rm --quiet sentry:9.1.2 config generate-secret-key
+    status:
+      - test -f .env
+      - grep SENTRY_SECRET_KEY .env
 
   tidy:
     - echo "- Tidy"

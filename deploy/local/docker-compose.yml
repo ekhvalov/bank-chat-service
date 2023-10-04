@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:14-alpine
     environment:
       POSTGRES_DB: chat-service
       POSTGRES_USER: chat-service
@@ -10,8 +10,13 @@ services:
       PGDATA: /var/lib/postgresql/data
     volumes:
       - postgresql-data:/var/lib/postgresql
+      - ./sentry-init.sql:/docker-entrypoint-initdb.d/sentry-init.sql
     ports:
       - "127.0.0.1:5432:5432"
+
+  redis:
+    image: redis:7.2-alpine
+
 
 volumes:
   postgresql-data:
