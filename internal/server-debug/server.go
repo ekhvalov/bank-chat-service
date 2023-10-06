@@ -57,10 +57,12 @@ func New(opts Options) (*Server, error) {
 	index.addPage("/version", "Get build information")
 	index.addPage("/debug/pprof/", "Go std profiler")
 	index.addPage("/debug/pprof/profile?seconds=30", "Take half-min profile")
+	index.addPage("/debug/error", "Test log error")
 
 	e.PUT("/log/level", s.logLevel)
 
 	s.debugPprof(e.Group("/debug/pprof"))
+	e.GET("/debug/error", s.debugError)
 
 	e.GET("/", index.handler)
 	return s, nil
@@ -135,4 +137,9 @@ func (s *Server) debugPprof(g *echo.Group) {
 		return nil
 	})
 	g.GET("/mutex", echo.WrapHandler(pprof.Handler("mutex")))
+}
+
+func (s *Server) debugError(eCtx echo.Context) error {
+	s.lg.Error("test error")
+	return eCtx.String(http.StatusOK, "OK")
 }

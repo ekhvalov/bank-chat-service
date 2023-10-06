@@ -62,6 +62,8 @@ func run() (errReturned error) {
 func initLogger(cfg config.Config) {
 	logger.MustInit(logger.NewOptions(
 		cfg.Log.Level,
+		cfg.Global.Env,
 		logger.WithProductionMode(cfg.Global.IsProduction()),
+		logger.WithSentryDSN(cfg.Sentry.DSN),
 	))
 }

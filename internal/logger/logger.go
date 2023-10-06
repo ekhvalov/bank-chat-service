@@ -9,8 +9,11 @@ import (
 	"os"
 	"syscall"
 
+	"github.com/TheZeroSlave/zapsentry"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/ekhvalov/bank-chat-service/internal/buildinfo"
 )
 
 const (
@@ -26,6 +29,8 @@ var atomicLevel zap.AtomicLevel
 
 type Options struct {
 	level          string `option:"mandatory" validate:"required,oneof=debug info warn error"`
+	env            string `option:"mandatory" validate:"required,oneof=dev stage prod"`
+	sentryDSN      string `validate:"omitempty,http_url"`
 	productionMode bool
 }
 
@@ -59,6 +64,20 @@ func Init(opts Options) error {
 	atomicLevel = zap.NewAtomicLevelAt(lvl)
 	cores := []zapcore.Core{
 		zapcore.NewCore(encoder, os.Stdout, atomicLevel),
+	}
+	if opts.sentryDSN != "" {
+		sCfg := zapsentry.Configuration{
+			Level: zapcore.WarnLevel,
+		}
+		client, errSentry := NewSentryClient(opts.sentryDSN, opts.env, buildinfo.BuildInfo.Main.Version)
+		if errSentry != nil {
+			return fmt.Errorf("sentry client: %v", errSentry)
+		}
+		core, errCore := zapsentry.NewCore(sCfg, zapsentry.NewSentryClientFromClient(client))
+		if errCore != nil {
+			return fmt.Errorf("zapsentry create core: %v", errCore)
+		}
+		cores = append(cores, core)
 	}
 	l := zap.New(zapcore.NewTee(cores...))
 	zap.ReplaceGlobals(l)
