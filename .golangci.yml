@@ -28,10 +28,12 @@ linters-settings:
           - "!$test"
         allow:
           - $gostd
+          - entgo.io/ent/schema/field
           - github.com/ekhvalov/bank-chat-service
           - github.com/getsentry/sentry-go
           - github.com/kazhuravlev/options-gen
           - github.com/labstack/echo/v4
+          - github.com/google/uuid
           - github.com/go-playground/validator
           - github.com/BurntSushi/toml
           - github.com/TheZeroSlave/zapsentry
@@ -40,7 +42,9 @@ linters-settings:
           - $test
         allow:
           - $gostd
+          - entgo.io/ent/schema/field
           - github.com/ekhvalov/bank-chat-service
+          - github.com/google/uuid
           - github.com/stretchr/testify
           - go.uber.org/mock
           - go.uber.org/zap

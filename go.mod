@@ -3,13 +3,16 @@ module github.com/ekhvalov/bank-chat-service
 go 1.20
 
 require (
+	entgo.io/ent v0.12.4
 	github.com/BurntSushi/toml v1.3.2
 	github.com/TheZeroSlave/zapsentry v1.18.0
 	github.com/getsentry/sentry-go v0.20.0
 	github.com/go-playground/validator/v10 v10.15.4
+	github.com/google/uuid v1.3.0
 	github.com/kazhuravlev/options-gen v0.28.3
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/stretchr/testify v1.8.2
+	go.uber.org/mock v0.3.0
 	go.uber.org/zap v1.26.0
 	golang.org/x/sync v0.3.0
 )
