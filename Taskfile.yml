@@ -10,9 +10,11 @@ vars:
   DOCKER_COMPOSE_CMD: |-
     docker compose {{range $file := .DOCKER_COMPOSE_FILES | splitLines -}} -f ./deploy/local/{{$file}} {{end}}
 
+  ENT_SCHEMA: ./internal/store/schema
+
   GO_MODULE: github.com/ekhvalov/bank-chat-service
   GO_FILES:
-    sh: find . -type f -name '*.go' -not -path "./vendor/*" -not -path "*.gen.go" | tr "\n" " "
+    sh: find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./internal/store/*" -not -path "*.gen.go" | tr "\n" " "
 
   GOLANGCI_LINT_VERSION: "1.54.2"
   GOLANGCI_LINT_URL: "https://github.com/golangci/golangci-lint/releases/download/v{{.GOLANGCI_LINT_VERSION}}"
@@ -116,6 +118,7 @@ tasks:
       - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/logger'
       - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/server-debug'
       - task: gen:types
+      - task: ent:gen
 
   gen:types:
     vars:
@@ -130,18 +133,30 @@ tasks:
       - echo "Generate types..."
       - 'go run ./cmd/gen-types {{.TYPES_PKG}} {{.TYPES | splitLines | join "," }} {{.TYPES_DST}}'
 
+  ent:new:
+    cmds:
+      - "{{.TOOLS_DIR}}/ent new --target {{.ENT_SCHEMA}} {{.CLI_ARGS}}"
+      - task: tidy
+
+  ent:gen:
+    cmds:
+      - "{{.TOOLS_DIR}}/ent generate {{.ENT_SCHEMA}}"
+      - task: tidy
+
   dev-tools:install:
     vars:
       DEV_TOOLS: |
         github.com/daixiang0/gci@v0.11.2
         github.com/kazhuravlev/options-gen/cmd/options-gen@v0.30.0
         mvdan.cc/gofumpt@v0.5.0
+        entgo.io/ent/cmd/ent@v0.12.4
     cmds:
       - echo "- Install dev tools"
       - mkdir -p "{{.TOOLS_DIR}}"
       - for: { var: DEV_TOOLS }
         cmd: GOBIN="{{.TOOLS_DIR}}" go install "{{ .ITEM }}"
       - task: golangci:install
+      - task: tidy
 
   golangci:install:
     dir: "{{.TOOLS_DIR}}"
