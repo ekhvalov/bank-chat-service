@@ -23,14 +23,6 @@ vars:
   TOOLS_DIR:
     sh: echo "$(pwd)/tools/bin"
 
-  TYPES: |
-    ChatID
-    MessageID
-    ProblemID
-    UserID
-  TYPES_PKG: types
-  TYPES_DST: ./internal/types/types.gen.go
-
 env:
   COMPOSE_PROJECT_NAME: bankchat
 
@@ -126,9 +118,17 @@ tasks:
       - task: gen:types
 
   gen:types:
+    vars:
+      TYPES: |-
+        ChatID
+        MessageID
+        ProblemID
+        UserID
+      TYPES_PKG: types
+      TYPES_DST: ./internal/types/types.gen.go
     cmds:
       - echo "Generate types..."
-      - go run ./cmd/gen-types types ChatID,MessageID ./internal/types/types.gen.go
+      - 'go run ./cmd/gen-types {{.TYPES_PKG}} {{.TYPES | splitLines | join "," }} {{.TYPES_DST}}'
 
   dev-tools:install:
     vars:

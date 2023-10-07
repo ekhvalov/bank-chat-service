@@ -6,15 +6,16 @@ func headerTemplate() *template.Template {
 	text := `package {{.package}}
 
 import (
+	"database/sql/driver"
 	"errors"
 	"fmt"
 
-	"database/sql/driver"
 	"github.com/google/uuid"
 )
 
 var (
 	ErrParse     = errors.New("parse error")
+	ErrScan      = errors.New("scan error")
 	ErrMarshal   = errors.New("marshal error")
 	ErrUnmarshal = errors.New("unmarshal error")
 	ErrInvalid   = errors.New("invalid value")
@@ -43,9 +44,7 @@ func bodyTemplate() *template.Template {
 	text := `
 type {{.}} uuid.UUID
 
-var (
-	{{.}}Nil = {{.}}(uuid.Nil)
-)
+var {{.}}Nil = {{.}}(uuid.Nil)
 
 func New{{.}}() {{.}} {
 	return {{.}}(uuid.New())
@@ -73,9 +72,14 @@ func (c {{.}}) Value() (driver.Value, error) {
 	return c.String(), nil
 }
 
-func (c {{.}}) Scan(src any) error {
-	u := uuid.UUID(c)
-	return u.Scan(src)
+func (c *{{.}}) Scan(src any) error {
+	u := uuid.UUID(*c)
+	err := u.Scan(src)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrScan, err)
+	}
+	*c = {{.}}(u)
+	return nil
 }
 
 func (c {{.}}) Validate() error {
