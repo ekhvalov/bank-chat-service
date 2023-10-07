@@ -140,7 +140,7 @@ tasks:
 
   ent:gen:
     cmds:
-      - "{{.TOOLS_DIR}}/ent generate {{.ENT_SCHEMA}}"
+      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/store'
       - task: tidy
 
   dev-tools:install:
