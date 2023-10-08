@@ -1,11 +1,15 @@
 run:
   tests: true
-  build-tags: [ ] # Ждёт своего часа.
+  build-tags:
+    - integration
   skip-dirs:
     - internal/store/*
 
 issues:
   max-same-issues: 0
+  exclude-rules:
+    - path: internal/clients/keycloak
+      linters: [ tagliatelle ]
 
 # https://golangci-lint.run/usage/linters/
 linters-settings:
@@ -36,6 +40,9 @@ linters-settings:
           - github.com/labstack/echo/v4
           - github.com/google/uuid
           - github.com/go-playground/validator
+          - github.com/go-resty/resty/v2
+          - github.com/kelseyhightower/envconfig
+          - github.com/stretchr/testify
           - github.com/BurntSushi/toml
           - github.com/TheZeroSlave/zapsentry
       test:

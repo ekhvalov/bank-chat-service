@@ -108,6 +108,20 @@ tasks:
       - echo "- Tests"
       - go test -race ./...
 
+  tests:integration:
+    # Create file '.env' to provide environment variables listed below, and replace values with yours.
+    # TEST_LOG_LEVEL=info
+    # TEST_KEYCLOAK_BASE_PATH="http://localhost:3010"
+    # TEST_KEYCLOAK_REALM=Bank
+    # TEST_KEYCLOAK_CLIENT_ID=integration-testing
+    # TEST_KEYCLOAK_CLIENT_SECRET=ku3uEwc7nVGlzcidXfdAz1nBYJMfIjKt
+    # TEST_KEYCLOAK_TEST_USER=integration-testing
+    # TEST_KEYCLOAK_TEST_PASSWORD=password
+    dotenv: [".env"]
+    cmds:
+      - echo "- Integration tests"
+      - go test -tags integration -count 1 -race ./...
+
   build:
     cmds:
       - echo "- Build"
@@ -115,6 +129,7 @@ tasks:
 
   generate:
     cmds:
+      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/clients/keycloak'
       - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/logger'
       - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/server-debug'
       - task: gen:types
