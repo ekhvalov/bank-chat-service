@@ -183,3 +183,16 @@ tasks:
       - rm -f "{{.GOLANGCI_LINT_ARCHIVE_FILE}}" "{{.GOLANGCI_LINT_CHECKSUMS_FILE}}"
     status:
       - test -f "golangci-lint"
+
+  kc:export:
+    vars:
+      KEYCLOAK_REALM: Bank
+      KEYCLOAK_REALM_FILE: "./deploy/local/keycloak-{{.KEYCLOAK_REALM}}-realm.json"
+    cmds:
+      - |
+        {{.DOCKER_COMPOSE_CMD}} exec keycloak /opt/keycloak/bin/kc.sh export \
+          --realm {{.KEYCLOAK_REALM}} \
+          --users same_file \
+          --log file \
+          --log-file /dev/stderr \
+          --file /dev/stdout > {{.KEYCLOAK_REALM_FILE}}
