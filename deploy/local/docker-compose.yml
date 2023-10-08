@@ -10,13 +10,30 @@ services:
       PGDATA: /var/lib/postgresql/data
     volumes:
       - postgresql-data:/var/lib/postgresql
-      - ./sentry-init.sql:/docker-entrypoint-initdb.d/sentry-init.sql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "127.0.0.1:5432:5432"
 
   redis:
     image: redis:7.2-alpine
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.4
+    depends_on:
+      - postgres
+    command:
+      - start-dev
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres
+      DB_SCHEMA: public
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: keycloak
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "127.0.0.1:3010:8080"
 
 volumes:
   postgresql-data:
