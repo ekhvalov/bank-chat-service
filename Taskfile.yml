@@ -7,6 +7,7 @@ vars:
   DOCKER_COMPOSE_FILES: |-
     docker-compose.yml
     docker-compose.sentry.yml
+    docker-compose.swagger-ui.yml
   DOCKER_COMPOSE_CMD: |-
     docker compose {{range $file := .DOCKER_COMPOSE_FILES | splitLines -}} -f ./deploy/local/{{$file}} {{end}}
 
@@ -134,6 +135,7 @@ tasks:
       - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/server-debug'
       - task: gen:types
       - task: ent:gen
+      - task: gen:api
 
   gen:types:
     vars:
@@ -142,11 +144,21 @@ tasks:
         MessageID
         ProblemID
         UserID
+        RequestID
       TYPES_PKG: types
       TYPES_DST: ./internal/types/types.gen.go
     cmds:
       - echo "Generate types..."
       - 'go run ./cmd/gen-types {{.TYPES_PKG}} {{.TYPES | splitLines | join "," }} {{.TYPES_DST}}'
+
+  gen:api:
+    vars:
+      CLIENT_V1_SRC: ./api/client.v1.swagger.yml
+      CLIENT_V1_DST: ./internal/server-client/v1/server.gen.go
+      CLIENT_V1_PKG: clientv1
+    cmds:
+      - "{{.TOOLS_DIR}}/oapi-codegen -generate types,server,spec -package {{.CLIENT_V1_PKG}} {{.CLIENT_V1_SRC}} > {{.CLIENT_V1_DST}}"
+
 
   ent:new:
     cmds:
@@ -162,6 +174,7 @@ tasks:
     vars:
       DEV_TOOLS: |
         github.com/daixiang0/gci@v0.11.2
+        github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.15.0
         github.com/kazhuravlev/options-gen/cmd/options-gen@v0.30.0
         mvdan.cc/gofumpt@v0.5.0
         entgo.io/ent/cmd/ent@v0.12.4

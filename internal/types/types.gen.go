@@ -17,7 +17,7 @@ var (
 	ErrInvalid   = errors.New("invalid value")
 )
 
-func Parse[T ChatID | MessageID | ProblemID | UserID](id string) (T, error) {
+func Parse[T ChatID | MessageID | ProblemID | UserID | RequestID](id string) (T, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return T(uuid.Nil), fmt.Errorf("%w: %v", ErrParse, err)
@@ -25,7 +25,7 @@ func Parse[T ChatID | MessageID | ProblemID | UserID](id string) (T, error) {
 	return T(uid), nil
 }
 
-func MustParse[T ChatID | MessageID | ProblemID | UserID](id string) T {
+func MustParse[T ChatID | MessageID | ProblemID | UserID | RequestID](id string) T {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		panic(fmt.Errorf("%w: %v", ErrParse, err))
@@ -271,4 +271,64 @@ func (c UserID) String() string {
 
 func (c UserID) IsZero() bool {
 	return c == UserIDNil
+}
+
+type RequestID uuid.UUID
+
+var RequestIDNil = RequestID(uuid.Nil)
+
+func NewRequestID() RequestID {
+	return RequestID(uuid.New())
+}
+
+func (c RequestID) MarshalText() (text []byte, err error) {
+	text, err = uuid.UUID(c).MarshalText()
+	if err != nil {
+		err = fmt.Errorf("%w: %v", ErrMarshal, err)
+		return nil, err
+	}
+	return text, nil
+}
+
+func (c *RequestID) UnmarshalText(text []byte) error {
+	uid, err := uuid.ParseBytes(text)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrUnmarshal, err)
+	}
+	*c = RequestID(uid)
+	return nil
+}
+
+func (c RequestID) Value() (driver.Value, error) {
+	return c.String(), nil
+}
+
+func (c *RequestID) Scan(src any) error {
+	u := uuid.UUID(*c)
+	err := u.Scan(src)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrScan, err)
+	}
+	*c = RequestID(u)
+	return nil
+}
+
+func (c RequestID) Validate() error {
+	if c.IsZero() {
+		return fmt.Errorf("%w: %v", ErrInvalid, c)
+	}
+	return nil
+}
+
+func (c RequestID) Matches(x interface{}) bool {
+	return c == x
+}
+
+// String describes what the matcher matches.
+func (c RequestID) String() string {
+	return uuid.UUID(c).String()
+}
+
+func (c RequestID) IsZero() bool {
+	return c == RequestIDNil
 }
