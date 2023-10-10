@@ -118,7 +118,7 @@ tasks:
     # TEST_KEYCLOAK_CLIENT_SECRET=ku3uEwc7nVGlzcidXfdAz1nBYJMfIjKt
     # TEST_KEYCLOAK_TEST_USER=integration-testing
     # TEST_KEYCLOAK_TEST_PASSWORD=password
-    dotenv: [".env"]
+    dotenv: [ ".env" ]
     cmds:
       - echo "- Integration tests"
       - go test -tags integration -count 1 -race ./...
@@ -130,9 +130,7 @@ tasks:
 
   generate:
     cmds:
-      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/clients/keycloak'
-      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/logger'
-      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/server-debug'
+      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate ./...'
       - task: gen:types
       - task: ent:gen
       - task: gen:api
