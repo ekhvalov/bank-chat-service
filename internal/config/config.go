@@ -1,5 +1,7 @@
 package config
 
+// Documentation https://pkg.go.dev/github.com/go-playground/validator/v10
+
 type Config struct {
 	Global  GlobalConfig  `toml:"global"`
 	Log     LogConfig     `toml:"log"`
@@ -20,7 +22,13 @@ type LogConfig struct {
 }
 
 type ServersConfig struct {
-	Debug DebugServerConfig `toml:"debug"`
+	Client ClientServerConfig `toml:"client"`
+	Debug  DebugServerConfig  `toml:"debug"`
+}
+
+type ClientServerConfig struct {
+	Addr         string   `toml:"addr" validate:"required,hostname_port"`
+	AllowOrigins []string `toml:"allow_origins" validate:"dive,required,url"`
 }
 
 type DebugServerConfig struct {

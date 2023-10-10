@@ -13,6 +13,7 @@ import (
 
 	"github.com/ekhvalov/bank-chat-service/internal/config"
 	"github.com/ekhvalov/bank-chat-service/internal/logger"
+	clientv1 "github.com/ekhvalov/bank-chat-service/internal/server-client/v1"
 	serverdebug "github.com/ekhvalov/bank-chat-service/internal/server-debug"
 )
 
@@ -43,10 +44,21 @@ func run() (errReturned error) {
 		return fmt.Errorf("init debug server: %v", err)
 	}
 
+	swagger, err := clientv1.GetSwagger()
+	if err != nil {
+		return fmt.Errorf("get swagger: %v", err)
+	}
+
+	srvClient, err := initServerClient(cfg.Servers.Client.Addr, cfg.Servers.Client.AllowOrigins, swagger)
+	if err != nil {
+		return fmt.Errorf("init client server: %v", err)
+	}
+
 	eg, ctx := errgroup.WithContext(ctx)
 
 	// Run servers.
 	eg.Go(func() error { return srvDebug.Run(ctx) })
+	eg.Go(func() error { return srvClient.Run(ctx) })
 
 	// Run services.
 	// Ждут своего часа.
