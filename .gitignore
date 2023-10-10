@@ -1,0 +1,4 @@
+.idea/
+.env
+configs/config.toml
+tools/
