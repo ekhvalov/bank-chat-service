@@ -22,26 +22,9 @@ linters-settings:
 
   depguard:
     rules:
-      main:
-        files:
-          - $all
-          - "!$test"
-        allow:
-          - $gostd
-          - github.com/ekhvalov/bank-chat-service
-          - github.com/kazhuravlev/options-gen
-          - github.com/labstack/echo/v4
-          - github.com/go-playground/validator
-          - github.com/BurntSushi/toml
       test:
         files:
           - $test
-        allow:
-          - $gostd
-          - github.com/ekhvalov/bank-chat-service
-          - github.com/stretchr/testify
-          - go.uber.org/mock
-          - go.uber.org/zap
         deny:
           - pkg: github.com/golang/mock
             desc: Should be replaced by go.uber.org/mock
