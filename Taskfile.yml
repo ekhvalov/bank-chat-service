@@ -62,8 +62,7 @@ tasks:
 
   generate:
     cmds:
-      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/logger'
-      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/server-debug'
+      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate ./...'
 
   dev-tools:install:
     vars:
