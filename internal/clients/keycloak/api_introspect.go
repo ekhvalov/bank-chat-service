@@ -10,63 +10,25 @@ import (
 )
 
 type IntrospectTokenResult struct {
-	Exp    int      `json:"exp"`
-	Iat    int      `json:"iat"`
-	Aud    []string `json:"aud"`
-	Active bool     `json:"active"`
+	Exp    int  `json:"exp"`
+	Iat    int  `json:"iat"`
+	Aud    aud  `json:"aud"`
+	Active bool `json:"active"`
 }
 
-func (i *IntrospectTokenResult) UnmarshalJSON(p []byte) error {
-	var tmp map[string]interface{}
-	if err := json.Unmarshal(p, &tmp); err != nil {
+type aud []string
+
+func (a *aud) UnmarshalJSON(data []byte) error {
+	var s string
+	if nil == json.Unmarshal(data, &s) {
+		*a = []string{s}
+		return nil
+	}
+	var ss []string
+	if err := json.Unmarshal(data, &ss); err != nil {
 		return err
 	}
-	if val, ok := tmp["exp"]; ok {
-		switch v := val.(type) {
-		case float64:
-			i.Exp = int(v)
-		case float32:
-			i.Exp = int(v)
-		case int:
-			i.Exp = v
-		case int64:
-			i.Exp = int(v)
-		case int32:
-			i.Exp = int(v)
-		}
-	}
-	if val, ok := tmp["iat"]; ok {
-		switch v := val.(type) {
-		case float64:
-			i.Iat = int(v)
-		case float32:
-			i.Iat = int(v)
-		case int:
-			i.Iat = v
-		case int64:
-			i.Iat = int(v)
-		case int32:
-			i.Iat = int(v)
-		}
-	}
-	if val, ok := tmp["active"]; ok {
-		if v, ok := val.(bool); ok {
-			i.Active = v
-		}
-	}
-	if val, ok := tmp["aud"]; ok {
-		switch v := val.(type) {
-		case string:
-			i.Aud = []string{v}
-		case []interface{}:
-			for _, vv := range v {
-				if vvv, ok := vv.(string); ok {
-					i.Aud = append(i.Aud, vvv)
-				}
-			}
-		}
-	}
-
+	*a = ss
 	return nil
 }
 
