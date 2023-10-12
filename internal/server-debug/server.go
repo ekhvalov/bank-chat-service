@@ -42,7 +42,10 @@ func New(opts Options) (*Server, error) {
 	lg := zap.L().Named("server-debug")
 
 	e := echo.New()
-	e.Use(middlewares.NewRecover(lg))
+	e.Use(
+		middlewares.NewLogger(lg),
+		middlewares.NewRecover(lg),
+	)
 
 	s := &Server{
 		lg: lg,
