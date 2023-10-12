@@ -41,7 +41,7 @@ type ServersConfig struct {
 
 type ClientServerConfig struct {
 	Addr           string               `toml:"addr" validate:"required,hostname_port"`
-	AllowOrigins   []string             `toml:"allow_origins" validate:"dive,required,url"`
+	AllowOrigins   []string             `toml:"allow_origins" validate:"dive,required,http_url"`
 	RequiredAccess RequiredAccessConfig `toml:"required_access"`
 }
 
