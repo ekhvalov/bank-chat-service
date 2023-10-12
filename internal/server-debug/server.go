@@ -11,12 +11,13 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/ekhvalov/bank-chat-service/internal/buildinfo"
 	"github.com/ekhvalov/bank-chat-service/internal/logger"
+	"github.com/ekhvalov/bank-chat-service/internal/middlewares"
+	clientv1 "github.com/ekhvalov/bank-chat-service/internal/server-client/v1"
 )
 
 const (
@@ -41,7 +42,7 @@ func New(opts Options) (*Server, error) {
 	lg := zap.L().Named("server-debug")
 
 	e := echo.New()
-	e.Use(middleware.Recover())
+	e.Use(middlewares.NewRecover(lg))
 
 	s := &Server{
 		lg: lg,
@@ -58,11 +59,13 @@ func New(opts Options) (*Server, error) {
 	index.addPage("/debug/pprof/", "Go std profiler")
 	index.addPage("/debug/pprof/profile?seconds=30", "Take half-min profile")
 	index.addPage("/debug/error", "Test log error")
+	index.addPage("/schema/client", "Get client OpenAPI specification")
 
 	e.PUT("/log/level", s.logLevel)
 
 	s.debugPprof(e.Group("/debug/pprof"))
 	e.GET("/debug/error", s.debugError)
+	e.GET("/schema/client", s.schemaClient)
 
 	e.GET("/", index.handler)
 	return s, nil
@@ -142,4 +145,12 @@ func (s *Server) debugPprof(g *echo.Group) {
 func (s *Server) debugError(eCtx echo.Context) error {
 	s.lg.Error("test error")
 	return eCtx.String(http.StatusOK, "OK")
+}
+
+func (s *Server) schemaClient(eCtx echo.Context) error {
+	sw, err := clientv1.GetSwagger()
+	if err != nil {
+		return eCtx.String(http.StatusInternalServerError, fmt.Sprintf("get swagger error: %v", err))
+	}
+	return eCtx.JSON(http.StatusOK, sw)
 }
