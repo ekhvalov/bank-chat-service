@@ -17,20 +17,25 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/ekhvalov/bank-chat-service/internal/middlewares"
 	clientv1 "github.com/ekhvalov/bank-chat-service/internal/server-client/v1"
 )
 
 const (
 	readHeaderTimeout = time.Second
 	shutdownTimeout   = 3 * time.Second
+	bodyLimit         = "12KB"
 )
 
 type Options struct {
-	logger       *zap.Logger              `option:"mandatory" validate:"required"`
-	addr         string                   `option:"mandatory" validate:"required,hostname_port"`
-	allowOrigins []string                 `option:"mandatory" validate:"min=1"`
-	v1Swagger    *openapi3.T              `option:"mandatory" validate:"required"`
-	v1Handlers   clientv1.ServerInterface `option:"mandatory" validate:"required"`
+	addr           string                   `option:"mandatory" validate:"required,hostname_port"`
+	allowOrigins   []string                 `option:"mandatory" validate:"min=1"`
+	accessResource string                   `option:"mandatory" validate:"required"`
+	accessRole     string                   `option:"mandatory" validate:"required"`
+	logger         *zap.Logger              `option:"mandatory" validate:"required"`
+	v1Swagger      *openapi3.T              `option:"mandatory" validate:"required"`
+	v1Handlers     clientv1.ServerInterface `option:"mandatory" validate:"required"`
+	introspector   middlewares.Introspector `option:"mandatory" validate:"required"`
 }
 
 type Server struct {
@@ -45,11 +50,18 @@ func New(opts Options) (*Server, error) {
 
 	e := echo.New()
 	e.Use(
-		middleware.Recover(),
+		middleware.BodyLimit(bodyLimit),
+		middlewares.NewRecover(opts.logger),
+		middlewares.NewLogger(opts.logger),
 		middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins: opts.allowOrigins,
 			AllowMethods: []string{http.MethodPost},
 		}),
+		middlewares.NewKeycloakTokenAuth(
+			opts.introspector,
+			opts.accessResource,
+			opts.accessRole,
+		),
 	)
 
 	v1 := e.Group("v1", oapimdlwr.OapiRequestValidatorWithOptions(opts.v1Swagger, &oapimdlwr.Options{
@@ -62,7 +74,7 @@ func New(opts Options) (*Server, error) {
 	clientv1.RegisterHandlers(v1, opts.v1Handlers)
 
 	s := &Server{
-		lg: zap.L().Named("server-client"),
+		lg: opts.logger,
 		srv: &http.Server{
 			Addr:              opts.addr,
 			Handler:           e,

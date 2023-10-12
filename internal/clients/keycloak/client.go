@@ -13,6 +13,7 @@ type Options struct {
 	realm     string `option:"mandatory" validate:"required"`
 	username  string `option:"mandatory" validate:"required"`
 	password  string `option:"mandatory" validate:"required"`
+	userAgent string `validate:"required"`
 	debugMode bool
 }
 
@@ -33,6 +34,9 @@ func New(opts Options) (*Client, error) {
 	cli := resty.New()
 	cli.SetDebug(opts.debugMode)
 	cli.SetBaseURL(opts.basePath)
+	if opts.userAgent != "" {
+		cli.Header.Set("User-Agent", opts.userAgent)
+	}
 
 	return &Client{
 		username: opts.username,

@@ -6,6 +6,8 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"go.uber.org/zap"
 
+	keycloakclient "github.com/ekhvalov/bank-chat-service/internal/clients/keycloak"
+	"github.com/ekhvalov/bank-chat-service/internal/config"
 	serverclient "github.com/ekhvalov/bank-chat-service/internal/server-client"
 	clientv1 "github.com/ekhvalov/bank-chat-service/internal/server-client/v1"
 )
@@ -13,9 +15,9 @@ import (
 const nameServerClient = "server-client"
 
 func initServerClient(
-	addr string,
-	allowOrigins []string,
+	cfg config.ClientServerConfig,
 	v1Swagger *openapi3.T,
+	client *keycloakclient.Client,
 ) (*serverclient.Server, error) {
 	lg := zap.L().Named(nameServerClient)
 
@@ -25,11 +27,14 @@ func initServerClient(
 	}
 
 	srv, err := serverclient.New(serverclient.NewOptions(
+		cfg.Addr,
+		cfg.AllowOrigins,
+		cfg.RequiredAccess.Resource,
+		cfg.RequiredAccess.Role,
 		lg,
-		addr,
-		allowOrigins,
 		v1Swagger,
 		v1Handlers,
+		client,
 	))
 	if err != nil {
 		return nil, fmt.Errorf("build server: %v", err)

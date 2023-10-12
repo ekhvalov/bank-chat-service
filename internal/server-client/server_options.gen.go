@@ -4,6 +4,7 @@ package serverclient
 import (
 	fmt461e464ebed9 "fmt"
 
+	"github.com/ekhvalov/bank-chat-service/internal/middlewares"
 	clientv1 "github.com/ekhvalov/bank-chat-service/internal/server-client/v1"
 	"github.com/getkin/kin-openapi/openapi3"
 	errors461e464ebed9 "github.com/kazhuravlev/options-gen/pkg/errors"
@@ -14,22 +15,28 @@ import (
 type OptOptionsSetter func(o *Options)
 
 func NewOptions(
-	logger *zap.Logger,
 	addr string,
 	allowOrigins []string,
+	accessResource string,
+	accessRole string,
+	logger *zap.Logger,
 	v1Swagger *openapi3.T,
 	v1Handlers clientv1.ServerInterface,
+	introspector middlewares.Introspector,
 	options ...OptOptionsSetter,
 ) Options {
 	o := Options{}
 
 	// Setting defaults from field tag (if present)
 
-	o.logger = logger
 	o.addr = addr
 	o.allowOrigins = allowOrigins
+	o.accessResource = accessResource
+	o.accessRole = accessRole
+	o.logger = logger
 	o.v1Swagger = v1Swagger
 	o.v1Handlers = v1Handlers
+	o.introspector = introspector
 
 	for _, opt := range options {
 		opt(&o)
@@ -39,19 +46,15 @@ func NewOptions(
 
 func (o *Options) Validate() error {
 	errs := new(errors461e464ebed9.ValidationErrors)
-	errs.Add(errors461e464ebed9.NewValidationError("logger", _validate_Options_logger(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("addr", _validate_Options_addr(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("allowOrigins", _validate_Options_allowOrigins(o)))
+	errs.Add(errors461e464ebed9.NewValidationError("accessResource", _validate_Options_accessResource(o)))
+	errs.Add(errors461e464ebed9.NewValidationError("accessRole", _validate_Options_accessRole(o)))
+	errs.Add(errors461e464ebed9.NewValidationError("logger", _validate_Options_logger(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("v1Swagger", _validate_Options_v1Swagger(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("v1Handlers", _validate_Options_v1Handlers(o)))
+	errs.Add(errors461e464ebed9.NewValidationError("introspector", _validate_Options_introspector(o)))
 	return errs.AsError()
-}
-
-func _validate_Options_logger(o *Options) error {
-	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.logger, "required"); err != nil {
-		return fmt461e464ebed9.Errorf("field `logger` did not pass the test: %w", err)
-	}
-	return nil
 }
 
 func _validate_Options_addr(o *Options) error {
@@ -68,6 +71,27 @@ func _validate_Options_allowOrigins(o *Options) error {
 	return nil
 }
 
+func _validate_Options_accessResource(o *Options) error {
+	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.accessResource, "required"); err != nil {
+		return fmt461e464ebed9.Errorf("field `accessResource` did not pass the test: %w", err)
+	}
+	return nil
+}
+
+func _validate_Options_accessRole(o *Options) error {
+	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.accessRole, "required"); err != nil {
+		return fmt461e464ebed9.Errorf("field `accessRole` did not pass the test: %w", err)
+	}
+	return nil
+}
+
+func _validate_Options_logger(o *Options) error {
+	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.logger, "required"); err != nil {
+		return fmt461e464ebed9.Errorf("field `logger` did not pass the test: %w", err)
+	}
+	return nil
+}
+
 func _validate_Options_v1Swagger(o *Options) error {
 	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.v1Swagger, "required"); err != nil {
 		return fmt461e464ebed9.Errorf("field `v1Swagger` did not pass the test: %w", err)
@@ -78,6 +102,13 @@ func _validate_Options_v1Swagger(o *Options) error {
 func _validate_Options_v1Handlers(o *Options) error {
 	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.v1Handlers, "required"); err != nil {
 		return fmt461e464ebed9.Errorf("field `v1Handlers` did not pass the test: %w", err)
+	}
+	return nil
+}
+
+func _validate_Options_introspector(o *Options) error {
+	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.introspector, "required"); err != nil {
+		return fmt461e464ebed9.Errorf("field `introspector` did not pass the test: %w", err)
 	}
 	return nil
 }
