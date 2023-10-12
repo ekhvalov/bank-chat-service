@@ -11,6 +11,7 @@ require (
 	github.com/getsentry/sentry-go v0.20.0
 	github.com/go-playground/validator/v10 v10.15.4
 	github.com/go-resty/resty/v2 v2.9.1
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.3.1
 	github.com/kazhuravlev/options-gen v0.28.3
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -35,7 +36,6 @@ require (
 	github.com/go-openapi/swag v0.22.4 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
