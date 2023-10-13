@@ -166,6 +166,7 @@ tasks:
   ent:gen:
     cmds:
       - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/store'
+      - "{{.TOOLS_DIR}}/ent generate --template ./internal/store/templates {{.ENT_SCHEMA}}"
       - task: tidy
 
   dev-tools:install:
