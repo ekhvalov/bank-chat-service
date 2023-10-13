@@ -28,6 +28,18 @@ func init() {
 	chat.DefaultID = chatDescID.Default.(func() types.ChatID)
 	messageFields := schema.Message{}.Fields()
 	_ = messageFields
+	// messageDescIsVisibleForClient is the schema descriptor for is_visible_for_client field.
+	messageDescIsVisibleForClient := messageFields[2].Descriptor()
+	// message.DefaultIsVisibleForClient holds the default value on creation for the is_visible_for_client field.
+	message.DefaultIsVisibleForClient = messageDescIsVisibleForClient.Default.(bool)
+	// messageDescIsVisibleForManager is the schema descriptor for is_visible_for_manager field.
+	messageDescIsVisibleForManager := messageFields[3].Descriptor()
+	// message.DefaultIsVisibleForManager holds the default value on creation for the is_visible_for_manager field.
+	message.DefaultIsVisibleForManager = messageDescIsVisibleForManager.Default.(bool)
+	// messageDescBody is the schema descriptor for body field.
+	messageDescBody := messageFields[4].Descriptor()
+	// message.BodyValidator is a validator for the "body" field. It is called by the builders before save.
+	message.BodyValidator = messageDescBody.Validators[0].(func(string) error)
 	// messageDescCheckedAt is the schema descriptor for checked_at field.
 	messageDescCheckedAt := messageFields[5].Descriptor()
 	// message.DefaultCheckedAt holds the default value on creation for the checked_at field.

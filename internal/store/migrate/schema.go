@@ -23,10 +23,10 @@ var (
 	// MessagesColumns holds the columns for the "messages" table.
 	MessagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "author_id", Type: field.TypeUUID},
-		{Name: "is_visible_for_client", Type: field.TypeBool},
-		{Name: "is_visible_for_manager", Type: field.TypeBool},
-		{Name: "body", Type: field.TypeString, Size: 2147483647},
+		{Name: "author_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "is_visible_for_client", Type: field.TypeBool, Default: false},
+		{Name: "is_visible_for_manager", Type: field.TypeBool, Default: false},
+		{Name: "body", Type: field.TypeString, Size: 12288},
 		{Name: "checked_at", Type: field.TypeTime},
 		{Name: "is_blocked", Type: field.TypeBool},
 		{Name: "is_service", Type: field.TypeBool},
@@ -57,8 +57,8 @@ var (
 	// ProblemsColumns holds the columns for the "problems" table.
 	ProblemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "manager_id", Type: field.TypeUUID},
-		{Name: "resolved_at", Type: field.TypeTime},
+		{Name: "manager_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "resolved_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "chat_problems", Type: field.TypeUUID},
 	}

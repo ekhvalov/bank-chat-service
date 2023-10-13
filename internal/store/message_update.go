@@ -37,9 +37,31 @@ func (mu *MessageUpdate) SetAuthorID(ti types.UserID) *MessageUpdate {
 	return mu
 }
 
+// SetNillableAuthorID sets the "author_id" field if the given value is not nil.
+func (mu *MessageUpdate) SetNillableAuthorID(ti *types.UserID) *MessageUpdate {
+	if ti != nil {
+		mu.SetAuthorID(*ti)
+	}
+	return mu
+}
+
+// ClearAuthorID clears the value of the "author_id" field.
+func (mu *MessageUpdate) ClearAuthorID() *MessageUpdate {
+	mu.mutation.ClearAuthorID()
+	return mu
+}
+
 // SetIsVisibleForClient sets the "is_visible_for_client" field.
 func (mu *MessageUpdate) SetIsVisibleForClient(b bool) *MessageUpdate {
 	mu.mutation.SetIsVisibleForClient(b)
+	return mu
+}
+
+// SetNillableIsVisibleForClient sets the "is_visible_for_client" field if the given value is not nil.
+func (mu *MessageUpdate) SetNillableIsVisibleForClient(b *bool) *MessageUpdate {
+	if b != nil {
+		mu.SetIsVisibleForClient(*b)
+	}
 	return mu
 }
 
@@ -49,9 +71,11 @@ func (mu *MessageUpdate) SetIsVisibleForManager(b bool) *MessageUpdate {
 	return mu
 }
 
-// SetBody sets the "body" field.
-func (mu *MessageUpdate) SetBody(s string) *MessageUpdate {
-	mu.mutation.SetBody(s)
+// SetNillableIsVisibleForManager sets the "is_visible_for_manager" field if the given value is not nil.
+func (mu *MessageUpdate) SetNillableIsVisibleForManager(b *bool) *MessageUpdate {
+	if b != nil {
+		mu.SetIsVisibleForManager(*b)
+	}
 	return mu
 }
 
@@ -72,26 +96,6 @@ func (mu *MessageUpdate) SetNillableCheckedAt(t *time.Time) *MessageUpdate {
 // SetIsBlocked sets the "is_blocked" field.
 func (mu *MessageUpdate) SetIsBlocked(b bool) *MessageUpdate {
 	mu.mutation.SetIsBlocked(b)
-	return mu
-}
-
-// SetIsService sets the "is_service" field.
-func (mu *MessageUpdate) SetIsService(b bool) *MessageUpdate {
-	mu.mutation.SetIsService(b)
-	return mu
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (mu *MessageUpdate) SetCreatedAt(t time.Time) *MessageUpdate {
-	mu.mutation.SetCreatedAt(t)
-	return mu
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (mu *MessageUpdate) SetNillableCreatedAt(t *time.Time) *MessageUpdate {
-	if t != nil {
-		mu.SetCreatedAt(*t)
-	}
 	return mu
 }
 
@@ -192,26 +196,20 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := mu.mutation.AuthorID(); ok {
 		_spec.SetField(message.FieldAuthorID, field.TypeUUID, value)
 	}
+	if mu.mutation.AuthorIDCleared() {
+		_spec.ClearField(message.FieldAuthorID, field.TypeUUID)
+	}
 	if value, ok := mu.mutation.IsVisibleForClient(); ok {
 		_spec.SetField(message.FieldIsVisibleForClient, field.TypeBool, value)
 	}
 	if value, ok := mu.mutation.IsVisibleForManager(); ok {
 		_spec.SetField(message.FieldIsVisibleForManager, field.TypeBool, value)
 	}
-	if value, ok := mu.mutation.Body(); ok {
-		_spec.SetField(message.FieldBody, field.TypeString, value)
-	}
 	if value, ok := mu.mutation.CheckedAt(); ok {
 		_spec.SetField(message.FieldCheckedAt, field.TypeTime, value)
 	}
 	if value, ok := mu.mutation.IsBlocked(); ok {
 		_spec.SetField(message.FieldIsBlocked, field.TypeBool, value)
-	}
-	if value, ok := mu.mutation.IsService(); ok {
-		_spec.SetField(message.FieldIsService, field.TypeBool, value)
-	}
-	if value, ok := mu.mutation.CreatedAt(); ok {
-		_spec.SetField(message.FieldCreatedAt, field.TypeTime, value)
 	}
 	if mu.mutation.ProblemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -297,9 +295,31 @@ func (muo *MessageUpdateOne) SetAuthorID(ti types.UserID) *MessageUpdateOne {
 	return muo
 }
 
+// SetNillableAuthorID sets the "author_id" field if the given value is not nil.
+func (muo *MessageUpdateOne) SetNillableAuthorID(ti *types.UserID) *MessageUpdateOne {
+	if ti != nil {
+		muo.SetAuthorID(*ti)
+	}
+	return muo
+}
+
+// ClearAuthorID clears the value of the "author_id" field.
+func (muo *MessageUpdateOne) ClearAuthorID() *MessageUpdateOne {
+	muo.mutation.ClearAuthorID()
+	return muo
+}
+
 // SetIsVisibleForClient sets the "is_visible_for_client" field.
 func (muo *MessageUpdateOne) SetIsVisibleForClient(b bool) *MessageUpdateOne {
 	muo.mutation.SetIsVisibleForClient(b)
+	return muo
+}
+
+// SetNillableIsVisibleForClient sets the "is_visible_for_client" field if the given value is not nil.
+func (muo *MessageUpdateOne) SetNillableIsVisibleForClient(b *bool) *MessageUpdateOne {
+	if b != nil {
+		muo.SetIsVisibleForClient(*b)
+	}
 	return muo
 }
 
@@ -309,9 +329,11 @@ func (muo *MessageUpdateOne) SetIsVisibleForManager(b bool) *MessageUpdateOne {
 	return muo
 }
 
-// SetBody sets the "body" field.
-func (muo *MessageUpdateOne) SetBody(s string) *MessageUpdateOne {
-	muo.mutation.SetBody(s)
+// SetNillableIsVisibleForManager sets the "is_visible_for_manager" field if the given value is not nil.
+func (muo *MessageUpdateOne) SetNillableIsVisibleForManager(b *bool) *MessageUpdateOne {
+	if b != nil {
+		muo.SetIsVisibleForManager(*b)
+	}
 	return muo
 }
 
@@ -332,26 +354,6 @@ func (muo *MessageUpdateOne) SetNillableCheckedAt(t *time.Time) *MessageUpdateOn
 // SetIsBlocked sets the "is_blocked" field.
 func (muo *MessageUpdateOne) SetIsBlocked(b bool) *MessageUpdateOne {
 	muo.mutation.SetIsBlocked(b)
-	return muo
-}
-
-// SetIsService sets the "is_service" field.
-func (muo *MessageUpdateOne) SetIsService(b bool) *MessageUpdateOne {
-	muo.mutation.SetIsService(b)
-	return muo
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (muo *MessageUpdateOne) SetCreatedAt(t time.Time) *MessageUpdateOne {
-	muo.mutation.SetCreatedAt(t)
-	return muo
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (muo *MessageUpdateOne) SetNillableCreatedAt(t *time.Time) *MessageUpdateOne {
-	if t != nil {
-		muo.SetCreatedAt(*t)
-	}
 	return muo
 }
 
@@ -482,26 +484,20 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 	if value, ok := muo.mutation.AuthorID(); ok {
 		_spec.SetField(message.FieldAuthorID, field.TypeUUID, value)
 	}
+	if muo.mutation.AuthorIDCleared() {
+		_spec.ClearField(message.FieldAuthorID, field.TypeUUID)
+	}
 	if value, ok := muo.mutation.IsVisibleForClient(); ok {
 		_spec.SetField(message.FieldIsVisibleForClient, field.TypeBool, value)
 	}
 	if value, ok := muo.mutation.IsVisibleForManager(); ok {
 		_spec.SetField(message.FieldIsVisibleForManager, field.TypeBool, value)
 	}
-	if value, ok := muo.mutation.Body(); ok {
-		_spec.SetField(message.FieldBody, field.TypeString, value)
-	}
 	if value, ok := muo.mutation.CheckedAt(); ok {
 		_spec.SetField(message.FieldCheckedAt, field.TypeTime, value)
 	}
 	if value, ok := muo.mutation.IsBlocked(); ok {
 		_spec.SetField(message.FieldIsBlocked, field.TypeBool, value)
-	}
-	if value, ok := muo.mutation.IsService(); ok {
-		_spec.SetField(message.FieldIsService, field.TypeBool, value)
-	}
-	if value, ok := muo.mutation.CreatedAt(); ok {
-		_spec.SetField(message.FieldCreatedAt, field.TypeTime, value)
 	}
 	if muo.mutation.ProblemCleared() {
 		edge := &sqlgraph.EdgeSpec{

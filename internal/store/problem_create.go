@@ -29,6 +29,14 @@ func (pc *ProblemCreate) SetManagerID(ti types.UserID) *ProblemCreate {
 	return pc
 }
 
+// SetNillableManagerID sets the "manager_id" field if the given value is not nil.
+func (pc *ProblemCreate) SetNillableManagerID(ti *types.UserID) *ProblemCreate {
+	if ti != nil {
+		pc.SetManagerID(*ti)
+	}
+	return pc
+}
+
 // SetResolvedAt sets the "resolved_at" field.
 func (pc *ProblemCreate) SetResolvedAt(t time.Time) *ProblemCreate {
 	pc.mutation.SetResolvedAt(t)
@@ -148,16 +156,10 @@ func (pc *ProblemCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (pc *ProblemCreate) check() error {
-	if _, ok := pc.mutation.ManagerID(); !ok {
-		return &ValidationError{Name: "manager_id", err: errors.New(`store: missing required field "Problem.manager_id"`)}
-	}
 	if v, ok := pc.mutation.ManagerID(); ok {
 		if err := v.Validate(); err != nil {
 			return &ValidationError{Name: "manager_id", err: fmt.Errorf(`store: validator failed for field "Problem.manager_id": %w`, err)}
 		}
-	}
-	if _, ok := pc.mutation.ResolvedAt(); !ok {
-		return &ValidationError{Name: "resolved_at", err: errors.New(`store: missing required field "Problem.resolved_at"`)}
 	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`store: missing required field "Problem.created_at"`)}

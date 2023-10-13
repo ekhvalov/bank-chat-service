@@ -29,15 +29,39 @@ func (mc *MessageCreate) SetAuthorID(ti types.UserID) *MessageCreate {
 	return mc
 }
 
+// SetNillableAuthorID sets the "author_id" field if the given value is not nil.
+func (mc *MessageCreate) SetNillableAuthorID(ti *types.UserID) *MessageCreate {
+	if ti != nil {
+		mc.SetAuthorID(*ti)
+	}
+	return mc
+}
+
 // SetIsVisibleForClient sets the "is_visible_for_client" field.
 func (mc *MessageCreate) SetIsVisibleForClient(b bool) *MessageCreate {
 	mc.mutation.SetIsVisibleForClient(b)
 	return mc
 }
 
+// SetNillableIsVisibleForClient sets the "is_visible_for_client" field if the given value is not nil.
+func (mc *MessageCreate) SetNillableIsVisibleForClient(b *bool) *MessageCreate {
+	if b != nil {
+		mc.SetIsVisibleForClient(*b)
+	}
+	return mc
+}
+
 // SetIsVisibleForManager sets the "is_visible_for_manager" field.
 func (mc *MessageCreate) SetIsVisibleForManager(b bool) *MessageCreate {
 	mc.mutation.SetIsVisibleForManager(b)
+	return mc
+}
+
+// SetNillableIsVisibleForManager sets the "is_visible_for_manager" field if the given value is not nil.
+func (mc *MessageCreate) SetNillableIsVisibleForManager(b *bool) *MessageCreate {
+	if b != nil {
+		mc.SetIsVisibleForManager(*b)
+	}
 	return mc
 }
 
@@ -158,6 +182,14 @@ func (mc *MessageCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (mc *MessageCreate) defaults() {
+	if _, ok := mc.mutation.IsVisibleForClient(); !ok {
+		v := message.DefaultIsVisibleForClient
+		mc.mutation.SetIsVisibleForClient(v)
+	}
+	if _, ok := mc.mutation.IsVisibleForManager(); !ok {
+		v := message.DefaultIsVisibleForManager
+		mc.mutation.SetIsVisibleForManager(v)
+	}
 	if _, ok := mc.mutation.CheckedAt(); !ok {
 		v := message.DefaultCheckedAt()
 		mc.mutation.SetCheckedAt(v)
@@ -174,9 +206,6 @@ func (mc *MessageCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (mc *MessageCreate) check() error {
-	if _, ok := mc.mutation.AuthorID(); !ok {
-		return &ValidationError{Name: "author_id", err: errors.New(`store: missing required field "Message.author_id"`)}
-	}
 	if v, ok := mc.mutation.AuthorID(); ok {
 		if err := v.Validate(); err != nil {
 			return &ValidationError{Name: "author_id", err: fmt.Errorf(`store: validator failed for field "Message.author_id": %w`, err)}
@@ -190,6 +219,11 @@ func (mc *MessageCreate) check() error {
 	}
 	if _, ok := mc.mutation.Body(); !ok {
 		return &ValidationError{Name: "body", err: errors.New(`store: missing required field "Message.body"`)}
+	}
+	if v, ok := mc.mutation.Body(); ok {
+		if err := message.BodyValidator(v); err != nil {
+			return &ValidationError{Name: "body", err: fmt.Errorf(`store: validator failed for field "Message.body": %w`, err)}
+		}
 	}
 	if _, ok := mc.mutation.CheckedAt(); !ok {
 		return &ValidationError{Name: "checked_at", err: errors.New(`store: missing required field "Message.checked_at"`)}

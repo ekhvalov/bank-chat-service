@@ -89,6 +89,12 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultIsVisibleForClient holds the default value on creation for the "is_visible_for_client" field.
+	DefaultIsVisibleForClient bool
+	// DefaultIsVisibleForManager holds the default value on creation for the "is_visible_for_manager" field.
+	DefaultIsVisibleForManager bool
+	// BodyValidator is a validator for the "body" field. It is called by the builders before save.
+	BodyValidator func(string) error
 	// DefaultCheckedAt holds the default value on creation for the "checked_at" field.
 	DefaultCheckedAt func() time.Time
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.

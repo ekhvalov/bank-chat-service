@@ -50,7 +50,6 @@ func (o *Options) Validate() error {
 	errs.Add(errors461e464ebed9.NewValidationError("realm", _validate_Options_realm(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("username", _validate_Options_username(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("password", _validate_Options_password(o)))
-	errs.Add(errors461e464ebed9.NewValidationError("userAgent", _validate_Options_userAgent(o)))
 	return errs.AsError()
 }
 
@@ -78,13 +77,6 @@ func _validate_Options_username(o *Options) error {
 func _validate_Options_password(o *Options) error {
 	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.password, "required"); err != nil {
 		return fmt461e464ebed9.Errorf("field `password` did not pass the test: %w", err)
-	}
-	return nil
-}
-
-func _validate_Options_userAgent(o *Options) error {
-	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.userAgent, "required"); err != nil {
-		return fmt461e464ebed9.Errorf("field `userAgent` did not pass the test: %w", err)
 	}
 	return nil
 }

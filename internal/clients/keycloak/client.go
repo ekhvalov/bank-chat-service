@@ -13,7 +13,7 @@ type Options struct {
 	realm     string `option:"mandatory" validate:"required"`
 	username  string `option:"mandatory" validate:"required"`
 	password  string `option:"mandatory" validate:"required"`
-	userAgent string `validate:"required"`
+	userAgent string
 	debugMode bool
 }
 
