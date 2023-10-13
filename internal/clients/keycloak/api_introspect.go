@@ -10,15 +10,15 @@ import (
 )
 
 type IntrospectTokenResult struct {
-	Exp    int  `json:"exp"`
-	Iat    int  `json:"iat"`
-	Aud    aud  `json:"aud"`
-	Active bool `json:"active"`
+	Exp    int      `json:"exp"`
+	Iat    int      `json:"iat"`
+	Aud    Audition `json:"aud"`
+	Active bool     `json:"active"`
 }
 
-type aud []string
+type Audition []string
 
-func (a *aud) UnmarshalJSON(data []byte) error {
+func (a *Audition) UnmarshalJSON(data []byte) error {
 	var s string
 	if nil == json.Unmarshal(data, &s) {
 		*a = []string{s}

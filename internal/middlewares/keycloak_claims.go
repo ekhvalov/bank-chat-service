@@ -1,12 +1,12 @@
 package middlewares
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
 	"github.com/golang-jwt/jwt"
 
+	keycloakclient "github.com/ekhvalov/bank-chat-service/internal/clients/keycloak"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 )
 
@@ -18,26 +18,10 @@ var (
 
 type claims struct {
 	jwt.StandardClaims
-	Aud            aud               `json:"aud"`
-	AuthTime       int64             `json:"auth_time"`
-	ResourceAccess map[string]access `json:"resource_access,omitempty"`
+	Aud            keycloakclient.Audition `json:"aud"`
+	AuthTime       int64                   `json:"auth_time"`
+	ResourceAccess map[string]access       `json:"resource_access,omitempty"`
 	userID         types.UserID
-}
-
-type aud []string
-
-func (a *aud) UnmarshalJSON(data []byte) error {
-	var s string
-	if nil == json.Unmarshal(data, &s) {
-		*a = []string{s}
-		return nil
-	}
-	var ss []string
-	if err := json.Unmarshal(data, &ss); err != nil {
-		return err
-	}
-	*a = ss
-	return nil
 }
 
 func (c claims) HasResourceWithRole(resource, role string) bool {
