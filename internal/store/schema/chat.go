@@ -18,7 +18,7 @@ func (Chat) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", types.NewChatID()).Default(types.NewChatID),
 		field.UUID("client_id", types.UserID{}).Unique(),
-		field.Time("created_at").Default(time.Now),
+		field.Time("created_at").Default(time.Now).Immutable(),
 	}
 }
 
