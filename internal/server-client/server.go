@@ -24,7 +24,8 @@ import (
 const (
 	readHeaderTimeout = time.Second
 	shutdownTimeout   = 3 * time.Second
-	bodyLimit         = "12KB"
+	// bodyLimit 3000 unicode symbols of 4 bytes each.
+	bodyLimit = "12KB"
 )
 
 type Options struct {
@@ -50,9 +51,9 @@ func New(opts Options) (*Server, error) {
 
 	e := echo.New()
 	e.Use(
-		middleware.BodyLimit(bodyLimit),
 		middlewares.NewRecover(opts.logger),
 		middlewares.NewLogger(opts.logger),
+		middleware.BodyLimit(bodyLimit),
 		middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins: opts.allowOrigins,
 			AllowMethods: []string{http.MethodPost},

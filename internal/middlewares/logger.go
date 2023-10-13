@@ -1,9 +1,16 @@
 package middlewares
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
+)
+
+const (
+	messageSuccess = "success"
+	messageError   = "error"
 )
 
 func NewLogger(logger *zap.Logger) echo.MiddlewareFunc {
@@ -12,12 +19,19 @@ func NewLogger(logger *zap.Logger) echo.MiddlewareFunc {
 			return c.Request().Method == echo.OPTIONS
 		},
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			level := zap.InfoLevel
+			message := messageSuccess
+			if v.Status >= http.StatusBadRequest {
+				level = zap.ErrorLevel
+				message = messageError
+			}
 			var uid string
 			if id, ok := userID(c); ok {
 				uid = id.String()
 			}
-			logger.Info(
-				"success",
+			logger.Log(
+				level,
+				message,
 				zap.Duration("latency", v.Latency),
 				zap.String("host", v.Host),
 				zap.String("method", v.Method),
