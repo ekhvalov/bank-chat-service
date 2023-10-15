@@ -16,9 +16,10 @@ type Problem struct {
 // Fields of the Problem.
 func (Problem) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", types.ProblemID{}).Default(types.NewProblemID),
+		field.UUID("id", types.ProblemID{}).Default(types.NewProblemID).Unique().Immutable(),
+		field.UUID("chat_id", types.ChatID{}),
 		field.UUID("manager_id", types.UserID{}).Optional(),
-		field.Time("resolved_at").Default(timeNil).Optional(),
+		field.Time("resolved_at").Optional(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 	}
 }
@@ -26,7 +27,11 @@ func (Problem) Fields() []ent.Field {
 // Edges of the Problem.
 func (Problem) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("chat", Chat.Type).Ref("problems").Unique().Required(),
+		edge.From("chat", Chat.Type).
+			Ref("problems").
+			Field("chat_id").
+			Unique().
+			Required(),
 		edge.To("messages", Message.Type),
 	}
 }

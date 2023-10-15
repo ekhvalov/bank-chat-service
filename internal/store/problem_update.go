@@ -31,6 +31,12 @@ func (pu *ProblemUpdate) Where(ps ...predicate.Problem) *ProblemUpdate {
 	return pu
 }
 
+// SetChatID sets the "chat_id" field.
+func (pu *ProblemUpdate) SetChatID(ti types.ChatID) *ProblemUpdate {
+	pu.mutation.SetChatID(ti)
+	return pu
+}
+
 // SetManagerID sets the "manager_id" field.
 func (pu *ProblemUpdate) SetManagerID(ti types.UserID) *ProblemUpdate {
 	pu.mutation.SetManagerID(ti)
@@ -68,12 +74,6 @@ func (pu *ProblemUpdate) SetNillableResolvedAt(t *time.Time) *ProblemUpdate {
 // ClearResolvedAt clears the value of the "resolved_at" field.
 func (pu *ProblemUpdate) ClearResolvedAt() *ProblemUpdate {
 	pu.mutation.ClearResolvedAt()
-	return pu
-}
-
-// SetChatID sets the "chat" edge to the Chat entity by ID.
-func (pu *ProblemUpdate) SetChatID(id types.ChatID) *ProblemUpdate {
-	pu.mutation.SetChatID(id)
 	return pu
 }
 
@@ -158,6 +158,11 @@ func (pu *ProblemUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (pu *ProblemUpdate) check() error {
+	if v, ok := pu.mutation.ChatID(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "chat_id", err: fmt.Errorf(`store: validator failed for field "Problem.chat_id": %w`, err)}
+		}
+	}
 	if v, ok := pu.mutation.ManagerID(); ok {
 		if err := v.Validate(); err != nil {
 			return &ValidationError{Name: "manager_id", err: fmt.Errorf(`store: validator failed for field "Problem.manager_id": %w`, err)}
@@ -287,6 +292,12 @@ type ProblemUpdateOne struct {
 	mutation *ProblemMutation
 }
 
+// SetChatID sets the "chat_id" field.
+func (puo *ProblemUpdateOne) SetChatID(ti types.ChatID) *ProblemUpdateOne {
+	puo.mutation.SetChatID(ti)
+	return puo
+}
+
 // SetManagerID sets the "manager_id" field.
 func (puo *ProblemUpdateOne) SetManagerID(ti types.UserID) *ProblemUpdateOne {
 	puo.mutation.SetManagerID(ti)
@@ -324,12 +335,6 @@ func (puo *ProblemUpdateOne) SetNillableResolvedAt(t *time.Time) *ProblemUpdateO
 // ClearResolvedAt clears the value of the "resolved_at" field.
 func (puo *ProblemUpdateOne) ClearResolvedAt() *ProblemUpdateOne {
 	puo.mutation.ClearResolvedAt()
-	return puo
-}
-
-// SetChatID sets the "chat" edge to the Chat entity by ID.
-func (puo *ProblemUpdateOne) SetChatID(id types.ChatID) *ProblemUpdateOne {
-	puo.mutation.SetChatID(id)
 	return puo
 }
 
@@ -427,6 +432,11 @@ func (puo *ProblemUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (puo *ProblemUpdateOne) check() error {
+	if v, ok := puo.mutation.ChatID(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "chat_id", err: fmt.Errorf(`store: validator failed for field "Problem.chat_id": %w`, err)}
+		}
+	}
 	if v, ok := puo.mutation.ManagerID(); ok {
 		if err := v.Validate(); err != nil {
 			return &ValidationError{Name: "manager_id", err: fmt.Errorf(`store: validator failed for field "Problem.manager_id": %w`, err)}
