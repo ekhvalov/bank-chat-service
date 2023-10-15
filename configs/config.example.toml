@@ -24,4 +24,5 @@ resource = "chat-ui-client"
 role = "support-chat-client"
 
 [sentry]
+#dsn = "http://3ec334f6b3024abe8c9355b8986ce0cf@sentry.localhost:9000/2"
 dsn = ""
