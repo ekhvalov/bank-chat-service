@@ -39,14 +39,13 @@ func run(pkg string, types []string, outFile string) error {
 	if err != nil {
 		return fmt.Errorf("open file %q: %v", outFile, err)
 	}
-	err = headerTemplate().Execute(w, map[string]interface{}{
+	err = headerTpl.Execute(w, map[string]interface{}{
 		"package": pkg,
 		"types":   strings.Join(types, " | "),
 	})
 	if err != nil {
 		return fmt.Errorf("exec header tpl: %v", err)
 	}
-	bodyTpl := bodyTemplate()
 	for _, t := range types {
 		err = bodyTpl.Execute(w, t)
 		if err != nil {
