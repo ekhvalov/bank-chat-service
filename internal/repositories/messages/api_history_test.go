@@ -142,7 +142,7 @@ func (s *MsgRepoHistoryAPISuite) Test_GetClientChatMessages() {
 		s.Equal(chat, msg.ChatID)
 		s.Equal(client, msg.AuthorID)
 		s.Equal("message #0", msg.Body)
-		s.True(msg.CreatedAt.Equal(lastMsg.CreatedAt.Truncate(time.Microsecond))) // TODO: Truncated to skip false positive.
+		s.True(msg.CreatedAt.Equal(lastMsg.CreatedAt.Truncate(time.Microsecond)))
 		s.True(msg.IsVisibleForClient)
 		s.False(msg.IsVisibleForManager)
 		s.False(msg.IsBlocked)
