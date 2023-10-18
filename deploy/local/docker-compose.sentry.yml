@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  sentry:
+    image: sentry:9.1.2
+    env_file: .env
+    environment:
+      SENTRY_REDIS_HOST: redis
+      SENTRY_POSTGRES_HOST: postgres
+      SENTRY_DB_NAME: sentry
+      SENTRY_DB_USER: sentry
+      SENTRY_DB_PASSWORD: sentry
+    ports:
+      - "9000:9000"
+    profiles: ["sentry"]
+
+  sentry-cron:
+    image: sentry:9.1.2
+    env_file: .env
+    environment:
+      SENTRY_REDIS_HOST: redis
+      SENTRY_POSTGRES_HOST: postgres
+      SENTRY_DB_NAME: sentry
+      SENTRY_DB_USER: sentry
+      SENTRY_DB_PASSWORD: sentry
+    command: run cron
+    profiles: ["sentry"]
+
+
+  sentry-worker:
+    image: sentry:9.1.2
+    env_file: .env
+    environment:
+      SENTRY_REDIS_HOST: redis
+      SENTRY_POSTGRES_HOST: postgres
+      SENTRY_DB_NAME: sentry
+      SENTRY_DB_USER: sentry
+      SENTRY_DB_PASSWORD: sentry
+    command: run worker
+    profiles: ["sentry"]

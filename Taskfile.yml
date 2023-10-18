@@ -4,9 +4,18 @@ version: '3'
 silent: true
 
 vars:
+  DOCKER_COMPOSE_FILES: |-
+    docker-compose.yml
+    docker-compose.sentry.yml
+    docker-compose.swagger-ui.yml
+  DOCKER_COMPOSE_CMD: |-
+    docker compose {{range $file := .DOCKER_COMPOSE_FILES | splitLines -}} -f ./deploy/local/{{$file}} {{end}}
+
+  ENT_SCHEMA: ./internal/store/schema
+
   GO_MODULE: github.com/ekhvalov/bank-chat-service
   GO_FILES:
-    sh: find . -type f -name '*.go' -not -path "./vendor/*" -not -path "*.gen.go" | tr "\n" " "
+    sh: find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./internal/store/*" -not -path "*.gen.go" | tr "\n" " "
 
   GOLANGCI_LINT_VERSION: "1.54.2"
   GOLANGCI_LINT_URL: "https://github.com/golangci/golangci-lint/releases/download/v{{.GOLANGCI_LINT_VERSION}}"
@@ -17,6 +26,9 @@ vars:
   TOOLS_DIR:
     sh: echo "$(pwd)/tools/bin"
 
+env:
+  COMPOSE_PROJECT_NAME: bankchat
+
 tasks:
   default:
     cmds:
@@ -25,6 +37,48 @@ tasks:
       - task: lint
       - task: tests
       - task: build
+
+  deps:
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} up -d"
+
+  deps:cmd:
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} {{.CLI_ARGS}}"
+
+  deps:status:
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} ps -a"
+
+  deps:logs:
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} logs {{.CLI_ARGS}}"
+
+  deps:stop:
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} stop"
+
+  deps:reset-psql:
+    cmds:
+      - task: deps:reset
+        vars:
+          SERVICE: postgres
+
+  deps:reset:
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} rm -fsv {{.SERVICE}}"
+      - "{{.DOCKER_COMPOSE_CMD}} up -d {{.SERVICE}}"
+
+  deps:sentry-key:
+    dir: ./deploy/local # TODO: duplication
+    cmds:
+      - 'echo "SENTRY_SECRET_KEY=\"{{.SENTRY_KEY}}\"" >> .env'
+    vars:
+      SENTRY_KEY:
+        sh: docker run --rm --quiet sentry:9.1.2 config generate-secret-key
+    status:
+      - test -f .env
+      - grep SENTRY_SECRET_KEY .env
 
   tidy:
     - echo "- Tidy"
@@ -55,6 +109,20 @@ tasks:
       - echo "- Tests"
       - go test -race ./...
 
+  tests:integration:
+    # Create file '.env' to provide environment variables listed below, and replace values with yours.
+    # TEST_LOG_LEVEL=info
+    # TEST_KEYCLOAK_BASE_PATH="http://localhost:3010"
+    # TEST_KEYCLOAK_REALM=Bank
+    # TEST_KEYCLOAK_CLIENT_ID=integration-testing
+    # TEST_KEYCLOAK_CLIENT_SECRET=ku3uEwc7nVGlzcidXfdAz1nBYJMfIjKt
+    # TEST_KEYCLOAK_TEST_USER=integration-testing
+    # TEST_KEYCLOAK_TEST_PASSWORD=password
+    dotenv: [ ".env" ]
+    cmds:
+      - echo "- Integration tests"
+      - go test -tags integration -count 1 -race ./...
+
   build:
     cmds:
       - echo "- Build"
@@ -63,19 +131,59 @@ tasks:
   generate:
     cmds:
       - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate ./...'
+      - task: gen:types
+      - task: ent:gen
+      - task: gen:api
+
+  gen:types:
+    vars:
+      TYPES: |-
+        ChatID
+        MessageID
+        ProblemID
+        UserID
+        RequestID
+      TYPES_PKG: types
+      TYPES_DST: ./internal/types/types.gen.go
+    cmds:
+      - echo "Generate types..."
+      - 'go run ./cmd/gen-types {{.TYPES_PKG}} {{.TYPES | splitLines | join "," }} {{.TYPES_DST}}'
+
+  gen:api:
+    vars:
+      CLIENT_V1_SRC: ./api/client.v1.swagger.yml
+      CLIENT_V1_DST: ./internal/server-client/v1/server.gen.go
+      CLIENT_V1_PKG: clientv1
+    cmds:
+      - "{{.TOOLS_DIR}}/oapi-codegen -generate types,server,spec -package {{.CLIENT_V1_PKG}} {{.CLIENT_V1_SRC}} > {{.CLIENT_V1_DST}}"
+
+
+  ent:new:
+    cmds:
+      - "{{.TOOLS_DIR}}/ent new --target {{.ENT_SCHEMA}} {{.CLI_ARGS}}"
+      - task: tidy
+
+  ent:gen:
+    cmds:
+      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/store'
+      - task: tidy
 
   dev-tools:install:
     vars:
       DEV_TOOLS: |
         github.com/daixiang0/gci@v0.11.2
+        github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.15.0
         github.com/kazhuravlev/options-gen/cmd/options-gen@v0.30.0
+        go.uber.org/mock/mockgen@v0.3.0
         mvdan.cc/gofumpt@v0.5.0
+        entgo.io/ent/cmd/ent@v0.12.4
     cmds:
       - echo "- Install dev tools"
       - mkdir -p "{{.TOOLS_DIR}}"
       - for: { var: DEV_TOOLS }
         cmd: GOBIN="{{.TOOLS_DIR}}" go install "{{ .ITEM }}"
       - task: golangci:install
+      - task: tidy
 
   golangci:install:
     dir: "{{.TOOLS_DIR}}"
@@ -87,3 +195,16 @@ tasks:
       - rm -f "{{.GOLANGCI_LINT_ARCHIVE_FILE}}" "{{.GOLANGCI_LINT_CHECKSUMS_FILE}}"
     status:
       - test -f "golangci-lint"
+
+  kc:export:
+    vars:
+      KEYCLOAK_REALM: Bank
+      KEYCLOAK_REALM_FILE: "./deploy/local/keycloak-{{.KEYCLOAK_REALM}}-realm.json"
+    cmds:
+      - |
+        {{.DOCKER_COMPOSE_CMD}} exec keycloak /opt/keycloak/bin/kc.sh export \
+          --realm {{.KEYCLOAK_REALM}} \
+          --users same_file \
+          --log file \
+          --log-file /dev/stderr \
+          --file /dev/stdout > {{.KEYCLOAK_REALM_FILE}}
