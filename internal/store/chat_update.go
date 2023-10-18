@@ -30,12 +30,6 @@ func (cu *ChatUpdate) Where(ps ...predicate.Chat) *ChatUpdate {
 	return cu
 }
 
-// SetClientID sets the "client_id" field.
-func (cu *ChatUpdate) SetClientID(ti types.UserID) *ChatUpdate {
-	cu.mutation.SetClientID(ti)
-	return cu
-}
-
 // AddMessageIDs adds the "messages" edge to the Message entity by IDs.
 func (cu *ChatUpdate) AddMessageIDs(ids ...types.MessageID) *ChatUpdate {
 	cu.mutation.AddMessageIDs(ids...)
@@ -149,9 +143,6 @@ func (cu *ChatUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := cu.mutation.ClientID(); ok {
-		_spec.SetField(chat.FieldClientID, field.TypeUUID, value)
-	}
 	if cu.mutation.MessagesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -260,12 +251,6 @@ type ChatUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *ChatMutation
-}
-
-// SetClientID sets the "client_id" field.
-func (cuo *ChatUpdateOne) SetClientID(ti types.UserID) *ChatUpdateOne {
-	cuo.mutation.SetClientID(ti)
-	return cuo
 }
 
 // AddMessageIDs adds the "messages" edge to the Message entity by IDs.
@@ -410,9 +395,6 @@ func (cuo *ChatUpdateOne) sqlSave(ctx context.Context) (_node *Chat, err error) 
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := cuo.mutation.ClientID(); ok {
-		_spec.SetField(chat.FieldClientID, field.TypeUUID, value)
 	}
 	if cuo.mutation.MessagesCleared() {
 		edge := &sqlgraph.EdgeSpec{

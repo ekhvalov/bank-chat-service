@@ -20,8 +20,8 @@ type claims struct {
 	jwt.StandardClaims
 	Aud            keycloakclient.Audition `json:"aud"`
 	AuthTime       int64                   `json:"auth_time"`
+	Subject        types.UserID            `json:"sub,omitempty"`
 	ResourceAccess map[string]access       `json:"resource_access,omitempty"`
-	userID         types.UserID
 }
 
 func (c claims) HasResourceWithRole(resource, role string) bool {
@@ -58,7 +58,7 @@ func (c claims) Valid() error {
 	if nil == c.ResourceAccess || len(c.ResourceAccess) == 0 {
 		return ErrNoAllowedResources
 	}
-	if c.userID.IsZero() {
+	if c.Subject.IsZero() {
 		return ErrSubjectNotDefined
 	}
 	if nil == c.Aud {
@@ -68,7 +68,7 @@ func (c claims) Valid() error {
 }
 
 func (c claims) UserID() types.UserID {
-	return c.userID
+	return c.Subject
 }
 
 func parseTokenAndClaims(tokenStr string) (*jwt.Token, *claims, error) {
@@ -77,10 +77,5 @@ func parseTokenAndClaims(tokenStr string) (*jwt.Token, *claims, error) {
 	if err != nil {
 		return nil, nil, fmt.Errorf("parse token: %v", err)
 	}
-	uid, err := types.Parse[types.UserID](c.Subject)
-	if err != nil {
-		return nil, nil, ErrSubjectNotDefined
-	}
-	c.userID = uid
 	return t, &c, nil
 }

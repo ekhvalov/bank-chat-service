@@ -23,6 +23,18 @@ type MessageCreate struct {
 	hooks    []Hook
 }
 
+// SetChatID sets the "chat_id" field.
+func (mc *MessageCreate) SetChatID(ti types.ChatID) *MessageCreate {
+	mc.mutation.SetChatID(ti)
+	return mc
+}
+
+// SetProblemID sets the "problem_id" field.
+func (mc *MessageCreate) SetProblemID(ti types.ProblemID) *MessageCreate {
+	mc.mutation.SetProblemID(ti)
+	return mc
+}
+
 // SetAuthorID sets the "author_id" field.
 func (mc *MessageCreate) SetAuthorID(ti types.UserID) *MessageCreate {
 	mc.mutation.SetAuthorID(ti)
@@ -91,9 +103,25 @@ func (mc *MessageCreate) SetIsBlocked(b bool) *MessageCreate {
 	return mc
 }
 
+// SetNillableIsBlocked sets the "is_blocked" field if the given value is not nil.
+func (mc *MessageCreate) SetNillableIsBlocked(b *bool) *MessageCreate {
+	if b != nil {
+		mc.SetIsBlocked(*b)
+	}
+	return mc
+}
+
 // SetIsService sets the "is_service" field.
 func (mc *MessageCreate) SetIsService(b bool) *MessageCreate {
 	mc.mutation.SetIsService(b)
+	return mc
+}
+
+// SetNillableIsService sets the "is_service" field if the given value is not nil.
+func (mc *MessageCreate) SetNillableIsService(b *bool) *MessageCreate {
+	if b != nil {
+		mc.SetIsService(*b)
+	}
 	return mc
 }
 
@@ -125,21 +153,9 @@ func (mc *MessageCreate) SetNillableID(ti *types.MessageID) *MessageCreate {
 	return mc
 }
 
-// SetProblemID sets the "problem" edge to the Problem entity by ID.
-func (mc *MessageCreate) SetProblemID(id types.ProblemID) *MessageCreate {
-	mc.mutation.SetProblemID(id)
-	return mc
-}
-
 // SetProblem sets the "problem" edge to the Problem entity.
 func (mc *MessageCreate) SetProblem(p *Problem) *MessageCreate {
 	return mc.SetProblemID(p.ID)
-}
-
-// SetChatID sets the "chat" edge to the Chat entity by ID.
-func (mc *MessageCreate) SetChatID(id types.ChatID) *MessageCreate {
-	mc.mutation.SetChatID(id)
-	return mc
 }
 
 // SetChat sets the "chat" edge to the Chat entity.
@@ -190,9 +206,13 @@ func (mc *MessageCreate) defaults() {
 		v := message.DefaultIsVisibleForManager
 		mc.mutation.SetIsVisibleForManager(v)
 	}
-	if _, ok := mc.mutation.CheckedAt(); !ok {
-		v := message.DefaultCheckedAt()
-		mc.mutation.SetCheckedAt(v)
+	if _, ok := mc.mutation.IsBlocked(); !ok {
+		v := message.DefaultIsBlocked
+		mc.mutation.SetIsBlocked(v)
+	}
+	if _, ok := mc.mutation.IsService(); !ok {
+		v := message.DefaultIsService
+		mc.mutation.SetIsService(v)
 	}
 	if _, ok := mc.mutation.CreatedAt(); !ok {
 		v := message.DefaultCreatedAt()
@@ -206,6 +226,22 @@ func (mc *MessageCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (mc *MessageCreate) check() error {
+	if _, ok := mc.mutation.ChatID(); !ok {
+		return &ValidationError{Name: "chat_id", err: errors.New(`store: missing required field "Message.chat_id"`)}
+	}
+	if v, ok := mc.mutation.ChatID(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "chat_id", err: fmt.Errorf(`store: validator failed for field "Message.chat_id": %w`, err)}
+		}
+	}
+	if _, ok := mc.mutation.ProblemID(); !ok {
+		return &ValidationError{Name: "problem_id", err: errors.New(`store: missing required field "Message.problem_id"`)}
+	}
+	if v, ok := mc.mutation.ProblemID(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "problem_id", err: fmt.Errorf(`store: validator failed for field "Message.problem_id": %w`, err)}
+		}
+	}
 	if v, ok := mc.mutation.AuthorID(); ok {
 		if err := v.Validate(); err != nil {
 			return &ValidationError{Name: "author_id", err: fmt.Errorf(`store: validator failed for field "Message.author_id": %w`, err)}
@@ -224,9 +260,6 @@ func (mc *MessageCreate) check() error {
 		if err := message.BodyValidator(v); err != nil {
 			return &ValidationError{Name: "body", err: fmt.Errorf(`store: validator failed for field "Message.body": %w`, err)}
 		}
-	}
-	if _, ok := mc.mutation.CheckedAt(); !ok {
-		return &ValidationError{Name: "checked_at", err: errors.New(`store: missing required field "Message.checked_at"`)}
 	}
 	if _, ok := mc.mutation.IsBlocked(); !ok {
 		return &ValidationError{Name: "is_blocked", err: errors.New(`store: missing required field "Message.is_blocked"`)}
@@ -329,7 +362,7 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.problem_messages = &nodes[0]
+		_node.ProblemID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := mc.mutation.ChatIDs(); len(nodes) > 0 {
@@ -346,7 +379,7 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.chat_messages = &nodes[0]
+		_node.ChatID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

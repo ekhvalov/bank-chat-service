@@ -23,6 +23,12 @@ type ProblemCreate struct {
 	hooks    []Hook
 }
 
+// SetChatID sets the "chat_id" field.
+func (pc *ProblemCreate) SetChatID(ti types.ChatID) *ProblemCreate {
+	pc.mutation.SetChatID(ti)
+	return pc
+}
+
 // SetManagerID sets the "manager_id" field.
 func (pc *ProblemCreate) SetManagerID(ti types.UserID) *ProblemCreate {
 	pc.mutation.SetManagerID(ti)
@@ -76,12 +82,6 @@ func (pc *ProblemCreate) SetNillableID(ti *types.ProblemID) *ProblemCreate {
 	if ti != nil {
 		pc.SetID(*ti)
 	}
-	return pc
-}
-
-// SetChatID sets the "chat" edge to the Chat entity by ID.
-func (pc *ProblemCreate) SetChatID(id types.ChatID) *ProblemCreate {
-	pc.mutation.SetChatID(id)
 	return pc
 }
 
@@ -140,10 +140,6 @@ func (pc *ProblemCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (pc *ProblemCreate) defaults() {
-	if _, ok := pc.mutation.ResolvedAt(); !ok {
-		v := problem.DefaultResolvedAt()
-		pc.mutation.SetResolvedAt(v)
-	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		v := problem.DefaultCreatedAt()
 		pc.mutation.SetCreatedAt(v)
@@ -156,6 +152,14 @@ func (pc *ProblemCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (pc *ProblemCreate) check() error {
+	if _, ok := pc.mutation.ChatID(); !ok {
+		return &ValidationError{Name: "chat_id", err: errors.New(`store: missing required field "Problem.chat_id"`)}
+	}
+	if v, ok := pc.mutation.ChatID(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "chat_id", err: fmt.Errorf(`store: validator failed for field "Problem.chat_id": %w`, err)}
+		}
+	}
 	if v, ok := pc.mutation.ManagerID(); ok {
 		if err := v.Validate(); err != nil {
 			return &ValidationError{Name: "manager_id", err: fmt.Errorf(`store: validator failed for field "Problem.manager_id": %w`, err)}
@@ -233,7 +237,7 @@ func (pc *ProblemCreate) createSpec() (*Problem, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.chat_problems = &nodes[0]
+		_node.ChatID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.mutation.MessagesIDs(); len(nodes) > 0 {

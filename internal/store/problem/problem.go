@@ -15,6 +15,8 @@ const (
 	Label = "problem"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldChatID holds the string denoting the chat_id field in the database.
+	FieldChatID = "chat_id"
 	// FieldManagerID holds the string denoting the manager_id field in the database.
 	FieldManagerID = "manager_id"
 	// FieldResolvedAt holds the string denoting the resolved_at field in the database.
@@ -33,28 +35,23 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "chat" package.
 	ChatInverseTable = "chats"
 	// ChatColumn is the table column denoting the chat relation/edge.
-	ChatColumn = "chat_problems"
+	ChatColumn = "chat_id"
 	// MessagesTable is the table that holds the messages relation/edge.
 	MessagesTable = "messages"
 	// MessagesInverseTable is the table name for the Message entity.
 	// It exists in this package in order to avoid circular dependency with the "message" package.
 	MessagesInverseTable = "messages"
 	// MessagesColumn is the table column denoting the messages relation/edge.
-	MessagesColumn = "problem_messages"
+	MessagesColumn = "problem_id"
 )
 
 // Columns holds all SQL columns for problem fields.
 var Columns = []string{
 	FieldID,
+	FieldChatID,
 	FieldManagerID,
 	FieldResolvedAt,
 	FieldCreatedAt,
-}
-
-// ForeignKeys holds the SQL foreign-keys that are owned by the "problems"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"chat_problems",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -64,17 +61,10 @@ func ValidColumn(column string) bool {
 			return true
 		}
 	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
-			return true
-		}
-	}
 	return false
 }
 
 var (
-	// DefaultResolvedAt holds the default value on creation for the "resolved_at" field.
-	DefaultResolvedAt func() time.Time
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultID holds the default value on creation for the "id" field.
@@ -87,6 +77,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByChatID orders the results by the chat_id field.
+func ByChatID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldChatID, opts...).ToFunc()
 }
 
 // ByManagerID orders the results by the manager_id field.

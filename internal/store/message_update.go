@@ -31,23 +31,15 @@ func (mu *MessageUpdate) Where(ps ...predicate.Message) *MessageUpdate {
 	return mu
 }
 
-// SetAuthorID sets the "author_id" field.
-func (mu *MessageUpdate) SetAuthorID(ti types.UserID) *MessageUpdate {
-	mu.mutation.SetAuthorID(ti)
+// SetChatID sets the "chat_id" field.
+func (mu *MessageUpdate) SetChatID(ti types.ChatID) *MessageUpdate {
+	mu.mutation.SetChatID(ti)
 	return mu
 }
 
-// SetNillableAuthorID sets the "author_id" field if the given value is not nil.
-func (mu *MessageUpdate) SetNillableAuthorID(ti *types.UserID) *MessageUpdate {
-	if ti != nil {
-		mu.SetAuthorID(*ti)
-	}
-	return mu
-}
-
-// ClearAuthorID clears the value of the "author_id" field.
-func (mu *MessageUpdate) ClearAuthorID() *MessageUpdate {
-	mu.mutation.ClearAuthorID()
+// SetProblemID sets the "problem_id" field.
+func (mu *MessageUpdate) SetProblemID(ti types.ProblemID) *MessageUpdate {
+	mu.mutation.SetProblemID(ti)
 	return mu
 }
 
@@ -93,27 +85,29 @@ func (mu *MessageUpdate) SetNillableCheckedAt(t *time.Time) *MessageUpdate {
 	return mu
 }
 
+// ClearCheckedAt clears the value of the "checked_at" field.
+func (mu *MessageUpdate) ClearCheckedAt() *MessageUpdate {
+	mu.mutation.ClearCheckedAt()
+	return mu
+}
+
 // SetIsBlocked sets the "is_blocked" field.
 func (mu *MessageUpdate) SetIsBlocked(b bool) *MessageUpdate {
 	mu.mutation.SetIsBlocked(b)
 	return mu
 }
 
-// SetProblemID sets the "problem" edge to the Problem entity by ID.
-func (mu *MessageUpdate) SetProblemID(id types.ProblemID) *MessageUpdate {
-	mu.mutation.SetProblemID(id)
+// SetNillableIsBlocked sets the "is_blocked" field if the given value is not nil.
+func (mu *MessageUpdate) SetNillableIsBlocked(b *bool) *MessageUpdate {
+	if b != nil {
+		mu.SetIsBlocked(*b)
+	}
 	return mu
 }
 
 // SetProblem sets the "problem" edge to the Problem entity.
 func (mu *MessageUpdate) SetProblem(p *Problem) *MessageUpdate {
 	return mu.SetProblemID(p.ID)
-}
-
-// SetChatID sets the "chat" edge to the Chat entity by ID.
-func (mu *MessageUpdate) SetChatID(id types.ChatID) *MessageUpdate {
-	mu.mutation.SetChatID(id)
-	return mu
 }
 
 // SetChat sets the "chat" edge to the Chat entity.
@@ -167,9 +161,14 @@ func (mu *MessageUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (mu *MessageUpdate) check() error {
-	if v, ok := mu.mutation.AuthorID(); ok {
+	if v, ok := mu.mutation.ChatID(); ok {
 		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "author_id", err: fmt.Errorf(`store: validator failed for field "Message.author_id": %w`, err)}
+			return &ValidationError{Name: "chat_id", err: fmt.Errorf(`store: validator failed for field "Message.chat_id": %w`, err)}
+		}
+	}
+	if v, ok := mu.mutation.ProblemID(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "problem_id", err: fmt.Errorf(`store: validator failed for field "Message.problem_id": %w`, err)}
 		}
 	}
 	if _, ok := mu.mutation.ProblemID(); mu.mutation.ProblemCleared() && !ok {
@@ -193,9 +192,6 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := mu.mutation.AuthorID(); ok {
-		_spec.SetField(message.FieldAuthorID, field.TypeUUID, value)
-	}
 	if mu.mutation.AuthorIDCleared() {
 		_spec.ClearField(message.FieldAuthorID, field.TypeUUID)
 	}
@@ -207,6 +203,9 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := mu.mutation.CheckedAt(); ok {
 		_spec.SetField(message.FieldCheckedAt, field.TypeTime, value)
+	}
+	if mu.mutation.CheckedAtCleared() {
+		_spec.ClearField(message.FieldCheckedAt, field.TypeTime)
 	}
 	if value, ok := mu.mutation.IsBlocked(); ok {
 		_spec.SetField(message.FieldIsBlocked, field.TypeBool, value)
@@ -289,23 +288,15 @@ type MessageUpdateOne struct {
 	mutation *MessageMutation
 }
 
-// SetAuthorID sets the "author_id" field.
-func (muo *MessageUpdateOne) SetAuthorID(ti types.UserID) *MessageUpdateOne {
-	muo.mutation.SetAuthorID(ti)
+// SetChatID sets the "chat_id" field.
+func (muo *MessageUpdateOne) SetChatID(ti types.ChatID) *MessageUpdateOne {
+	muo.mutation.SetChatID(ti)
 	return muo
 }
 
-// SetNillableAuthorID sets the "author_id" field if the given value is not nil.
-func (muo *MessageUpdateOne) SetNillableAuthorID(ti *types.UserID) *MessageUpdateOne {
-	if ti != nil {
-		muo.SetAuthorID(*ti)
-	}
-	return muo
-}
-
-// ClearAuthorID clears the value of the "author_id" field.
-func (muo *MessageUpdateOne) ClearAuthorID() *MessageUpdateOne {
-	muo.mutation.ClearAuthorID()
+// SetProblemID sets the "problem_id" field.
+func (muo *MessageUpdateOne) SetProblemID(ti types.ProblemID) *MessageUpdateOne {
+	muo.mutation.SetProblemID(ti)
 	return muo
 }
 
@@ -351,27 +342,29 @@ func (muo *MessageUpdateOne) SetNillableCheckedAt(t *time.Time) *MessageUpdateOn
 	return muo
 }
 
+// ClearCheckedAt clears the value of the "checked_at" field.
+func (muo *MessageUpdateOne) ClearCheckedAt() *MessageUpdateOne {
+	muo.mutation.ClearCheckedAt()
+	return muo
+}
+
 // SetIsBlocked sets the "is_blocked" field.
 func (muo *MessageUpdateOne) SetIsBlocked(b bool) *MessageUpdateOne {
 	muo.mutation.SetIsBlocked(b)
 	return muo
 }
 
-// SetProblemID sets the "problem" edge to the Problem entity by ID.
-func (muo *MessageUpdateOne) SetProblemID(id types.ProblemID) *MessageUpdateOne {
-	muo.mutation.SetProblemID(id)
+// SetNillableIsBlocked sets the "is_blocked" field if the given value is not nil.
+func (muo *MessageUpdateOne) SetNillableIsBlocked(b *bool) *MessageUpdateOne {
+	if b != nil {
+		muo.SetIsBlocked(*b)
+	}
 	return muo
 }
 
 // SetProblem sets the "problem" edge to the Problem entity.
 func (muo *MessageUpdateOne) SetProblem(p *Problem) *MessageUpdateOne {
 	return muo.SetProblemID(p.ID)
-}
-
-// SetChatID sets the "chat" edge to the Chat entity by ID.
-func (muo *MessageUpdateOne) SetChatID(id types.ChatID) *MessageUpdateOne {
-	muo.mutation.SetChatID(id)
-	return muo
 }
 
 // SetChat sets the "chat" edge to the Chat entity.
@@ -438,9 +431,14 @@ func (muo *MessageUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (muo *MessageUpdateOne) check() error {
-	if v, ok := muo.mutation.AuthorID(); ok {
+	if v, ok := muo.mutation.ChatID(); ok {
 		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "author_id", err: fmt.Errorf(`store: validator failed for field "Message.author_id": %w`, err)}
+			return &ValidationError{Name: "chat_id", err: fmt.Errorf(`store: validator failed for field "Message.chat_id": %w`, err)}
+		}
+	}
+	if v, ok := muo.mutation.ProblemID(); ok {
+		if err := v.Validate(); err != nil {
+			return &ValidationError{Name: "problem_id", err: fmt.Errorf(`store: validator failed for field "Message.problem_id": %w`, err)}
 		}
 	}
 	if _, ok := muo.mutation.ProblemID(); muo.mutation.ProblemCleared() && !ok {
@@ -481,9 +479,6 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 			}
 		}
 	}
-	if value, ok := muo.mutation.AuthorID(); ok {
-		_spec.SetField(message.FieldAuthorID, field.TypeUUID, value)
-	}
 	if muo.mutation.AuthorIDCleared() {
 		_spec.ClearField(message.FieldAuthorID, field.TypeUUID)
 	}
@@ -495,6 +490,9 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 	}
 	if value, ok := muo.mutation.CheckedAt(); ok {
 		_spec.SetField(message.FieldCheckedAt, field.TypeTime, value)
+	}
+	if muo.mutation.CheckedAtCleared() {
+		_spec.ClearField(message.FieldCheckedAt, field.TypeTime)
 	}
 	if value, ok := muo.mutation.IsBlocked(); ok {
 		_spec.SetField(message.FieldIsBlocked, field.TypeBool, value)

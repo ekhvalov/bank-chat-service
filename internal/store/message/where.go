@@ -56,6 +56,16 @@ func IDLTE(id types.MessageID) predicate.Message {
 	return predicate.Message(sql.FieldLTE(FieldID, id))
 }
 
+// ChatID applies equality check predicate on the "chat_id" field. It's identical to ChatIDEQ.
+func ChatID(v types.ChatID) predicate.Message {
+	return predicate.Message(sql.FieldEQ(FieldChatID, v))
+}
+
+// ProblemID applies equality check predicate on the "problem_id" field. It's identical to ProblemIDEQ.
+func ProblemID(v types.ProblemID) predicate.Message {
+	return predicate.Message(sql.FieldEQ(FieldProblemID, v))
+}
+
 // AuthorID applies equality check predicate on the "author_id" field. It's identical to AuthorIDEQ.
 func AuthorID(v types.UserID) predicate.Message {
 	return predicate.Message(sql.FieldEQ(FieldAuthorID, v))
@@ -94,6 +104,46 @@ func IsService(v bool) predicate.Message {
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Message {
 	return predicate.Message(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// ChatIDEQ applies the EQ predicate on the "chat_id" field.
+func ChatIDEQ(v types.ChatID) predicate.Message {
+	return predicate.Message(sql.FieldEQ(FieldChatID, v))
+}
+
+// ChatIDNEQ applies the NEQ predicate on the "chat_id" field.
+func ChatIDNEQ(v types.ChatID) predicate.Message {
+	return predicate.Message(sql.FieldNEQ(FieldChatID, v))
+}
+
+// ChatIDIn applies the In predicate on the "chat_id" field.
+func ChatIDIn(vs ...types.ChatID) predicate.Message {
+	return predicate.Message(sql.FieldIn(FieldChatID, vs...))
+}
+
+// ChatIDNotIn applies the NotIn predicate on the "chat_id" field.
+func ChatIDNotIn(vs ...types.ChatID) predicate.Message {
+	return predicate.Message(sql.FieldNotIn(FieldChatID, vs...))
+}
+
+// ProblemIDEQ applies the EQ predicate on the "problem_id" field.
+func ProblemIDEQ(v types.ProblemID) predicate.Message {
+	return predicate.Message(sql.FieldEQ(FieldProblemID, v))
+}
+
+// ProblemIDNEQ applies the NEQ predicate on the "problem_id" field.
+func ProblemIDNEQ(v types.ProblemID) predicate.Message {
+	return predicate.Message(sql.FieldNEQ(FieldProblemID, v))
+}
+
+// ProblemIDIn applies the In predicate on the "problem_id" field.
+func ProblemIDIn(vs ...types.ProblemID) predicate.Message {
+	return predicate.Message(sql.FieldIn(FieldProblemID, vs...))
+}
+
+// ProblemIDNotIn applies the NotIn predicate on the "problem_id" field.
+func ProblemIDNotIn(vs ...types.ProblemID) predicate.Message {
+	return predicate.Message(sql.FieldNotIn(FieldProblemID, vs...))
 }
 
 // AuthorIDEQ applies the EQ predicate on the "author_id" field.
@@ -269,6 +319,16 @@ func CheckedAtLT(v time.Time) predicate.Message {
 // CheckedAtLTE applies the LTE predicate on the "checked_at" field.
 func CheckedAtLTE(v time.Time) predicate.Message {
 	return predicate.Message(sql.FieldLTE(FieldCheckedAt, v))
+}
+
+// CheckedAtIsNil applies the IsNil predicate on the "checked_at" field.
+func CheckedAtIsNil() predicate.Message {
+	return predicate.Message(sql.FieldIsNull(FieldCheckedAt))
+}
+
+// CheckedAtNotNil applies the NotNil predicate on the "checked_at" field.
+func CheckedAtNotNil() predicate.Message {
+	return predicate.Message(sql.FieldNotNull(FieldCheckedAt))
 }
 
 // IsBlockedEQ applies the EQ predicate on the "is_blocked" field.

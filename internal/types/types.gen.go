@@ -4,23 +4,14 @@ package types
 import (
 	"database/sql/driver"
 	"errors"
-	"fmt"
 
 	"github.com/google/uuid"
-)
-
-var (
-	ErrParse     = errors.New("parse error")
-	ErrScan      = errors.New("scan error")
-	ErrMarshal   = errors.New("marshal error")
-	ErrUnmarshal = errors.New("unmarshal error")
-	ErrInvalid   = errors.New("invalid value")
 )
 
 func Parse[T ChatID | MessageID | ProblemID | UserID | RequestID](id string) (T, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
-		return T(uuid.Nil), fmt.Errorf("%w: %v", ErrParse, err)
+		return T(uuid.Nil), err
 	}
 	return T(uid), nil
 }
@@ -28,7 +19,7 @@ func Parse[T ChatID | MessageID | ProblemID | UserID | RequestID](id string) (T,
 func MustParse[T ChatID | MessageID | ProblemID | UserID | RequestID](id string) T {
 	uid, err := uuid.Parse(id)
 	if err != nil {
-		panic(fmt.Errorf("%w: %v", ErrParse, err))
+		panic(err)
 	}
 	return T(uid)
 }
@@ -42,21 +33,11 @@ func NewChatID() ChatID {
 }
 
 func (c ChatID) MarshalText() (text []byte, err error) {
-	text, err = uuid.UUID(c).MarshalText()
-	if err != nil {
-		err = fmt.Errorf("%w: %v", ErrMarshal, err)
-		return nil, err
-	}
-	return text, nil
+	return uuid.UUID(c).MarshalText()
 }
 
 func (c *ChatID) UnmarshalText(text []byte) error {
-	uid, err := uuid.ParseBytes(text)
-	if err != nil {
-		return fmt.Errorf("%w: %v", ErrUnmarshal, err)
-	}
-	*c = ChatID(uid)
-	return nil
+	return (*uuid.UUID)(c).UnmarshalText(text)
 }
 
 func (c ChatID) Value() (driver.Value, error) {
@@ -64,18 +45,12 @@ func (c ChatID) Value() (driver.Value, error) {
 }
 
 func (c *ChatID) Scan(src any) error {
-	u := uuid.UUID(*c)
-	err := u.Scan(src)
-	if err != nil {
-		return fmt.Errorf("%w: %v", ErrScan, err)
-	}
-	*c = ChatID(u)
-	return nil
+	return (*uuid.UUID)(c).Scan(src)
 }
 
 func (c ChatID) Validate() error {
 	if c.IsZero() {
-		return fmt.Errorf("%w: %v", ErrInvalid, c)
+		return errors.New("zero ChatID")
 	}
 	return nil
 }
@@ -102,21 +77,11 @@ func NewMessageID() MessageID {
 }
 
 func (c MessageID) MarshalText() (text []byte, err error) {
-	text, err = uuid.UUID(c).MarshalText()
-	if err != nil {
-		err = fmt.Errorf("%w: %v", ErrMarshal, err)
-		return nil, err
-	}
-	return text, nil
+	return uuid.UUID(c).MarshalText()
 }
 
 func (c *MessageID) UnmarshalText(text []byte) error {
-	uid, err := uuid.ParseBytes(text)
-	if err != nil {
-		return fmt.Errorf("%w: %v", ErrUnmarshal, err)
-	}
-	*c = MessageID(uid)
-	return nil
+	return (*uuid.UUID)(c).UnmarshalText(text)
 }
 
 func (c MessageID) Value() (driver.Value, error) {
@@ -124,18 +89,12 @@ func (c MessageID) Value() (driver.Value, error) {
 }
 
 func (c *MessageID) Scan(src any) error {
-	u := uuid.UUID(*c)
-	err := u.Scan(src)
-	if err != nil {
-		return fmt.Errorf("%w: %v", ErrScan, err)
-	}
-	*c = MessageID(u)
-	return nil
+	return (*uuid.UUID)(c).Scan(src)
 }
 
 func (c MessageID) Validate() error {
 	if c.IsZero() {
-		return fmt.Errorf("%w: %v", ErrInvalid, c)
+		return errors.New("zero MessageID")
 	}
 	return nil
 }
@@ -162,21 +121,11 @@ func NewProblemID() ProblemID {
 }
 
 func (c ProblemID) MarshalText() (text []byte, err error) {
-	text, err = uuid.UUID(c).MarshalText()
-	if err != nil {
-		err = fmt.Errorf("%w: %v", ErrMarshal, err)
-		return nil, err
-	}
-	return text, nil
+	return uuid.UUID(c).MarshalText()
 }
 
 func (c *ProblemID) UnmarshalText(text []byte) error {
-	uid, err := uuid.ParseBytes(text)
-	if err != nil {
-		return fmt.Errorf("%w: %v", ErrUnmarshal, err)
-	}
-	*c = ProblemID(uid)
-	return nil
+	return (*uuid.UUID)(c).UnmarshalText(text)
 }
 
 func (c ProblemID) Value() (driver.Value, error) {
@@ -184,18 +133,12 @@ func (c ProblemID) Value() (driver.Value, error) {
 }
 
 func (c *ProblemID) Scan(src any) error {
-	u := uuid.UUID(*c)
-	err := u.Scan(src)
-	if err != nil {
-		return fmt.Errorf("%w: %v", ErrScan, err)
-	}
-	*c = ProblemID(u)
-	return nil
+	return (*uuid.UUID)(c).Scan(src)
 }
 
 func (c ProblemID) Validate() error {
 	if c.IsZero() {
-		return fmt.Errorf("%w: %v", ErrInvalid, c)
+		return errors.New("zero ProblemID")
 	}
 	return nil
 }
@@ -222,21 +165,11 @@ func NewUserID() UserID {
 }
 
 func (c UserID) MarshalText() (text []byte, err error) {
-	text, err = uuid.UUID(c).MarshalText()
-	if err != nil {
-		err = fmt.Errorf("%w: %v", ErrMarshal, err)
-		return nil, err
-	}
-	return text, nil
+	return uuid.UUID(c).MarshalText()
 }
 
 func (c *UserID) UnmarshalText(text []byte) error {
-	uid, err := uuid.ParseBytes(text)
-	if err != nil {
-		return fmt.Errorf("%w: %v", ErrUnmarshal, err)
-	}
-	*c = UserID(uid)
-	return nil
+	return (*uuid.UUID)(c).UnmarshalText(text)
 }
 
 func (c UserID) Value() (driver.Value, error) {
@@ -244,18 +177,12 @@ func (c UserID) Value() (driver.Value, error) {
 }
 
 func (c *UserID) Scan(src any) error {
-	u := uuid.UUID(*c)
-	err := u.Scan(src)
-	if err != nil {
-		return fmt.Errorf("%w: %v", ErrScan, err)
-	}
-	*c = UserID(u)
-	return nil
+	return (*uuid.UUID)(c).Scan(src)
 }
 
 func (c UserID) Validate() error {
 	if c.IsZero() {
-		return fmt.Errorf("%w: %v", ErrInvalid, c)
+		return errors.New("zero UserID")
 	}
 	return nil
 }
@@ -282,21 +209,11 @@ func NewRequestID() RequestID {
 }
 
 func (c RequestID) MarshalText() (text []byte, err error) {
-	text, err = uuid.UUID(c).MarshalText()
-	if err != nil {
-		err = fmt.Errorf("%w: %v", ErrMarshal, err)
-		return nil, err
-	}
-	return text, nil
+	return uuid.UUID(c).MarshalText()
 }
 
 func (c *RequestID) UnmarshalText(text []byte) error {
-	uid, err := uuid.ParseBytes(text)
-	if err != nil {
-		return fmt.Errorf("%w: %v", ErrUnmarshal, err)
-	}
-	*c = RequestID(uid)
-	return nil
+	return (*uuid.UUID)(c).UnmarshalText(text)
 }
 
 func (c RequestID) Value() (driver.Value, error) {
@@ -304,18 +221,12 @@ func (c RequestID) Value() (driver.Value, error) {
 }
 
 func (c *RequestID) Scan(src any) error {
-	u := uuid.UUID(*c)
-	err := u.Scan(src)
-	if err != nil {
-		return fmt.Errorf("%w: %v", ErrScan, err)
-	}
-	*c = RequestID(u)
-	return nil
+	return (*uuid.UUID)(c).Scan(src)
 }
 
 func (c RequestID) Validate() error {
 	if c.IsZero() {
-		return fmt.Errorf("%w: %v", ErrInvalid, c)
+		return errors.New("zero RequestID")
 	}
 	return nil
 }

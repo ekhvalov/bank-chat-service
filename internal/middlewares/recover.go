@@ -8,14 +8,13 @@ import (
 
 func NewRecover(logger *zap.Logger) echo.MiddlewareFunc {
 	return middleware.RecoverWithConfig(middleware.RecoverConfig{
-		StackSize:         0,
-		DisableStackAll:   false,
-		DisablePrintStack: false,
-		LogLevel:          0,
+		DisableStackAll: true,
 		LogErrorFunc: func(c echo.Context, err error, stack []byte) error {
-			logger.Error(err.Error(), zap.ByteString("stack", stack))
-			return nil
+			logger.With(
+				zap.Error(err),
+				zap.ByteString("stack", stack),
+			).Error("panic recovered")
+			return err
 		},
-		DisableErrorHandler: false,
 	})
 }
