@@ -37,7 +37,7 @@ func (h Handler) Handle(err error, eCtx echo.Context) {
 	if h.productionMode {
 		details = ""
 	}
-	if err := eCtx.JSON(http.StatusOK, h.responseBuilder(code, msg, details)); err != nil {
-		h.lg.Error("respond error", zap.Error(err))
+	if errSend := eCtx.JSON(http.StatusOK, h.responseBuilder(code, msg, details)); errSend != nil {
+		h.lg.Error("respond error", zap.Error(errSend))
 	}
 }

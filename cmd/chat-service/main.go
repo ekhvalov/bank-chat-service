@@ -16,8 +16,10 @@ import (
 	keycloakclient "github.com/ekhvalov/bank-chat-service/internal/clients/keycloak"
 	"github.com/ekhvalov/bank-chat-service/internal/config"
 	"github.com/ekhvalov/bank-chat-service/internal/logger"
+	messagesrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/messages"
 	clientv1 "github.com/ekhvalov/bank-chat-service/internal/server-client/v1"
 	serverdebug "github.com/ekhvalov/bank-chat-service/internal/server-debug"
+	"github.com/ekhvalov/bank-chat-service/internal/store"
 )
 
 var configPath = flag.String("config", "configs/config.toml", "Path to config file")
@@ -39,7 +41,7 @@ func run() (errReturned error) {
 		return fmt.Errorf("parse and validate config %q: %v", *configPath, err)
 	}
 
-	initLogger(cfg)
+	mustInitGlobalLogger(cfg)
 	defer logger.Sync()
 
 	srvDebug, err := serverdebug.New(serverdebug.NewOptions(cfg.Servers.Debug.Addr))
@@ -65,8 +67,19 @@ func run() (errReturned error) {
 	if cfg.Global.IsProduction() && cfg.Clients.Keycloak.DebugMode {
 		zap.L().Warn("keycloak client debug mode enabled on production environment")
 	}
+	if cfg.Global.IsProduction() && cfg.Clients.Postgres.DebugMode {
+		zap.L().Warn("postgres client debug mode enabled on production environment")
+	}
 
-	srvClient, err := initServerClient(cfg.Servers.Client, swagger, keycloakClient)
+	msgRepo := mustInitMsgRepo(ctx, cfg.Clients.Postgres)
+
+	srvClient, err := initServerClient(
+		cfg.Servers.Client,
+		swagger,
+		keycloakClient,
+		msgRepo,
+		cfg.Global.IsProduction(),
+	)
 	if err != nil {
 		return fmt.Errorf("init client server: %v", err)
 	}
@@ -88,11 +101,34 @@ func run() (errReturned error) {
 	return nil
 }
 
-func initLogger(cfg config.Config) {
+func mustInitGlobalLogger(cfg config.Config) {
 	logger.MustInit(logger.NewOptions(
 		cfg.Log.Level,
 		cfg.Global.Env,
 		logger.WithProductionMode(cfg.Global.IsProduction()),
 		logger.WithSentryDSN(cfg.Sentry.DSN),
 	))
+}
+
+func mustInitMsgRepo(ctx context.Context, cfg config.PostgresClientConfig) *messagesrepo.Repo {
+	storeClient, err := store.NewPSQLClient(store.NewPSQLOptions(
+		cfg.Address,
+		cfg.Username,
+		cfg.Password,
+		cfg.Database,
+		store.WithDebug(cfg.DebugMode),
+	))
+	if err != nil {
+		panic(fmt.Sprintf("create psql store client: %v", err))
+	}
+	if err = storeClient.Schema.Create(ctx); err != nil {
+		panic(fmt.Sprintf("create schema: %v", err))
+	}
+
+	msgRepo, err := messagesrepo.New(messagesrepo.NewOptions(store.NewDatabase(storeClient)))
+	if err != nil {
+		panic(fmt.Sprintf("create messages repo: %v", err))
+	}
+
+	return msgRepo
 }

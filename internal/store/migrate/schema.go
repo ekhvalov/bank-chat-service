@@ -19,6 +19,18 @@ var (
 		Name:       "chats",
 		Columns:    ChatsColumns,
 		PrimaryKey: []*schema.Column{ChatsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "chat_id",
+				Unique:  true,
+				Columns: []*schema.Column{ChatsColumns[0]},
+			},
+			{
+				Name:    "chat_client_id",
+				Unique:  false,
+				Columns: []*schema.Column{ChatsColumns[1]},
+			},
+		},
 	}
 	// MessagesColumns holds the columns for the "messages" table.
 	MessagesColumns = []*schema.Column{
@@ -53,6 +65,33 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "message_id",
+				Unique:  true,
+				Columns: []*schema.Column{MessagesColumns[0]},
+			},
+			{
+				Name:    "message_chat_id",
+				Unique:  false,
+				Columns: []*schema.Column{MessagesColumns[9]},
+			},
+			{
+				Name:    "message_author_id",
+				Unique:  false,
+				Columns: []*schema.Column{MessagesColumns[1]},
+			},
+			{
+				Name:    "message_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{MessagesColumns[8]},
+			},
+			{
+				Name:    "message_is_visible_for_client",
+				Unique:  false,
+				Columns: []*schema.Column{MessagesColumns[2]},
+			},
+		},
 	}
 	// ProblemsColumns holds the columns for the "problems" table.
 	ProblemsColumns = []*schema.Column{
@@ -73,6 +112,28 @@ var (
 				Columns:    []*schema.Column{ProblemsColumns[4]},
 				RefColumns: []*schema.Column{ChatsColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "problem_id",
+				Unique:  true,
+				Columns: []*schema.Column{ProblemsColumns[0]},
+			},
+			{
+				Name:    "problem_chat_id",
+				Unique:  false,
+				Columns: []*schema.Column{ProblemsColumns[4]},
+			},
+			{
+				Name:    "problem_manager_id",
+				Unique:  false,
+				Columns: []*schema.Column{ProblemsColumns[1]},
+			},
+			{
+				Name:    "problem_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{ProblemsColumns[3]},
 			},
 		},
 	}

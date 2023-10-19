@@ -24,6 +24,17 @@ const (
 	BearerAuthScopes = "bearerAuth.Scopes"
 )
 
+// Error defines model for Error.
+type Error struct {
+	// Code contains HTTP error codes and specific business logic error codes (the last must be >= 1000).
+	Code    ErrorCode `json:"code"`
+	Details *string   `json:"details,omitempty"`
+	Message string    `json:"message"`
+}
+
+// ErrorCode contains HTTP error codes and specific business logic error codes (the last must be >= 1000).
+type ErrorCode = int
+
 // GetHistoryRequest defines model for GetHistoryRequest.
 type GetHistoryRequest struct {
 	Cursor   *string `json:"cursor,omitempty"`
@@ -32,20 +43,25 @@ type GetHistoryRequest struct {
 
 // GetHistoryResponse defines model for GetHistoryResponse.
 type GetHistoryResponse struct {
-	Data MessagesPage `json:"data"`
+	Data  MessagesPage `json:"data"`
+	Error *Error       `json:"error,omitempty"`
 }
 
 // Message defines model for Message.
 type Message struct {
-	AuthorId  types.UserID    `json:"authorId"`
-	Body      string          `json:"body"`
-	CreatedAt time.Time       `json:"createdAt"`
-	Id        types.MessageID `json:"id"`
+	AuthorId   *types.UserID   `json:"authorId,omitempty"`
+	Body       string          `json:"body"`
+	CreatedAt  time.Time       `json:"createdAt"`
+	Id         types.MessageID `json:"id"`
+	IsBlocked  bool            `json:"isBlocked"`
+	IsReceived bool            `json:"isReceived"`
+	IsService  bool            `json:"isService"`
 }
 
 // MessagesPage defines model for MessagesPage.
 type MessagesPage struct {
 	Messages []Message `json:"messages"`
+	Next     string    `json:"next"`
 }
 
 // XRequestIDHeader defines model for XRequestIDHeader.
@@ -139,18 +155,20 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7RUXWvbShD9K2bufZQs5+Yl6C0f3MSFQmhaGgh+GEsTaRvtR2ZHJm7Qfy+7km25CqUE",
-	"8mRWM545c86ZeYXCamcNGfGQv4JDRk1CHF/3X+i5JS/LqxvCkjh8UwZyqPtnAgY1QQ736ZCZLq8gAabn",
-	"VjGVkAu3lIAvatIY/v1oWaNADm2rSkhAti783wsrU0ECL2ll0+Fj+PHzPYRxNFXaWZYesdSQQ6Wkbtfz",
-	"wuqMnuoNNnaTrdE8pUWNknrijSooU0aIDTZZrA1d13U7dHHga5Ib5cXydmgbO7B1xKIophQtexuZOMbe",
-	"JeCwojv1k0JQ44vSrYb8ZLFIQCuze+1nDlgqYogYxo29s8bTtHOJEjn8l+kRcvgnO0iXDTNkn8l7rMjf",
-	"YkUQCh+keOgLrLoEhqxpC2yltrws3yfVN0/8QTolsLbl9k3WCyYUKs/lCHSJQqkoTRPkXQLqnQMOvH2U",
-	"F4/Vipj2ggwEjMcdKdnrPZFTD9G4t0La/6V9AkfD4MiM24mT9oVXcYGoaFnJ9i5U6butCZn4vA187F7/",
-	"7/j+9P0rDGsXWvTRgwC1iOvpUObRRs2VNCFygeZpdte6wPfsskaZXTaKjMzOb5eQwIbYKxvu0+YkjGAd",
-	"GXQKcjidL+ankESBIr6s2i9cpM32q16SL1g56atck8yCZLO6z5xDrMkY4mFJ4NZ6OaxubHC4nw9vc31I",
-	"ySb3tVv1PJOXi8HvhTVCJqJD5xpVxO7ZDx8gvo5O6590nd613+wW7nT80B+fyNF/i8WHABjuW0RwTPjO",
-	"zbNGeZnH8zyyV2R0bKyHVeAr7NOO7+NyV7ShxjodHNJnQQItN4PH8ixrbIFNbb3kZ4uzRRZss+p+BQAA",
-	"//+UbE/EFAcAAA==",
+	"H4sIAAAAAAAC/7RVTW/jNhD9K8S0hxaQLaXpYSGgh3y0mxRYINik6AKpD7Q0sdhIJJczMuIa+u/FULIt",
+	"rd3uIkBOtsgZzps3j49bKFzjnUXLBPkWvA66QcYQvz59xM8tEt9e36AuMciasZBD1X8mYHWDkMOn2RA5",
+	"u72GBAJ+bk3AEnIOLSZARYWNluwnFxrNkEPbmhIS4I2XfOJg7AoSeJmt3GxYlB+a7yGMd2em8S5wj5gr",
+	"yGFluGqX88I1KT5Xa127dbrU9nlWVJpnhGFtCkyNZQxW12k8G7qu63boYsO/huBilz44j4ENxuXClSi/",
+	"3wd8ghy+Sw+kpUN2GlOvJLBLoETWpo650w67BBok0is8sdeNmXvcByZ9/UWXwKFIvoUSqQjGs3EyksJZ",
+	"1saSunl4uFMogUrySGlbKvJYmCdTqGVLxiKRqt3KFJO4H7hCVWti1bTEaonqrzbLzvEXdZZl2Y9zSKAx",
+	"1jRtA/nPWbYfnpC6wiC9vUe+McQubIaxneCyDdRzfMSM1yu8N//E5hr90lc6k0r7umcnynZfFCbvLOFx",
+	"5VKz/toUP/Sc050Q3yWAO0F8dfRH44vlZGgfDgOfAtItVy7clq+7GH8Qhje6FQksXbk5OaMioGYsL3gC",
+	"utSMMzYNHiHvEjCvbHDg7c16NHRZu+IZy1GjS+dq1DbCpo9YoFn/9/59f/ap7S+0EDuOnI4ZnNQY4xkf",
+	"PlJQr8ojGQ0+Ef8bxoa+UeTSxIBbh6A38m3xhb/ZmQiGhEW0USzaYHhzL1V6NEvUAcNFK3Paff2208Hv",
+	"fz7AYL6Rurh7EEbF7Pu7beyTi5gM17Jzqe2zum+96EBdVZrVVW3Qsrq4u4UE1hiot8T1mbTkPFrtDeRw",
+	"Ps/m55BE4UR86WpvG5FW1xvW1FjfIyuRkqr6SPFBoV/LvlxeuHPEBwOKBQ6v6OPpWRxC0qNXtlv0dCPx",
+	"5XAPxd3RRnTa+9oUsXr6NwnE7eiB/b+5H7tzN52svNZxobfQyNFPWfYmAAaXjgimhO/UrmpDPI+P9Ehe",
+	"kdGxsB4Xwpfc8x3f0+OucY21840opI+CBNpQDxrL07R2ha4rR5y/y95lqchm0f0bAAD//7XTXvkaCQAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

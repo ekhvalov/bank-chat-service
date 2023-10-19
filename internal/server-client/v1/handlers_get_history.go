@@ -1,31 +1,61 @@
 package clientv1
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 
-	"github.com/ekhvalov/bank-chat-service/internal/types"
+	"github.com/ekhvalov/bank-chat-service/internal/middlewares"
+	gethistory "github.com/ekhvalov/bank-chat-service/internal/usecases/client/get-history"
+	"github.com/ekhvalov/bank-chat-service/pkg/pointer"
 )
 
-var stub = MessagesPage{Messages: []Message{
-	{
-		AuthorId:  types.NewUserID(),
-		Body:      "Здравствуйте! Разберёмся.",
-		CreatedAt: time.Now(),
-		Id:        types.NewMessageID(),
-	},
-	{
-		AuthorId:  types.MustParse[types.UserID]("fec01fe8-483b-4cad-a0f6-ad0d431b433f"),
-		Body:      "Привет! Не могу снять денег с карты,\nпишет 'карта заблокирована'",
-		CreatedAt: time.Now().Add(-time.Minute),
-		Id:        types.NewMessageID(),
-	},
-}}
+func (h Handlers) PostGetHistory(eCtx echo.Context, params PostGetHistoryParams) error {
+	ctx := eCtx.Request().Context()
+	clientID := middlewares.MustUserID(eCtx)
+	var req GetHistoryRequest
+	if err := eCtx.Bind(&req); err != nil {
+		return fmt.Errorf("%w: %v", echo.ErrBadRequest, err)
+	}
 
-func (h Handlers) PostGetHistory(eCtx echo.Context, _ PostGetHistoryParams) error {
-	return eCtx.JSON(http.StatusOK, map[string]interface{}{
-		"data": stub,
+	request := gethistory.Request{
+		ID:       params.XRequestID,
+		ClientID: clientID,
+		PageSize: pointer.Indirect(req.PageSize),
+		Cursor:   pointer.Indirect(req.Cursor),
+	}
+	response, err := h.getHistoryUC.Handle(ctx, request)
+	if err != nil {
+		switch {
+		case errors.Is(err, gethistory.ErrInvalidRequest):
+			fallthrough
+		case errors.Is(err, gethistory.ErrInvalidCursor):
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		return fmt.Errorf("%w: %w", echo.ErrInternalServerError, err)
+	}
+
+	messages := make([]Message, 0, len(response.Messages))
+	for _, m := range response.Messages {
+		messages = append(messages, Message{
+			AuthorId:   pointer.PtrWithZeroAsNil(m.AuthorID),
+			Body:       m.Body,
+			CreatedAt:  m.CreatedAt,
+			Id:         m.ID,
+			IsBlocked:  m.IsBlocked,
+			IsReceived: m.IsReceived,
+			IsService:  m.IsService,
+		})
+	}
+	err = eCtx.JSON(http.StatusOK, GetHistoryResponse{
+		Data:  MessagesPage{Messages: messages, Next: response.NextCursor},
+		Error: nil,
 	})
+	if err != nil {
+		h.logger.Error("getHistory response", zap.Error(err))
+	}
+	return nil
 }

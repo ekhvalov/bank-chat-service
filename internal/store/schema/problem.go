@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 	"time"
 )
@@ -33,5 +34,14 @@ func (Problem) Edges() []ent.Edge {
 			Unique().
 			Required(),
 		edge.To("messages", Message.Type),
+	}
+}
+
+func (Problem) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("id").Unique(),
+		index.Fields("chat_id"),
+		index.Fields("manager_id"),
+		index.Fields("created_at"),
 	}
 }

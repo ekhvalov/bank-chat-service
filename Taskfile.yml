@@ -107,7 +107,7 @@ tasks:
   tests:
     cmds:
       - echo "- Tests"
-      - go test -race ./...
+      - go test -race ./... | grep -v '\[no test files\]'
 
   tests:integration:
     # Create file '.env' to provide environment variables listed below, and replace values with yours.
@@ -121,7 +121,7 @@ tasks:
     dotenv: [ ".env" ]
     cmds:
       - echo "- Integration tests"
-      - go test -tags integration -count 1 -race ./...
+      - go test -tags integration -count 1 -race ./... | grep -v '\[no test files\]'
 
   build:
     cmds:
