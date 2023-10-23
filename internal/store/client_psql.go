@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"entgo.io/ent/dialect"
 	"fmt"
-	"net"
+	"net/url"
 
 	entsql "entgo.io/ent/dialect/sql"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -50,21 +50,17 @@ func NewPgxDB(opts PgxOptions) (*sql.DB, error) {
 	if err := opts.Validate(); err != nil {
 		return nil, fmt.Errorf("pgx options: %v", err)
 	}
-	hostname, port, err := net.SplitHostPort(opts.address)
-	if err != nil {
-		return nil, fmt.Errorf("invalid address: %v", err)
-	}
-	connStr := fmt.Sprintf(
-		"user=%s password=%s host=%s port=%s database=%s sslmode=disable",
-		opts.username,
-		opts.password,
-		hostname,
-		port,
-		opts.database,
-	)
+
+	connStr := (&url.URL{
+		Scheme: "postgresql",
+		User:   url.UserPassword(opts.username, opts.password),
+		Host:   opts.address,
+		Path:   opts.database,
+	}).String()
 	db, err := sql.Open("pgx", connStr)
 	if err != nil {
 		return nil, fmt.Errorf("sql open: %v", err)
 	}
+
 	return db, nil
 }
