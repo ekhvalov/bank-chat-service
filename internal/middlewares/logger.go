@@ -49,7 +49,7 @@ func NewLogger(logger *zap.Logger) echo.MiddlewareFunc {
 func fieldsFromValues(v middleware.RequestLoggerValues) []zap.Field {
 	status := v.Status
 	if v.Error != nil {
-		status = errors.GetServerErrorCode(v.Error)
+		status = internalerrors.GetServerErrorCode(v.Error)
 	}
 	return []zap.Field{
 		zap.Duration("latency", v.Latency),

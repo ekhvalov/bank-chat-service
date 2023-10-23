@@ -3,6 +3,7 @@ package clientv1
 import (
 	"errors"
 	"fmt"
+	internalerrors "github.com/ekhvalov/bank-chat-service/internal/errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -31,9 +32,9 @@ func (h Handlers) PostGetHistory(eCtx echo.Context, params PostGetHistoryParams)
 	if err != nil {
 		switch {
 		case errors.Is(err, gethistory.ErrInvalidRequest):
-			fallthrough
+			return internalerrors.NewServerError(http.StatusBadRequest, "invalid request", err)
 		case errors.Is(err, gethistory.ErrInvalidCursor):
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			return internalerrors.NewServerError(http.StatusBadRequest, "invalid cursor", err)
 		}
 		return fmt.Errorf("%w: %w", echo.ErrInternalServerError, err)
 	}

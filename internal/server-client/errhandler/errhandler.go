@@ -33,7 +33,7 @@ func New(opts Options) (Handler, error) {
 }
 
 func (h Handler) Handle(err error, eCtx echo.Context) {
-	code, msg, details := errors.ProcessServerError(err)
+	code, msg, details := internalerrors.ProcessServerError(err)
 	if h.productionMode {
 		details = ""
 	}
