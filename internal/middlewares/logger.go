@@ -43,7 +43,6 @@ func NewLogger(logger *zap.Logger) echo.MiddlewareFunc {
 		LogUserAgent: true,
 		LogStatus:    true,
 		LogError:     true,
-		HandleError:  true,
 	})
 }
 

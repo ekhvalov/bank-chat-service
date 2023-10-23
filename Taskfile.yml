@@ -4,6 +4,10 @@ version: '3'
 silent: true
 
 vars:
+  CLIENT_V1_SRC: ./api/client.v1.swagger.yml
+  CLIENT_V1_DST: ./internal/server-client/v1/server.gen.go
+  CLIENT_V1_PKG: clientv1
+
   DOCKER_COMPOSE_FILES: |-
     docker-compose.yml
     docker-compose.sentry.yml
@@ -109,6 +113,13 @@ tasks:
       - echo "- Tests"
       - go test -race ./... | grep -v '\[no test files\]'
 
+  tests:e2e:
+    dotenv: [ ".env.e2e" ]
+    cmds:
+      - echo "- End-to-end tests"
+      # NOTE: It's important to run tests serial (without `-p` flag) – for correct `clientsPool` sharing.
+      - "ginkgo --failFast --timeout=1m --tags e2e {{.CLI_ARGS}} ./tests/e2e"
+
   tests:integration:
     # Create file '.env' to provide environment variables listed below, and replace values with yours.
     # TEST_LOG_LEVEL=info
@@ -134,6 +145,15 @@ tasks:
       - task: gen:types
       - task: ent:gen
       - task: gen:api
+      - task: gen:e2e
+
+  gen:e2e:
+    vars:
+      E2E_CLIENT_V1_DST: ./tests/e2e/api/client/v1/client.gen.go
+      E2E_CLIENT_V1_PKG: apiclientv1
+    cmds:
+      - echo "[E2E] Generate client API..."
+      - "{{.TOOLS_DIR}}/oapi-codegen --old-config-style -generate types,client,spec -package {{.E2E_CLIENT_V1_PKG}} {{.CLIENT_V1_SRC}} > {{.E2E_CLIENT_V1_DST}}"
 
   gen:types:
     vars:
@@ -150,10 +170,6 @@ tasks:
       - 'go run ./cmd/gen-types {{.TYPES_PKG}} {{.TYPES | splitLines | join "," }} {{.TYPES_DST}}'
 
   gen:api:
-    vars:
-      CLIENT_V1_SRC: ./api/client.v1.swagger.yml
-      CLIENT_V1_DST: ./internal/server-client/v1/server.gen.go
-      CLIENT_V1_PKG: clientv1
     cmds:
       - "{{.TOOLS_DIR}}/oapi-codegen -generate types,server,spec -package {{.CLIENT_V1_PKG}} {{.CLIENT_V1_SRC}} > {{.CLIENT_V1_DST}}"
 
@@ -166,7 +182,6 @@ tasks:
   ent:gen:
     cmds:
       - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/store'
-      - "{{.TOOLS_DIR}}/ent generate --template ./internal/store/templates {{.ENT_SCHEMA}}"
       - task: tidy
 
   dev-tools:install:
@@ -175,6 +190,7 @@ tasks:
         github.com/daixiang0/gci@v0.11.2
         github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.15.0
         github.com/kazhuravlev/options-gen/cmd/options-gen@v0.30.0
+        github.com/onsi/ginkgo/v2/ginkgo@v2.13.0
         go.uber.org/mock/mockgen@v0.3.0
         mvdan.cc/gofumpt@v0.5.0
         entgo.io/ent/cmd/ent@v0.12.4

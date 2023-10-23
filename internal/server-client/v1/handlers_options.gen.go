@@ -14,6 +14,7 @@ type OptOptionsSetter func(o *Options)
 func NewOptions(
 	logger *zap.Logger,
 	getHistoryUC getHistoryUseCase,
+	sendMessageUC sendMessageUseCase,
 	options ...OptOptionsSetter,
 ) Options {
 	o := Options{}
@@ -22,6 +23,7 @@ func NewOptions(
 
 	o.logger = logger
 	o.getHistoryUC = getHistoryUC
+	o.sendMessageUC = sendMessageUC
 
 	for _, opt := range options {
 		opt(&o)
@@ -33,6 +35,7 @@ func (o *Options) Validate() error {
 	errs := new(errors461e464ebed9.ValidationErrors)
 	errs.Add(errors461e464ebed9.NewValidationError("logger", _validate_Options_logger(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("getHistoryUC", _validate_Options_getHistoryUC(o)))
+	errs.Add(errors461e464ebed9.NewValidationError("sendMessageUC", _validate_Options_sendMessageUC(o)))
 	return errs.AsError()
 }
 
@@ -46,6 +49,13 @@ func _validate_Options_logger(o *Options) error {
 func _validate_Options_getHistoryUC(o *Options) error {
 	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.getHistoryUC, "required"); err != nil {
 		return fmt461e464ebed9.Errorf("field `getHistoryUC` did not pass the test: %w", err)
+	}
+	return nil
+}
+
+func _validate_Options_sendMessageUC(o *Options) error {
+	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.sendMessageUC, "required"); err != nil {
+		return fmt461e464ebed9.Errorf("field `sendMessageUC` did not pass the test: %w", err)
 	}
 	return nil
 }

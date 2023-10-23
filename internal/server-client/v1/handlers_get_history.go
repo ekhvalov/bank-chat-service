@@ -51,7 +51,7 @@ func (h Handlers) PostGetHistory(eCtx echo.Context, params PostGetHistoryParams)
 		})
 	}
 	err = eCtx.JSON(http.StatusOK, GetHistoryResponse{
-		Data:  MessagesPage{Messages: messages, Next: response.NextCursor},
+		Data:  &MessagesPage{Messages: messages, Next: response.NextCursor},
 		Error: nil,
 	})
 	if err != nil {
