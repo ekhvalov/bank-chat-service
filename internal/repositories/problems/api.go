@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ekhvalov/bank-chat-service/internal/store"
-	"github.com/ekhvalov/bank-chat-service/internal/store/problem"
+	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
+	"github.com/ekhvalov/bank-chat-service/internal/store/gen/problem"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 )
 

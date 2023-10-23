@@ -3,7 +3,7 @@ package problemsrepo
 import (
 	"fmt"
 
-	"github.com/ekhvalov/bank-chat-service/internal/store"
+	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 )
 
 //go:generate options-gen -out-filename=repo_options.gen.go -from-struct=Options

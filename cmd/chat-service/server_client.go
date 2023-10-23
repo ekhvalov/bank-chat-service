@@ -14,7 +14,7 @@ import (
 	serverclient "github.com/ekhvalov/bank-chat-service/internal/server-client"
 	"github.com/ekhvalov/bank-chat-service/internal/server-client/errhandler"
 	clientv1 "github.com/ekhvalov/bank-chat-service/internal/server-client/v1"
-	"github.com/ekhvalov/bank-chat-service/internal/store"
+	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 	gethistory "github.com/ekhvalov/bank-chat-service/internal/usecases/client/get-history"
 	sendmessage "github.com/ekhvalov/bank-chat-service/internal/usecases/client/send-message"
 )

@@ -13,11 +13,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ekhvalov/bank-chat-service/internal/store"
+	storegen "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 )
 
 var migrationLock sync.Mutex
 
-func PrepareDB(ctx context.Context, t *testing.T, dbName string) (st *store.Client, cleanUp func(ctx context.Context)) {
+func PrepareDB(ctx context.Context, t *testing.T, dbName string) (st *storegen.Client, cleanUp func(ctx context.Context)) {
 	t.Helper()
 	require.NotEmpty(t, dbName)
 

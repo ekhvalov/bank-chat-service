@@ -8,9 +8,9 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/ekhvalov/bank-chat-service/internal/store/chat"
-	"github.com/ekhvalov/bank-chat-service/internal/store/message"
-	"github.com/ekhvalov/bank-chat-service/internal/store/predicate"
+	"github.com/ekhvalov/bank-chat-service/internal/store/gen/chat"
+	"github.com/ekhvalov/bank-chat-service/internal/store/gen/message"
+	"github.com/ekhvalov/bank-chat-service/internal/store/gen/predicate"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 )
 

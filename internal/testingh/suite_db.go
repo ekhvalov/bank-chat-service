@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/ekhvalov/bank-chat-service/internal/store"
+	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 )
 
 type DBSuite struct {

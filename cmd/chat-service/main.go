@@ -22,6 +22,7 @@ import (
 	clientv1 "github.com/ekhvalov/bank-chat-service/internal/server-client/v1"
 	serverdebug "github.com/ekhvalov/bank-chat-service/internal/server-debug"
 	"github.com/ekhvalov/bank-chat-service/internal/store"
+	storegen "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 )
 
 var configPath = flag.String("config", "configs/config.toml", "Path to config file")
@@ -73,7 +74,7 @@ func run() (errReturned error) {
 		zap.L().Warn("postgres client debug mode enabled on production environment")
 	}
 
-	storeDB := store.NewDatabase(mustInitStoreClient(ctx, cfg.Clients.Postgres))
+	storeDB := storegen.NewDatabase(mustInitStoreClient(ctx, cfg.Clients.Postgres))
 
 	srvClient, err := initServerClient(
 		cfg.Servers.Client,
@@ -115,7 +116,7 @@ func mustInitGlobalLogger(cfg config.Config) {
 	))
 }
 
-func mustInitStoreClient(ctx context.Context, cfg config.PostgresClientConfig) *store.Client {
+func mustInitStoreClient(ctx context.Context, cfg config.PostgresClientConfig) *storegen.Client {
 	storeClient, err := store.NewPSQLClient(store.NewPSQLOptions(
 		cfg.Address,
 		cfg.Username,
@@ -134,7 +135,7 @@ func mustInitStoreClient(ctx context.Context, cfg config.PostgresClientConfig) *
 	return storeClient
 }
 
-func mustInitMsgRepo(db *store.Database) *messagesrepo.Repo {
+func mustInitMsgRepo(db *storegen.Database) *messagesrepo.Repo {
 	msgRepo, err := messagesrepo.New(messagesrepo.NewOptions(db))
 	if err != nil {
 		panic(fmt.Sprintf("create messages repo: %v", err))
@@ -143,7 +144,7 @@ func mustInitMsgRepo(db *store.Database) *messagesrepo.Repo {
 	return msgRepo
 }
 
-func mustInitChatsRepo(db *store.Database) *chatsrepo.Repo {
+func mustInitChatsRepo(db *storegen.Database) *chatsrepo.Repo {
 	chatsRepo, err := chatsrepo.New(chatsrepo.NewOptions(db))
 	if err != nil {
 		panic(fmt.Errorf("create chats repo error: %v", err))
@@ -152,7 +153,7 @@ func mustInitChatsRepo(db *store.Database) *chatsrepo.Repo {
 	return chatsRepo
 }
 
-func mustInitProblemsRepo(db *store.Database) *problemsrepo.Repo {
+func mustInitProblemsRepo(db *storegen.Database) *problemsrepo.Repo {
 	problemsRepo, err := problemsrepo.New(problemsrepo.NewOptions(db))
 	if err != nil {
 		panic(fmt.Errorf("create problems repo error: %v", err))

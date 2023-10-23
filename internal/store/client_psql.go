@@ -8,6 +8,8 @@ import (
 
 	entsql "entgo.io/ent/dialect/sql"
 	_ "github.com/jackc/pgx/v5/stdlib"
+
+	storegen "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 )
 
 //go:generate options-gen -out-filename=client_psql_options.gen.go -from-struct=PSQLOptions
@@ -19,7 +21,7 @@ type PSQLOptions struct {
 	debug    bool
 }
 
-func NewPSQLClient(opts PSQLOptions) (*Client, error) {
+func NewPSQLClient(opts PSQLOptions) (*storegen.Client, error) {
 	if err := opts.Validate(); err != nil {
 		return nil, fmt.Errorf("validate options: %v", err)
 	}
@@ -29,13 +31,13 @@ func NewPSQLClient(opts PSQLOptions) (*Client, error) {
 		return nil, fmt.Errorf("init db driver: %v", err)
 	}
 
-	var clientOpts []Option
-	clientOpts = append(clientOpts, Driver(entsql.OpenDB(dialect.Postgres, db)))
+	var clientOpts []storegen.Option
+	clientOpts = append(clientOpts, storegen.Driver(entsql.OpenDB(dialect.Postgres, db)))
 	if opts.debug {
-		clientOpts = append(clientOpts, Debug())
+		clientOpts = append(clientOpts, storegen.Debug())
 	}
 
-	return NewClient(clientOpts...), nil
+	return storegen.NewClient(clientOpts...), nil
 }
 
 //go:generate options-gen -out-filename=client_psql_pgx_options.gen.go -from-struct=PgxOptions

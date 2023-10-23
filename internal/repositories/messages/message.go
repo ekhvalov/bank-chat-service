@@ -3,7 +3,7 @@ package messagesrepo
 import (
 	"time"
 
-	"github.com/ekhvalov/bank-chat-service/internal/store"
+	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 )
 

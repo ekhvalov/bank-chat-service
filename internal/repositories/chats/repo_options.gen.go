@@ -4,7 +4,7 @@ package chatsrepo
 import (
 	fmt461e464ebed9 "fmt"
 
-	"github.com/ekhvalov/bank-chat-service/internal/store"
+	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 	errors461e464ebed9 "github.com/kazhuravlev/options-gen/pkg/errors"
 	validator461e464ebed9 "github.com/kazhuravlev/options-gen/pkg/validator"
 )

@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"testing"
 
-	"github.com/ekhvalov/bank-chat-service/internal/store"
-	storechat "github.com/ekhvalov/bank-chat-service/internal/store/chat"
-	"github.com/ekhvalov/bank-chat-service/internal/store/enttest"
-	"github.com/ekhvalov/bank-chat-service/internal/store/message"
-	"github.com/ekhvalov/bank-chat-service/internal/store/problem"
+	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
+	storechat "github.com/ekhvalov/bank-chat-service/internal/store/gen/chat"
+	"github.com/ekhvalov/bank-chat-service/internal/store/gen/enttest"
+	"github.com/ekhvalov/bank-chat-service/internal/store/gen/message"
+	"github.com/ekhvalov/bank-chat-service/internal/store/gen/problem"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 )
 

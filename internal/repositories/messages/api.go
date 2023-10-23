@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ekhvalov/bank-chat-service/internal/store"
-	"github.com/ekhvalov/bank-chat-service/internal/store/message"
+	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
+	"github.com/ekhvalov/bank-chat-service/internal/store/gen/message"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 	"github.com/ekhvalov/bank-chat-service/pkg/pointer"
 )

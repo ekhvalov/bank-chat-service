@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	messagesrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/messages"
-	"github.com/ekhvalov/bank-chat-service/internal/store"
+	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 	"github.com/ekhvalov/bank-chat-service/internal/testingh"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 )

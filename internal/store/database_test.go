@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/ekhvalov/bank-chat-service/internal/store"
+	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 	"github.com/ekhvalov/bank-chat-service/internal/testingh"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 )
