@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
 
-	"github.com/ekhvalov/bank-chat-service/internal/errors"
+	internalerrors "github.com/ekhvalov/bank-chat-service/internal/errors"
 )
 
 const (

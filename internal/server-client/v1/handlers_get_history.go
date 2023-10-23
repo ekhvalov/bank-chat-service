@@ -3,12 +3,12 @@ package clientv1
 import (
 	"errors"
 	"fmt"
-	internalerrors "github.com/ekhvalov/bank-chat-service/internal/errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 
+	internalerrors "github.com/ekhvalov/bank-chat-service/internal/errors"
 	"github.com/ekhvalov/bank-chat-service/internal/middlewares"
 	gethistory "github.com/ekhvalov/bank-chat-service/internal/usecases/client/get-history"
 	"github.com/ekhvalov/bank-chat-service/pkg/pointer"

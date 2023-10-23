@@ -3,11 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/ekhvalov/bank-chat-service/internal/buildinfo"
-	"github.com/ekhvalov/bank-chat-service/internal/store"
 
 	"go.uber.org/zap"
 
+	"github.com/ekhvalov/bank-chat-service/internal/buildinfo"
 	keycloakclient "github.com/ekhvalov/bank-chat-service/internal/clients/keycloak"
 	"github.com/ekhvalov/bank-chat-service/internal/config"
 	chatsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/chats"
@@ -16,6 +15,7 @@ import (
 	serverclient "github.com/ekhvalov/bank-chat-service/internal/server-client"
 	"github.com/ekhvalov/bank-chat-service/internal/server-client/errhandler"
 	clientv1 "github.com/ekhvalov/bank-chat-service/internal/server-client/v1"
+	"github.com/ekhvalov/bank-chat-service/internal/store"
 	storegen "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 	gethistory "github.com/ekhvalov/bank-chat-service/internal/usecases/client/get-history"
 	sendmessage "github.com/ekhvalov/bank-chat-service/internal/usecases/client/send-message"

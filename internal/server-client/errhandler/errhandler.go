@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 
-	"github.com/ekhvalov/bank-chat-service/internal/errors"
+	internalerrors "github.com/ekhvalov/bank-chat-service/internal/errors"
 )
 
 var _ echo.HTTPErrorHandler = Handler{}.Handle
