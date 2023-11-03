@@ -16,7 +16,7 @@ func (r *Repo) CreateIfNotExists(ctx context.Context, userID types.UserID) (type
 		OnConflict(
 			sql.ConflictColumns("client_id"),
 		).
-		UpdateNewValues().
+		Ignore().
 		ID(ctx)
 	if err != nil {
 		return types.ChatIDNil, fmt.Errorf("create chat: %v", err)

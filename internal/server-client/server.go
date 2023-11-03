@@ -88,6 +88,7 @@ func New(opts Options) (*Server, error) {
 }
 
 func (s *Server) Run(ctx context.Context) error {
+	// return fmt.Errorf("run")
 	eg, ctx := errgroup.WithContext(ctx)
 
 	eg.Go(func() error {

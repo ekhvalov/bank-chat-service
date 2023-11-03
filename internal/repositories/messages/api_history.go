@@ -17,6 +17,8 @@ import (
 var (
 	ErrInvalidPageSize = errors.New("invalid page size")
 	ErrInvalidCursor   = errors.New("invalid cursor")
+	errEmptyCreatedAt  = errors.New("empty 'last created at'")
+	zeroTime           = time.Time{}
 )
 
 const (
@@ -40,13 +42,13 @@ func (r *Repo) GetClientChatMessages(
 	predicates := []predicate.Message{message.IsVisibleForClient(true)}
 	if cursor != nil {
 		if err := validateCursor(*cursor); err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("%w: %v", ErrInvalidCursor, err)
 		}
 		limit = cursor.PageSize
 		predicates = append(predicates, message.CreatedAtLT(cursor.LastCreatedAt))
 	} else {
 		if err := validatePageSize(pageSize); err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("%w: %v", ErrInvalidPageSize, err)
 		}
 		limit = pageSize
 	}
@@ -59,7 +61,7 @@ func (r *Repo) GetClientChatMessages(
 		Limit(limit + 1).
 		All(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("query client messages: %v", err)
 	}
 	var cur *Cursor
 	if len(result) > limit && result[limit-1] != nil {
@@ -83,11 +85,10 @@ func validatePageSize(pageSize int) error {
 
 func validateCursor(cursor Cursor) error {
 	if err := validatePageSize(cursor.PageSize); err != nil {
-		return fmt.Errorf("%w: %w", ErrInvalidCursor, ErrInvalidPageSize)
+		return err
 	}
-	zero := time.Time{}
-	if cursor.LastCreatedAt.Sub(zero).Nanoseconds() == 0 {
-		return fmt.Errorf("%w: empty 'last created at'", ErrInvalidCursor)
+	if cursor.LastCreatedAt.Sub(zeroTime).Nanoseconds() == 0 {
+		return errEmptyCreatedAt
 	}
 	return nil
 }

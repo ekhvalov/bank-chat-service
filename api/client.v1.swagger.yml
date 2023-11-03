@@ -110,7 +110,6 @@ components:
           $ref: "#/components/schemas/Error"
 
     MessageHeader:
-      # FIXME: Тесты помогут.
       required: [ id, createdAt ]
       properties:
         id:

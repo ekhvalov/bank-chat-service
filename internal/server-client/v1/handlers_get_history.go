@@ -36,7 +36,7 @@ func (h Handlers) PostGetHistory(eCtx echo.Context, params PostGetHistoryParams)
 		case errors.Is(err, gethistory.ErrInvalidCursor):
 			return internalerrors.NewServerError(http.StatusBadRequest, "invalid cursor", err)
 		}
-		return fmt.Errorf("%w: %w", echo.ErrInternalServerError, err)
+		return fmt.Errorf("%w: %v", echo.ErrInternalServerError, err)
 	}
 
 	messages := make([]Message, 0, len(response.Messages))

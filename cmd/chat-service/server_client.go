@@ -23,32 +23,32 @@ import (
 
 const nameServerClient = "server-client"
 
-func initServerClient(ctx context.Context, cfg config.Config) (*serverclient.Server, error) {
+func initServerClient(ctx context.Context, cfg config.Config) (*serverclient.Server, func() error, error) {
 	lg := zap.L().Named(nameServerClient)
 
 	v1Swagger, err := clientv1.GetSwagger()
 	if err != nil {
-		return nil, fmt.Errorf("get swagger: %v", err)
+		return nil, nil, fmt.Errorf("get swagger: %v", err)
 	}
 
 	keycloakClient, err := initKeycloakClient(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("create keycloak client: %v", err)
+		return nil, nil, fmt.Errorf("create keycloak client: %v", err)
 	}
 
-	storeDB, err := initStoreDB(ctx, cfg.Clients.Postgres)
+	storeDB, closeFn, err := initStoreDB(ctx, cfg.Clients.Postgres)
 	if err != nil {
-		return nil, fmt.Errorf("create store DB: %v", err)
+		return nil, closeFn, fmt.Errorf("create store DB: %v", err)
 	}
 
 	v1Handlers, err := initV1Handlers(lg, storeDB)
 	if err != nil {
-		return nil, fmt.Errorf("create v1Handlers: %v", err)
+		return nil, closeFn, fmt.Errorf("create v1Handlers: %v", err)
 	}
 
 	errHandler, err := errhandler.New(errhandler.NewOptions(lg, cfg.Global.IsProduction(), errhandler.ResponseBuilder))
 	if err != nil {
-		return nil, fmt.Errorf("create error handler: %v", err)
+		return nil, closeFn, fmt.Errorf("create error handler: %v", err)
 	}
 
 	server, err := serverclient.New(serverclient.NewOptions(
@@ -63,10 +63,10 @@ func initServerClient(ctx context.Context, cfg config.Config) (*serverclient.Ser
 		errHandler.Handle,
 	))
 	if err != nil {
-		return nil, fmt.Errorf("build server: %v", err)
+		return nil, closeFn, fmt.Errorf("build server: %v", err)
 	}
 
-	return server, nil
+	return server, closeFn, nil
 }
 
 func initKeycloakClient(cfg config.Config) (*keycloakclient.Client, error) {
@@ -80,12 +80,18 @@ func initKeycloakClient(cfg config.Config) (*keycloakclient.Client, error) {
 	))
 }
 
-func initStoreDB(ctx context.Context, cfg config.PostgresClientConfig) (*storegen.Database, error) {
+func initStoreDB(ctx context.Context, cfg config.PostgresClientConfig) (*storegen.Database, func() error, error) {
 	client, err := initStoreClient(ctx, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("create store client: %v", err)
+		return nil, nil, fmt.Errorf("create store client: %v", err)
 	}
-	return storegen.NewDatabase(client), nil
+	closeFn := func() error {
+		return fmt.Errorf("postgres client close: %v", err)
+		// if err := client.Close(); err != nil {
+		// }
+		// return nil
+	}
+	return storegen.NewDatabase(client), closeFn, nil
 }
 
 func initStoreClient(ctx context.Context, cfg config.PostgresClientConfig) (*storegen.Client, error) {

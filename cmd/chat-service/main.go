@@ -51,7 +51,12 @@ func run() (errReturned error) {
 		zap.L().Warn("postgres client debug mode enabled on production environment")
 	}
 
-	srvClient, err := initServerClient(ctx, cfg)
+	srvClient, closeFn, err := initServerClient(ctx, cfg)
+	defer func() {
+		if closeFn != nil {
+			errReturned = errors.Join(errReturned, closeFn())
+		}
+	}()
 	if err != nil {
 		return fmt.Errorf("init client server: %v", err)
 	}

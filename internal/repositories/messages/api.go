@@ -41,6 +41,7 @@ func (r *Repo) CreateClientVisible(
 		SetAuthorID(authorID).
 		SetBody(msgBody).
 		SetIsVisibleForClient(true).
+		SetIsVisibleForManager(false).
 		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("create message: %v", err)
