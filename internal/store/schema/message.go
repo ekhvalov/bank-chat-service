@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 	"time"
 )
@@ -23,6 +24,7 @@ func (Message) Fields() []ent.Field {
 		field.UUID("chat_id", types.ChatID{}),
 		field.UUID("problem_id", types.ProblemID{}),
 		field.UUID("author_id", types.UserID{}).Optional().Immutable(),
+		field.UUID("initial_request_id", types.RequestID{}).Default(types.NewRequestID).Unique().Immutable(),
 		field.Bool("is_visible_for_client").Default(false),
 		field.Bool("is_visible_for_manager").Default(false),
 		field.Text("body").NotEmpty().MaxLen(bodySizeLimit).Immutable(),
@@ -46,5 +48,16 @@ func (Message) Edges() []ent.Edge {
 			Field("chat_id").
 			Unique().
 			Required(),
+	}
+}
+
+func (Message) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("id").Unique(),
+		index.Fields("chat_id"),
+		index.Fields("author_id"),
+		index.Fields("created_at"),
+		index.Fields("is_visible_for_client"),
+		index.Fields("initial_request_id").Unique(),
 	}
 }

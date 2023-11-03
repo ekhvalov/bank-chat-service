@@ -86,7 +86,7 @@ func Init(opts Options) error {
 }
 
 func Sync() {
-	if err := zap.L().Sync(); err != nil && !errors.Is(err, syscall.ENOTTY) {
+	if err := zap.L().Sync(); err != nil && !(errors.Is(err, syscall.ENOTTY) || errors.Is(err, syscall.EINVAL)) {
 		stdlog.Printf("cannot sync logger: %v", err)
 	}
 }

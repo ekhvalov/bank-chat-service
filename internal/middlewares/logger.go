@@ -6,6 +6,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
+
+	internalerrors "github.com/ekhvalov/bank-chat-service/internal/errors"
 )
 
 const (
@@ -29,19 +31,8 @@ func NewLogger(logger *zap.Logger) echo.MiddlewareFunc {
 			if id, ok := userID(c); ok {
 				uid = id.String()
 			}
-			logger.Log(
-				level,
-				message,
-				zap.Duration("latency", v.Latency),
-				zap.String("host", v.Host),
-				zap.String("method", v.Method),
-				zap.String("path", v.URIPath),
-				zap.String("request_id", v.RequestID),
-				zap.String("user_agent", v.UserAgent),
-				zap.Int("status", v.Status),
-				zap.String("user_id", uid),
-				zap.Error(v.Error),
-			)
+			fields := append(fieldsFromValues(v), zap.String("user_id", uid))
+			logger.Log(level, message, fields...)
 			return nil
 		},
 		LogLatency:   true,
@@ -53,4 +44,21 @@ func NewLogger(logger *zap.Logger) echo.MiddlewareFunc {
 		LogStatus:    true,
 		LogError:     true,
 	})
+}
+
+func fieldsFromValues(v middleware.RequestLoggerValues) []zap.Field {
+	status := v.Status
+	if v.Error != nil {
+		status = internalerrors.GetServerErrorCode(v.Error)
+	}
+	return []zap.Field{
+		zap.Duration("latency", v.Latency),
+		zap.String("host", v.Host),
+		zap.String("method", v.Method),
+		zap.String("path", v.URIPath),
+		zap.String("request_id", v.RequestID),
+		zap.String("user_agent", v.UserAgent),
+		zap.Int("status", status),
+		zap.Error(v.Error),
+	}
 }

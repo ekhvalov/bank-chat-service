@@ -37,6 +37,7 @@ type Options struct {
 	v1Swagger      *openapi3.T              `option:"mandatory" validate:"required"`
 	v1Handlers     clientv1.ServerInterface `option:"mandatory" validate:"required"`
 	introspector   middlewares.Introspector `option:"mandatory" validate:"required"`
+	errorHandler   echo.HTTPErrorHandler    `option:"mandatory" validate:"required"`
 }
 
 type Server struct {
@@ -50,6 +51,7 @@ func New(opts Options) (*Server, error) {
 	}
 
 	e := echo.New()
+	e.HTTPErrorHandler = opts.errorHandler
 	e.Use(
 		middlewares.NewRecover(opts.logger),
 		middlewares.NewLogger(opts.logger),
@@ -86,6 +88,7 @@ func New(opts Options) (*Server, error) {
 }
 
 func (s *Server) Run(ctx context.Context) error {
+	// return fmt.Errorf("run")
 	eg, ctx := errgroup.WithContext(ctx)
 
 	eg.Go(func() error {
