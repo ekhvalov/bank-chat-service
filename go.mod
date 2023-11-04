@@ -22,6 +22,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.13.0
 	github.com/onsi/gomega v1.28.0
 	github.com/stretchr/testify v1.8.4
+	go.uber.org/goleak v1.2.0
 	go.uber.org/mock v0.3.0
 	go.uber.org/zap v1.26.0
 	golang.org/x/sync v0.3.0

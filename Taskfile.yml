@@ -159,6 +159,8 @@ tasks:
     vars:
       TYPES: |-
         ChatID
+        FailedJobID
+        JobID
         MessageID
         ProblemID
         UserID
