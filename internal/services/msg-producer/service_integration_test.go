@@ -12,6 +12,7 @@ import (
 
 	"github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/zap"
 
 	"github.com/ekhvalov/bank-chat-service/internal/logger"
 	msgproducer "github.com/ekhvalov/bank-chat-service/internal/services/msg-producer"
@@ -59,6 +60,7 @@ func (s *ServiceIntegrationSuite) TestPlainMessages() {
 	// Arrange.
 	svc, err := msgproducer.New(msgproducer.NewOptions(
 		msgproducer.NewKafkaWriter(s.KafkaBrokers(), s.messagesTopic, 1),
+		zap.NewNop(),
 	))
 	s.Require().NoError(err)
 	defer func() { s.Require().NoError(svc.Close()) }()
@@ -123,6 +125,7 @@ func (s *ServiceIntegrationSuite) TestEncryptedMessages() {
 	// Arrange.
 	svc, err := msgproducer.New(msgproducer.NewOptions(
 		msgproducer.NewKafkaWriter(s.KafkaBrokers(), s.messagesTopic, 1),
+		zap.NewNop(),
 		msgproducer.WithEncryptKey("68566D597133743677397A2443264629"),
 		msgproducer.WithNonceFactory(func(size int) ([]byte, error) {
 			return bytes.Repeat([]byte{'1'}, size), nil

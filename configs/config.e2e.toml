@@ -1,23 +1,22 @@
 [global]
-env = "dev"
+env = "prod"
 
 [log]
-level = "info"
+level = "warn"
 
 [clients]
 [clients.keycloak]
-base_path = "http://localhost:3010"
+base_path = "http://keycloak:8080"
 realm = "Bank"
-client_id = "chat-service"
-client_secret = "some-secret"
+client_id = "e2e-testing"
+client_secret = "hVjoxHeYBMJ9pGhXYuUUgIzJ8rEhicsv"
 debug_mode = false
-
 [clients.postgres]
-address = "localhost:5432"
+address = "postgres:5432"
 username = "chat-service"
 password = "chat-service"
 database = "chat-service"
-debug_mode = true
+debug_mode = false
 
 [servers]
 [servers.debug]
@@ -27,16 +26,16 @@ addr = ":8079"
 addr = ":8080"
 allow_origins = ["http://localhost:3011", "http://localhost:3000"]
 [servers.client.required_access]
-resource = "chat-ui-client"
+resource = "e2e-testing"
 role = "support-chat-client"
 
 [services]
 [services.msg_producer]
-brokers = ["localhost:9092"]
+brokers = ["kafka:9092"]
 topic = "chat.messages"
 batch_size = 1
-#encrypt_key = "" # Leave it blank to disable encryption.
-encrypt_key = "68566D597133743677397A2443264629"
+encrypt_key = "" # Leave it blank to disable encryption.
+#encrypt_key = "68566D597133743677397A2443264629"
 
 [services.outbox]
 workers = 2

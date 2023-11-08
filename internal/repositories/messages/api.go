@@ -13,6 +13,17 @@ import (
 
 var ErrMsgNotFound = errors.New("message not found")
 
+func (r *Repo) GetMessageByID(ctx context.Context, id types.MessageID) (*Message, error) {
+	msg, err := r.db.Message(ctx).Get(ctx, id)
+	if err != nil {
+		if store.IsNotFound(err) {
+			return nil, ErrMsgNotFound
+		}
+		return nil, fmt.Errorf("get message: %v", err)
+	}
+	return pointer.Ptr(adaptStoreMessage(msg)), nil
+}
+
 func (r *Repo) GetMessageByRequestID(ctx context.Context, reqID types.RequestID) (*Message, error) {
 	msg, err := r.db.Message(ctx).Query().Where(message.InitialRequestID(reqID)).First(ctx)
 	if err != nil {

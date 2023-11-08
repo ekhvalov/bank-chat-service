@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/segmentio/kafka-go"
+	"go.uber.org/zap"
 )
 
 type KafkaWriter interface {
@@ -17,6 +18,7 @@ type KafkaWriter interface {
 //go:generate options-gen -out-filename=service_options.gen.go -from-struct=Options -defaults-from=func
 type Options struct {
 	wr           KafkaWriter `option:"mandatory" validate:"required"`
+	logger       *zap.Logger `option:"mandatory" validate:"required"`
 	encryptKey   string      `validate:"omitempty,hexadecimal"`
 	nonceFactory func(size int) ([]byte, error)
 }
@@ -30,6 +32,7 @@ func getDefaultOptions() Options {
 type Service struct {
 	wr        KafkaWriter
 	encryptor encryptor
+	logger    *zap.Logger
 }
 
 func New(opts Options) (*Service, error) {
@@ -44,11 +47,14 @@ func New(opts Options) (*Service, error) {
 		if err != nil {
 			return nil, fmt.Errorf("create encryptor: %v", err)
 		}
+	} else {
+		opts.logger.Info("encryption disabled")
 	}
 
 	return &Service{
 		wr:        opts.wr,
 		encryptor: enc,
+		logger:    opts.logger,
 	}, nil
 }
 

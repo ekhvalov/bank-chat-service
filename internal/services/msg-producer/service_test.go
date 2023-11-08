@@ -12,6 +12,7 @@ import (
 	"github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 
 	msgproducer "github.com/ekhvalov/bank-chat-service/internal/services/msg-producer"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
@@ -38,7 +39,7 @@ func TestService_ProduceMessage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Arrange.
 			writer := new(kafkaWriterMock)
-			s, err := msgproducer.New(msgproducer.NewOptions(writer, msgproducer.WithEncryptKey(tt.key)))
+			s, err := msgproducer.New(msgproducer.NewOptions(writer, zap.NewNop(), msgproducer.WithEncryptKey(tt.key)))
 			require.NoError(t, err)
 			defer func() {
 				require.NoError(t, s.Close())

@@ -114,11 +114,13 @@ tasks:
       - go test -race ./... | grep -v '\[no test files\]'
 
   tests:e2e:
-    dotenv: [ ".env.e2e" ]
+    dir: ./deploy/local
+    env:
+      COMPOSE_PROJECT_NAME: bankchate2e
     cmds:
       - echo "- End-to-end tests"
-      # NOTE: It's important to run tests serial (without `-p` flag) – for correct `clientsPool` sharing.
-      - "ginkgo --failFast --timeout=1m --tags e2e {{.CLI_ARGS}} ./tests/e2e"
+      - docker compose --file docker-compose.e2e.yml rm --force --stop --volumes
+      - docker compose --file docker-compose.e2e.yml up --renew-anon-volumes --remove-orphans --exit-code-from tester
 
   tests:integration:
     # Create file '.env' to provide environment variables listed below, and replace values with yours.

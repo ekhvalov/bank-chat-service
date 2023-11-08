@@ -1,13 +1,16 @@
 package config
 
+import "time"
+
 // Documentation https://pkg.go.dev/github.com/go-playground/validator/v10
 
 type Config struct {
-	Global  GlobalConfig  `toml:"global"`
-	Log     LogConfig     `toml:"log"`
-	Clients ClientsConfig `toml:"clients"`
-	Servers ServersConfig `toml:"servers"`
-	Sentry  SentryConfig  `toml:"sentry"`
+	Global   GlobalConfig   `toml:"global"`
+	Log      LogConfig      `toml:"log"`
+	Clients  ClientsConfig  `toml:"clients"`
+	Servers  ServersConfig  `toml:"servers"`
+	Services ServicesConfig `toml:"services"`
+	Sentry   SentryConfig   `toml:"sentry"`
 }
 
 type GlobalConfig struct {
@@ -61,6 +64,24 @@ type RequiredAccessConfig struct {
 
 type DebugServerConfig struct {
 	Addr string `toml:"addr" validate:"required,hostname_port"`
+}
+
+type ServicesConfig struct {
+	MsgProducer   MsgProducerServiceConfig `toml:"msg_producer"`
+	OutboxService OutboxService            `toml:"outbox"`
+}
+
+type MsgProducerServiceConfig struct {
+	Brokers    []string `toml:"brokers" validate:"dive,required,hostname_port"`
+	Topic      string   `toml:"topic" validate:"required"`
+	BatchSize  int      `toml:"batch_size" validate:"min=1"`
+	EncryptKey string   `toml:"encrypt_key" validate:"omitempty,hexadecimal"`
+}
+
+type OutboxService struct {
+	Workers    int           `toml:"workers" validate:"min=1"`
+	IdleTime   time.Duration `toml:"idle_time" validate:"required"`
+	ReserveFor time.Duration `toml:"reserve_for" validate:"required"`
 }
 
 type SentryConfig struct {
