@@ -4,10 +4,6 @@ version: '3'
 silent: true
 
 vars:
-  CLIENT_V1_SRC: ./api/client.v1.swagger.yml
-  CLIENT_V1_DST: ./internal/server-client/v1/server.gen.go
-  CLIENT_V1_PKG: clientv1
-
   DOCKER_COMPOSE_FILES: |-
     docker-compose.yml
     docker-compose.sentry.yml
@@ -44,7 +40,7 @@ tasks:
 
   deps:
     cmds:
-      - "{{.DOCKER_COMPOSE_CMD}} up -d"
+      - "{{.DOCKER_COMPOSE_CMD}} up -d {{.CLI_ARGS}}"
 
   deps:cmd:
     cmds:
@@ -108,7 +104,85 @@ tasks:
     cmds:
       - "{{.TOOLS_DIR}}/golangci-lint run -v --fix --timeout=5m ./..."
 
+  build:
+    cmds:
+      - echo "- Build"
+      - go build ./cmd/chat-service
+
+  generate:
+    aliases: [ "gen" ]
+    cmds:
+      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate ./...'
+      - task: gen:types
+      - task: ent:gen
+      - task: gen:api
+
+  gen:types:
+    vars:
+      TYPES: |-
+        ChatID
+        FailedJobID
+        JobID
+        MessageID
+        ProblemID
+        UserID
+        RequestID
+      TYPES_PKG: types
+      TYPES_DST: ./internal/types/types.gen.go
+    cmds:
+      - echo "Generate types..."
+      - 'go run ./cmd/gen-types {{.TYPES_PKG}} {{.TYPES | splitLines | join "," }} {{.TYPES_DST}}'
+
+  gen:api:
+    vars:
+      API_V1_TYPES: |
+        client
+        manager
+    cmds:
+      - for: { var: API_V1_TYPES }
+        task: gen:api-v1
+        vars:
+          TYPE: "{{.ITEM}}"
+      - for: { var: API_V1_TYPES }
+        task: gen:api-v1-e2e
+        vars:
+          TYPE: "{{.ITEM}}"
+
+  gen:api-v1:
+    internal: true
+    vars:
+      SRC: "./api/{{.TYPE}}.v1.swagger.yml"
+      DIR: "./internal/server-{{.TYPE}}/v1"
+      DST: "{{.DIR}}/server.gen.go"
+      PKG: "{{.TYPE}}v1"
+    cmds:
+      - "mkdir -p {{.DIR}}"
+      - "{{.TOOLS_DIR}}/oapi-codegen -generate types,server,spec -package {{.PKG}} {{.SRC}} > {{.DST}}"
+
+  gen:api-v1-e2e:
+    internal: true
+    vars:
+      DIR: "./tests/e2e/api/{{.TYPE}}/v1"
+      DST: "{{.DIR}}/{{.TYPE}}.gen.go"
+      SRC: "./api/{{.TYPE}}.v1.swagger.yml"
+      PKG: "api{{.TYPE}}v1"
+    cmds:
+      - echo "[E2E] Generate {{.TYPE}} API..."
+      - "mkdir -p {{.DIR}}"
+      - "{{.TOOLS_DIR}}/oapi-codegen --old-config-style -generate types,client,spec -package {{.PKG}} {{.SRC}} > {{.DST}}"
+
+  ent:new:
+    cmds:
+      - "{{.TOOLS_DIR}}/ent new --target {{.ENT_SCHEMA}} {{.CLI_ARGS}}"
+      - task: tidy
+
+  ent:gen:
+    cmds:
+      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/store'
+      - task: tidy
+
   tests:
+    aliases: [ "tests:unit" ]
     cmds:
       - echo "- Tests"
       - go test -race ./... | grep -v '\[no test files\]'
@@ -136,59 +210,14 @@ tasks:
       - echo "- Integration tests"
       - go test -tags integration -count 1 -race ./... | grep -v '\[no test files\]'
 
-  build:
+  tests:all:
     cmds:
-      - echo "- Build"
-      - go build ./cmd/chat-service
+      - task: tests
+      - task: tests:integration
+      - task: tests:e2e
 
-  generate:
-    cmds:
-      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate ./...'
-      - task: gen:types
-      - task: ent:gen
-      - task: gen:api
-      - task: gen:e2e
-
-  gen:e2e:
-    vars:
-      E2E_CLIENT_V1_DST: ./tests/e2e/api/client/v1/client.gen.go
-      E2E_CLIENT_V1_PKG: apiclientv1
-    cmds:
-      - echo "[E2E] Generate client API..."
-      - "{{.TOOLS_DIR}}/oapi-codegen --old-config-style -generate types,client,spec -package {{.E2E_CLIENT_V1_PKG}} {{.CLIENT_V1_SRC}} > {{.E2E_CLIENT_V1_DST}}"
-
-  gen:types:
-    vars:
-      TYPES: |-
-        ChatID
-        FailedJobID
-        JobID
-        MessageID
-        ProblemID
-        UserID
-        RequestID
-      TYPES_PKG: types
-      TYPES_DST: ./internal/types/types.gen.go
-    cmds:
-      - echo "Generate types..."
-      - 'go run ./cmd/gen-types {{.TYPES_PKG}} {{.TYPES | splitLines | join "," }} {{.TYPES_DST}}'
-
-  gen:api:
-    cmds:
-      - "{{.TOOLS_DIR}}/oapi-codegen -generate types,server,spec -package {{.CLIENT_V1_PKG}} {{.CLIENT_V1_SRC}} > {{.CLIENT_V1_DST}}"
-
-
-  ent:new:
-    cmds:
-      - "{{.TOOLS_DIR}}/ent new --target {{.ENT_SCHEMA}} {{.CLI_ARGS}}"
-      - task: tidy
-
-  ent:gen:
-    cmds:
-      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate {{.GO_MODULE}}/internal/store'
-      - task: tidy
-
-  dev-tools:install:
+  tools:install:
+    aliases: [ "dev-tools:install" ]
     vars:
       DEV_TOOLS: |
         github.com/daixiang0/gci@v0.11.2
@@ -206,7 +235,8 @@ tasks:
       - task: golangci:install
       - task: tidy
 
-  golangci:install:
+  tools:install-golangci:
+    aliases: [ "golangci:install" ]
     dir: "{{.TOOLS_DIR}}"
     cmds:
       - wget -q "{{.GOLANGCI_LINT_URL}}/{{.GOLANGCI_LINT_ARCHIVE_FILE}}"

@@ -1,4 +1,4 @@
-package serverclient
+package servermanager
 
 import (
 	"context"
@@ -12,20 +12,20 @@ import (
 
 	"github.com/ekhvalov/bank-chat-service/internal/middlewares"
 	"github.com/ekhvalov/bank-chat-service/internal/server"
-	clientv1 "github.com/ekhvalov/bank-chat-service/internal/server-client/v1"
+	managerv1 "github.com/ekhvalov/bank-chat-service/internal/server-manager/v1"
 )
 
 //go:generate options-gen -out-filename=server_options.gen.go -from-struct=Options
 type Options struct {
-	addr           string                   `option:"mandatory" validate:"required,hostname_port"`
-	allowOrigins   []string                 `option:"mandatory" validate:"min=1"`
-	accessResource string                   `option:"mandatory" validate:"required"`
-	accessRole     string                   `option:"mandatory" validate:"required"`
-	logger         *zap.Logger              `option:"mandatory" validate:"required"`
-	v1Swagger      *openapi3.T              `option:"mandatory" validate:"required"`
-	v1Handlers     clientv1.ServerInterface `option:"mandatory" validate:"required"`
-	introspector   middlewares.Introspector `option:"mandatory" validate:"required"`
-	errorHandler   echo.HTTPErrorHandler    `option:"mandatory" validate:"required"`
+	addr           string                    `option:"mandatory" validate:"required,hostname_port"`
+	allowOrigins   []string                  `option:"mandatory" validate:"min=1"`
+	accessResource string                    `option:"mandatory" validate:"required"`
+	accessRole     string                    `option:"mandatory" validate:"required"`
+	logger         *zap.Logger               `option:"mandatory" validate:"required"`
+	v1Swagger      *openapi3.T               `option:"mandatory" validate:"required"`
+	v1Handlers     managerv1.ServerInterface `option:"mandatory" validate:"required"`
+	introspector   middlewares.Introspector  `option:"mandatory" validate:"required"`
+	errorHandler   echo.HTTPErrorHandler     `option:"mandatory" validate:"required"`
 }
 
 type Server struct {
@@ -45,7 +45,7 @@ func New(opts Options) (*Server, error) {
 				AuthenticationFunc:  openapi3filter.NoopAuthenticationFunc,
 			},
 		}))
-		clientv1.RegisterHandlers(v1, opts.v1Handlers)
+		managerv1.RegisterHandlers(v1, opts.v1Handlers)
 	}
 	srv, err := server.New(server.NewOptions(
 		opts.addr,

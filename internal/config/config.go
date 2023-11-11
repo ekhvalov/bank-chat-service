@@ -47,11 +47,18 @@ type PostgresClientConfig struct {
 }
 
 type ServersConfig struct {
-	Client ClientServerConfig `toml:"client"`
-	Debug  DebugServerConfig  `toml:"debug"`
+	Client  ClientServerConfig  `toml:"client"`
+	Manager ManagerServerConfig `toml:"manager"`
+	Debug   DebugServerConfig   `toml:"debug"`
 }
 
 type ClientServerConfig struct {
+	Addr           string               `toml:"addr" validate:"required,hostname_port"`
+	AllowOrigins   []string             `toml:"allow_origins" validate:"dive,required,http_url"`
+	RequiredAccess RequiredAccessConfig `toml:"required_access"`
+}
+
+type ManagerServerConfig struct {
 	Addr           string               `toml:"addr" validate:"required,hostname_port"`
 	AllowOrigins   []string             `toml:"allow_origins" validate:"dive,required,http_url"`
 	RequiredAccess RequiredAccessConfig `toml:"required_access"`
@@ -68,6 +75,7 @@ type DebugServerConfig struct {
 
 type ServicesConfig struct {
 	MsgProducer   MsgProducerServiceConfig `toml:"msg_producer"`
+	ManagerLoad   ManagerLoadService       `toml:"manager_load"`
 	OutboxService OutboxService            `toml:"outbox"`
 }
 
@@ -76,6 +84,10 @@ type MsgProducerServiceConfig struct {
 	Topic      string   `toml:"topic" validate:"required"`
 	BatchSize  int      `toml:"batch_size" validate:"min=1"`
 	EncryptKey string   `toml:"encrypt_key" validate:"omitempty,hexadecimal"`
+}
+
+type ManagerLoadService struct {
+	MaxProblemsAtSameTime int `toml:"max_problems_at_same_time" validate:"min=1"`
 }
 
 type OutboxService struct {

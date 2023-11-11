@@ -29,6 +29,7 @@ var configPath = flag.String("config", "configs/config.toml", "Path to config fi
 const (
 	logNameMain        = "main"
 	logNameMsgProducer = "msg-producer"
+	logNameOutbox      = "outbox"
 )
 
 func main() {
@@ -90,11 +91,17 @@ func run() (errReturned error) {
 		return fmt.Errorf("init client server: %v", err)
 	}
 
+	srvManager, err := initServerManager(cfg, storeDB)
+	if err != nil {
+		return fmt.Errorf("init manager server: %v", err)
+	}
+
 	eg, ctx := errgroup.WithContext(ctx)
 
 	// Run servers.
 	eg.Go(func() error { return srvDebug.Run(ctx) })
 	eg.Go(func() error { return srvClient.Run(ctx) })
+	eg.Go(func() error { return srvManager.Run(ctx) })
 
 	// Run services.
 	eg.Go(func() error { return outboxSvc.Run(ctx) })
@@ -143,7 +150,7 @@ func initOutboxService(
 	if err != nil {
 		return nil, fmt.Errorf("create jobs repo: %v", err)
 	}
-	lg := zap.L().Named(nameOutbox)
+	lg := zap.L().Named(logNameOutbox)
 	outboxSvc, err := outbox.New(outbox.NewOptions(cfg.Workers, cfg.IdleTime, cfg.ReserveFor, repo, storeDB, lg))
 	if err != nil {
 		return nil, fmt.Errorf("create outbox service: %v", err)

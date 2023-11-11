@@ -29,7 +29,17 @@ allow_origins = ["http://localhost:3011", "http://localhost:3000"]
 resource = "e2e-testing"
 role = "support-chat-client"
 
+[servers.manager]
+addr = ":8081"
+allow_origins = ["http://localhost:3011", "http://localhost:3001"]
+[servers.manager.required_access]
+resource = "chat-ui-manager"
+role = "support-chat-manager"
+
 [services]
+[services.manager_load]
+max_problems_at_same_time = 5
+
 [services.msg_producer]
 brokers = ["kafka:9092"]
 topic = "chat.messages"
