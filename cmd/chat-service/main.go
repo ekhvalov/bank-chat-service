@@ -22,6 +22,7 @@ import (
 	sendclientmessagejob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/send-client-message"
 	"github.com/ekhvalov/bank-chat-service/internal/store"
 	storegen "github.com/ekhvalov/bank-chat-service/internal/store/gen"
+	websocketstream "github.com/ekhvalov/bank-chat-service/internal/websocket-stream"
 )
 
 var configPath = flag.String("config", "configs/config.toml", "Path to config file")
@@ -69,8 +70,10 @@ func run() (errReturned error) {
 		return fmt.Errorf("init store client: %v", err)
 	}
 	defer func() {
-		if err := storeClient.Close(); err != nil {
-			errReturned = errors.Join(errReturned, fmt.Errorf("store client close: %v", err))
+		for _, shutdownFunc := range shutdownFunctions {
+			if err := shutdownFunc(); err != nil {
+				errReturned = errors.Join(errReturned, err)
+			}
 		}
 	}()
 
@@ -138,6 +141,13 @@ func initStoreClient(ctx context.Context, cfg config.PostgresClientConfig) (*sto
 		return nil, fmt.Errorf("create schema: %v", err)
 	}
 
+	registerShutdownFunc(func() error {
+		if err := client.Close(); err != nil {
+			return fmt.Errorf("close pgsql: %v", err)
+		}
+		return nil
+	})
+
 	return client, nil
 }
 
@@ -180,4 +190,24 @@ func initMsgProducerService(cfg config.MsgProducerServiceConfig) (*msgproducer.S
 		return nil, fmt.Errorf("create msg producer: %v", err)
 	}
 	return msgProducer, nil
+}
+
+func initWebsocketHandler(lg *zap.Logger, allowOrigins []string, secWsProtocol string) (
+	*websocketstream.HTTPHandler,
+	error,
+) {
+	shutdownCh := make(chan struct{})
+	wsHandler, err := websocketstream.NewHTTPHandler(websocketstream.NewOptions(
+		lg,
+		dummyEventStream{},
+		dummyAdapter{},
+		websocketstream.JSONEventWriter{},
+		websocketstream.NewUpgrader(allowOrigins, secWsProtocol),
+		shutdownCh,
+	))
+	registerShutdownFunc(func() error {
+		close(shutdownCh)
+		return nil
+	})
+	return wsHandler, err
 }

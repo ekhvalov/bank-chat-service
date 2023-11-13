@@ -13,6 +13,7 @@ require (
 	github.com/go-resty/resty/v2 v2.9.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.3.1
+	github.com/gorilla/websocket v1.5.1
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/kazhuravlev/options-gen v0.28.3
 	github.com/kelseyhightower/envconfig v1.4.0
