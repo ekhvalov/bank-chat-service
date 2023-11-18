@@ -12,6 +12,7 @@ import (
 	errhandlermanager "github.com/ekhvalov/bank-chat-service/internal/server-manager/errhandler"
 	managerv1 "github.com/ekhvalov/bank-chat-service/internal/server-manager/v1"
 	"github.com/ekhvalov/bank-chat-service/internal/server/errhandler"
+	eventstream "github.com/ekhvalov/bank-chat-service/internal/services/event-stream"
 	managerload "github.com/ekhvalov/bank-chat-service/internal/services/manager-load"
 	inmemmanagerpool "github.com/ekhvalov/bank-chat-service/internal/services/manager-pool/in-mem"
 	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
@@ -26,6 +27,7 @@ const (
 func initServerManager(
 	cfg config.Config,
 	storeDB *store.Database,
+	eventStream eventstream.EventStream,
 ) (*server.Server, error) {
 	lg := zap.L().Named(logNameServerManager)
 
@@ -54,7 +56,7 @@ func initServerManager(
 		return nil, fmt.Errorf("create error handler: %v", err)
 	}
 
-	wsHandler, err := initWebsocketHandler(lg, cfg.Servers.Client.AllowOrigins, cfg.Servers.Client.SecWsProtocol)
+	wsHandler, err := initWebsocketHandler(lg, cfg.Servers.Client.AllowOrigins, cfg.Servers.Client.SecWsProtocol, eventStream)
 	if err != nil {
 		return nil, fmt.Errorf("create websocket: %v", err)
 	}

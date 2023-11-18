@@ -17,6 +17,7 @@ import (
 	"github.com/ekhvalov/bank-chat-service/internal/buildinfo"
 	"github.com/ekhvalov/bank-chat-service/internal/logger"
 	"github.com/ekhvalov/bank-chat-service/internal/middlewares"
+	clientevents "github.com/ekhvalov/bank-chat-service/internal/server-client/events"
 	clientv1 "github.com/ekhvalov/bank-chat-service/internal/server-client/v1"
 	managerv1 "github.com/ekhvalov/bank-chat-service/internal/server-manager/v1"
 )
@@ -64,6 +65,7 @@ func New(opts Options) (*Server, error) {
 	index.addPage("/debug/pprof/profile?seconds=30", "Take half-min profile")
 	index.addPage("/debug/error", "Test log error")
 	index.addPage("/schema/client", "Get client OpenAPI specification")
+	index.addPage("/schema/client-events", "Get OpenAPI specification of events for client")
 	index.addPage("/schema/manager", "Get manager OpenAPI specification")
 
 	e.PUT("/log/level", s.logLevel)
@@ -71,6 +73,7 @@ func New(opts Options) (*Server, error) {
 	s.debugPprof(e.Group("/debug/pprof"))
 	e.GET("/debug/error", s.debugError)
 	e.GET("/schema/client", s.schemaClient)
+	e.GET("/schema/client-events", s.schemaClientEvents)
 	e.GET("/schema/manager", s.schemaManager)
 
 	e.GET("/", index.handler)
@@ -155,6 +158,14 @@ func (s *Server) debugError(eCtx echo.Context) error {
 
 func (s *Server) schemaClient(eCtx echo.Context) error {
 	sw, err := clientv1.GetSwagger()
+	if err != nil {
+		return eCtx.String(http.StatusInternalServerError, fmt.Sprintf("get swagger error: %v", err))
+	}
+	return eCtx.JSON(http.StatusOK, sw)
+}
+
+func (s *Server) schemaClientEvents(eCtx echo.Context) error {
+	sw, err := clientevents.GetSwagger()
 	if err != nil {
 		return eCtx.String(http.StatusInternalServerError, fmt.Sprintf("get swagger error: %v", err))
 	}

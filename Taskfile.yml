@@ -148,6 +148,7 @@ tasks:
         task: gen:api-v1-e2e
         vars:
           TYPE: "{{.ITEM}}"
+      - "{{.TOOLS_DIR}}/oapi-codegen --old-config-style -generate skip-prune,types,spec -package clientevents -o ./internal/server-client/events/events.gen.go ./api/client.events.swagger.yml"
 
   gen:api-v1:
     internal: true

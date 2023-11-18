@@ -56,6 +56,7 @@ func (h *HTTPHandler) Serve(eCtx echo.Context) error {
 	if err != nil {
 		return fmt.Errorf("events subscribe: %v", err)
 	}
+	h.logger.Debug("subscribed for events", zap.String("uid", uid.String()))
 	eg := &errgroup.Group{}
 
 	eg.Go(func() error {
@@ -119,10 +120,18 @@ func (h *HTTPHandler) writeLoop(ctx context.Context, ws Websocket, events <-chan
 			if err != nil {
 				return fmt.Errorf("get message writer: %v", err)
 			}
-			err = jsonWriter.Write(e, w)
-			if errClose := w.Close(); errClose != nil {
-				h.logger.Debug("close writer", zap.Error(errClose))
+			adapted, err := h.eventAdapter.Adapt(e)
+			if err != nil {
+				h.logger.Error("adapt event: %v", zap.Error(err))
 			}
+			err = jsonWriter.Write(adapted, w)
+			if nil == err {
+				h.logger.Debug("event sent", zap.String("type", fmt.Sprintf("%T", adapted)))
+			}
+			if errClose := w.Close(); errClose != nil {
+				h.logger.Error("close writer", zap.Error(errClose))
+			}
+
 			if err != nil {
 				return fmt.Errorf("event write: %v", err)
 			}

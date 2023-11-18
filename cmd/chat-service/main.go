@@ -16,7 +16,10 @@ import (
 	"github.com/ekhvalov/bank-chat-service/internal/logger"
 	jobsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/jobs"
 	messagesrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/messages"
+	clientevents "github.com/ekhvalov/bank-chat-service/internal/server-client/events"
 	serverdebug "github.com/ekhvalov/bank-chat-service/internal/server-debug"
+	eventstream "github.com/ekhvalov/bank-chat-service/internal/services/event-stream"
+	inmemeventstream "github.com/ekhvalov/bank-chat-service/internal/services/event-stream/in-mem"
 	msgproducer "github.com/ekhvalov/bank-chat-service/internal/services/msg-producer"
 	"github.com/ekhvalov/bank-chat-service/internal/services/outbox"
 	sendclientmessagejob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/send-client-message"
@@ -84,17 +87,19 @@ func run() (errReturned error) {
 		return fmt.Errorf("inig msg producer service: %v", err)
 	}
 
-	outboxSvc, err := initOutboxService(cfg.Services.OutboxService, storeDB, msgProducerSvc)
+	eventStream := inmemeventstream.New()
+
+	outboxSvc, err := initOutboxService(cfg.Services.OutboxService, storeDB, msgProducerSvc, eventStream)
 	if err != nil {
 		return fmt.Errorf("init outbox service: %v", err)
 	}
 
-	srvClient, err := initServerClient(cfg, storeDB, outboxSvc)
+	srvClient, err := initServerClient(cfg, storeDB, outboxSvc, eventStream)
 	if err != nil {
 		return fmt.Errorf("init client server: %v", err)
 	}
 
-	srvManager, err := initServerManager(cfg, storeDB)
+	srvManager, err := initServerManager(cfg, storeDB, eventStream)
 	if err != nil {
 		return fmt.Errorf("init manager server: %v", err)
 	}
@@ -155,6 +160,7 @@ func initOutboxService(
 	cfg config.OutboxService,
 	storeDB *storegen.Database,
 	msgProducer *msgproducer.Service,
+	eventStream eventstream.EventStream,
 ) (*outbox.Service, error) {
 	repo, err := jobsrepo.New(jobsrepo.NewOptions(storeDB))
 	if err != nil {
@@ -170,7 +176,12 @@ func initOutboxService(
 		return nil, fmt.Errorf("create messages repo: %v", err)
 	}
 
-	sendClientMsgJob, err := sendclientmessagejob.New(sendclientmessagejob.NewOptions(msgProducer, messagesRepo, lg))
+	sendClientMsgJob, err := sendclientmessagejob.New(sendclientmessagejob.NewOptions(
+		msgProducer,
+		messagesRepo,
+		eventStream,
+		lg,
+	))
 	if err != nil {
 		return nil, fmt.Errorf("create send-client-message job: %v", err)
 	}
@@ -192,15 +203,15 @@ func initMsgProducerService(cfg config.MsgProducerServiceConfig) (*msgproducer.S
 	return msgProducer, nil
 }
 
-func initWebsocketHandler(lg *zap.Logger, allowOrigins []string, secWsProtocol string) (
+func initWebsocketHandler(lg *zap.Logger, allowOrigins []string, secWsProtocol string, eventStream eventstream.EventStream) (
 	*websocketstream.HTTPHandler,
 	error,
 ) {
 	shutdownCh := make(chan struct{})
 	wsHandler, err := websocketstream.NewHTTPHandler(websocketstream.NewOptions(
 		lg,
-		dummyEventStream{},
-		dummyAdapter{},
+		eventStream,
+		clientevents.Adapter{},
 		websocketstream.JSONEventWriter{},
 		websocketstream.NewUpgrader(allowOrigins, secWsProtocol),
 		shutdownCh,

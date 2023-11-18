@@ -16,6 +16,7 @@ import (
 	errhandlerclient "github.com/ekhvalov/bank-chat-service/internal/server-client/errhandler"
 	clientv1 "github.com/ekhvalov/bank-chat-service/internal/server-client/v1"
 	"github.com/ekhvalov/bank-chat-service/internal/server/errhandler"
+	eventstream "github.com/ekhvalov/bank-chat-service/internal/services/event-stream"
 	"github.com/ekhvalov/bank-chat-service/internal/services/outbox"
 	storegen "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 	gethistory "github.com/ekhvalov/bank-chat-service/internal/usecases/client/get-history"
@@ -30,6 +31,7 @@ func initServerClient(
 	cfg config.Config,
 	storeDB *storegen.Database,
 	outboxSvc *outbox.Service,
+	eventStream eventstream.EventStream,
 ) (*server.Server, error) {
 	lg := zap.L().Named(logNameServerClient)
 
@@ -56,7 +58,7 @@ func initServerClient(
 		return nil, fmt.Errorf("create error handler: %v", err)
 	}
 
-	wsHandler, err := initWebsocketHandler(lg, cfg.Servers.Client.AllowOrigins, cfg.Servers.Client.SecWsProtocol)
+	wsHandler, err := initWebsocketHandler(lg, cfg.Servers.Client.AllowOrigins, cfg.Servers.Client.SecWsProtocol, eventStream)
 	if err != nil {
 		return nil, fmt.Errorf("create websocket: %v", err)
 	}
