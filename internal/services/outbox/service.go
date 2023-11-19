@@ -38,7 +38,7 @@ type Options struct {
 type Service struct {
 	Options
 	registry map[string]Job
-	rw       *sync.RWMutex
+	mutex    *sync.Mutex
 }
 
 func New(opts Options) (*Service, error) {
@@ -48,20 +48,21 @@ func New(opts Options) (*Service, error) {
 	return &Service{
 		Options:  opts,
 		registry: make(map[string]Job),
-		rw:       &sync.RWMutex{},
+		mutex:    &sync.Mutex{},
 	}, nil
 }
 
 func (s *Service) RegisterJob(job Job) error {
-	s.rw.RLock()
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	_, exists := s.registry[job.Name()]
-	s.rw.RUnlock()
 	if exists {
 		return fmt.Errorf("job %q is already registered", job.Name())
 	}
-	s.rw.Lock()
+
 	s.registry[job.Name()] = job
-	s.rw.Unlock()
+
 	return nil
 }
 
@@ -87,7 +88,7 @@ func (s *Service) handleJobs(ctx context.Context) error {
 		job, err := s.repo.FindAndReserveJob(ctx, time.Now().Add(s.reserveFor))
 		if err != nil {
 			if errors.Is(err, jobsrepo.ErrNoJobs) {
-				<-idle(ctx, s.idleTime)
+				idle(ctx, s.idleTime)
 				continue
 			}
 			return fmt.Errorf("find and reserve: %v", err)
@@ -100,9 +101,10 @@ func (s *Service) handleJobs(ctx context.Context) error {
 }
 
 func (s *Service) handleJob(ctx context.Context, job jobsrepo.Job) error {
-	s.rw.RLock()
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	handler, ok := s.registry[job.Name]
-	s.rw.RUnlock()
 	if !ok {
 		if err := s.moveJobToFailed(ctx, job, "handler is not found"); err != nil {
 			return fmt.Errorf("fail no handler job: %v", err)
@@ -141,16 +143,12 @@ func (s *Service) moveJobToFailed(ctx context.Context, job jobsrepo.Job, reason 
 	})
 }
 
-func idle(ctx context.Context, idleTime time.Duration) <-chan struct{} {
-	ch := make(chan struct{})
-	go func() {
-		defer close(ch)
-		timer := time.NewTimer(idleTime)
-		defer timer.Stop()
-		select {
-		case <-timer.C:
-		case <-ctx.Done():
-		}
-	}()
-	return ch
+func idle(ctx context.Context, idleTime time.Duration) {
+	timer := time.NewTimer(idleTime)
+	defer timer.Stop()
+
+	select {
+	case <-timer.C:
+	case <-ctx.Done():
+	}
 }
