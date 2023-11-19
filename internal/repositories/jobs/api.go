@@ -21,14 +21,9 @@ func (r *Repo) FindAndReserveJob(ctx context.Context, until time.Time) (Job, err
 	var j *store.Job
 
 	findAndReserve := func(ctx context.Context) error {
-		tx := store.TxFromContext(ctx)
-		if nil == tx {
-			return fmt.Errorf("no transaction in context")
-		}
-
 		now := time.Now()
 		var err error
-		j, err = tx.Job.Query().
+		j, err = r.db.Job(ctx).Query().
 			Where(
 				job.AvailableAtLTE(now),
 				job.ReservedUntilLTE(now),
@@ -44,9 +39,6 @@ func (r *Repo) FindAndReserveJob(ctx context.Context, until time.Time) (Job, err
 
 		j, err = j.Update().AddAttempts(1).SetReservedUntil(until).Save(ctx)
 		if err != nil {
-			if isAttemptsExceededError(err) {
-				return ErrAttemptsExceeded
-			}
 			return fmt.Errorf("update job: %v", err)
 		}
 		return nil
