@@ -6,6 +6,8 @@ info:
 servers:
   - url: http://localhost:8080/v1
     description: Development server
+  - url: /v1
+    description: E2E server
 
 paths:
   /sendMessage:

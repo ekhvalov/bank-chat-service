@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/golang-jwt/jwt"
 	. "github.com/onsi/ginkgo/v2"
@@ -21,6 +22,11 @@ import (
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 	apiclientv1 "github.com/ekhvalov/bank-chat-service/tests/e2e/api/client/v1"
 	clientchat "github.com/ekhvalov/bank-chat-service/tests/e2e/client-chat"
+)
+
+const (
+	eventuallyTick    = time.Second
+	eventuallyTimeout = eventuallyTick * 20
 )
 
 func TestE2E(t *testing.T) {
@@ -113,18 +119,27 @@ func newClientChat(ctx context.Context, client user) *clientchat.Chat {
 }
 
 func newClientAPI(ctx context.Context, client user) (*apiclientv1.ClientWithResponses, string) {
-	token, err := kc.Auth(ctx, client.Name, client.Password)
-	Expect(err).ShouldNot(HaveOccurred())
+	var token *keycloakclient.RPT
+	var err error
+	Eventually(func(g Gomega) {
+		token, err = kc.Auth(ctx, client.Name, client.Password)
+		g.Expect(err).ShouldNot(HaveOccurred())
+		g.Expect(token).ShouldNot(BeNil())
+	}).WithTimeout(eventuallyTimeout).WithPolling(eventuallyTick).Should(Succeed())
 
 	authorizator := func(ctx context.Context, req *http.Request) error {
 		req.Header.Set("Authorization", "Bearer "+token.AccessToken)
 		return nil
 	}
-	apiClientV1, err := apiclientv1.NewClientWithResponses(
-		apiClientV1Endpoint,
-		apiclientv1.WithRequestEditorFn(authorizator),
-	)
-	Expect(err).ShouldNot(HaveOccurred())
+	var apiClientV1 *apiclientv1.ClientWithResponses
+	Eventually(func(g Gomega) {
+		apiClientV1, err = apiclientv1.NewClientWithResponses(
+			apiClientV1Endpoint,
+			apiclientv1.WithRequestEditorFn(authorizator),
+		)
+		g.Expect(err).ShouldNot(HaveOccurred())
+		g.Expect(apiClientV1).ShouldNot(BeNil())
+	}).WithTimeout(eventuallyTimeout).WithPolling(eventuallyTick).Should(Succeed())
 
 	return apiClientV1, token.AccessToken
 }

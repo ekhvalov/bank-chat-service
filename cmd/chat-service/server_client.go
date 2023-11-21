@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 
 	"go.uber.org/zap"
@@ -13,42 +12,44 @@ import (
 	messagesrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/messages"
 	problemsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/problems"
 	serverclient "github.com/ekhvalov/bank-chat-service/internal/server-client"
-	"github.com/ekhvalov/bank-chat-service/internal/server-client/errhandler"
+	errhandlerclient "github.com/ekhvalov/bank-chat-service/internal/server-client/errhandler"
 	clientv1 "github.com/ekhvalov/bank-chat-service/internal/server-client/v1"
-	"github.com/ekhvalov/bank-chat-service/internal/store"
+	"github.com/ekhvalov/bank-chat-service/internal/server/errhandler"
+	"github.com/ekhvalov/bank-chat-service/internal/services/outbox"
 	storegen "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 	gethistory "github.com/ekhvalov/bank-chat-service/internal/usecases/client/get-history"
 	sendmessage "github.com/ekhvalov/bank-chat-service/internal/usecases/client/send-message"
 )
 
-const nameServerClient = "server-client"
+const (
+	logNameServerClient = "server-client"
+)
 
-func initServerClient(ctx context.Context, cfg config.Config) (*serverclient.Server, func() error, error) {
-	lg := zap.L().Named(nameServerClient)
+func initServerClient(
+	cfg config.Config,
+	storeDB *storegen.Database,
+	outboxSvc *outbox.Service,
+) (*serverclient.Server, error) {
+	lg := zap.L().Named(logNameServerClient)
 
 	v1Swagger, err := clientv1.GetSwagger()
 	if err != nil {
-		return nil, nil, fmt.Errorf("get swagger: %v", err)
+		return nil, fmt.Errorf("get swagger: %v", err)
 	}
 
 	keycloakClient, err := initKeycloakClient(cfg)
 	if err != nil {
-		return nil, nil, fmt.Errorf("create keycloak client: %v", err)
+		return nil, fmt.Errorf("create keycloak client: %v", err)
 	}
 
-	storeDB, closeFn, err := initStoreDB(ctx, cfg.Clients.Postgres)
+	v1Handlers, err := initV1ClientHandlers(lg, storeDB, outboxSvc)
 	if err != nil {
-		return nil, closeFn, fmt.Errorf("create store DB: %v", err)
+		return nil, fmt.Errorf("create v1Handlers: %v", err)
 	}
 
-	v1Handlers, err := initV1Handlers(lg, storeDB)
+	errHandler, err := errhandler.New(errhandler.NewOptions(lg, cfg.Global.IsProduction(), errhandlerclient.ResponseBuilder))
 	if err != nil {
-		return nil, closeFn, fmt.Errorf("create v1Handlers: %v", err)
-	}
-
-	errHandler, err := errhandler.New(errhandler.NewOptions(lg, cfg.Global.IsProduction(), errhandler.ResponseBuilder))
-	if err != nil {
-		return nil, closeFn, fmt.Errorf("create error handler: %v", err)
+		return nil, fmt.Errorf("create error handler: %v", err)
 	}
 
 	server, err := serverclient.New(serverclient.NewOptions(
@@ -63,10 +64,10 @@ func initServerClient(ctx context.Context, cfg config.Config) (*serverclient.Ser
 		errHandler.Handle,
 	))
 	if err != nil {
-		return nil, closeFn, fmt.Errorf("build server: %v", err)
+		return nil, fmt.Errorf("build server: %v", err)
 	}
 
-	return server, closeFn, nil
+	return server, nil
 }
 
 func initKeycloakClient(cfg config.Config) (*keycloakclient.Client, error) {
@@ -80,40 +81,7 @@ func initKeycloakClient(cfg config.Config) (*keycloakclient.Client, error) {
 	))
 }
 
-func initStoreDB(ctx context.Context, cfg config.PostgresClientConfig) (*storegen.Database, func() error, error) {
-	client, err := initStoreClient(ctx, cfg)
-	if err != nil {
-		return nil, nil, fmt.Errorf("create store client: %v", err)
-	}
-	closeFn := func() error {
-		return fmt.Errorf("postgres client close: %v", err)
-		// if err := client.Close(); err != nil {
-		// }
-		// return nil
-	}
-	return storegen.NewDatabase(client), closeFn, nil
-}
-
-func initStoreClient(ctx context.Context, cfg config.PostgresClientConfig) (*storegen.Client, error) {
-	client, err := store.NewPSQLClient(store.NewPSQLOptions(
-		cfg.Address,
-		cfg.Username,
-		cfg.Password,
-		cfg.Database,
-		store.WithDebug(cfg.DebugMode),
-	))
-	if err != nil {
-		return nil, fmt.Errorf("create psql client: %v", err)
-	}
-
-	if err = client.Schema.Create(ctx); err != nil {
-		return nil, fmt.Errorf("create schema: %v", err)
-	}
-
-	return client, nil
-}
-
-func initV1Handlers(lg *zap.Logger, storeDB *storegen.Database) (clientv1.Handlers, error) {
+func initV1ClientHandlers(lg *zap.Logger, storeDB *storegen.Database, outboxSvc *outbox.Service) (clientv1.Handlers, error) {
 	messagesRepo, err := messagesrepo.New(messagesrepo.NewOptions(storeDB))
 	if err != nil {
 		return clientv1.Handlers{}, fmt.Errorf("create messages repo: %v", err)
@@ -129,7 +97,7 @@ func initV1Handlers(lg *zap.Logger, storeDB *storegen.Database) (clientv1.Handle
 		return clientv1.Handlers{}, fmt.Errorf("create problems repo: %v", err)
 	}
 
-	sendMessageOptions := sendmessage.NewOptions(chatsRepo, messagesRepo, problemsRepo, storeDB)
+	sendMessageOptions := sendmessage.NewOptions(chatsRepo, messagesRepo, outboxSvc, problemsRepo, storeDB)
 	sendMessageUseCase, err := sendmessage.New(sendMessageOptions)
 	if err != nil {
 		return clientv1.Handlers{}, fmt.Errorf("create sendmessage usecase: %v", err)

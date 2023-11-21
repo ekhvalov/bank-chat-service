@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
+	"github.com/ekhvalov/bank-chat-service/internal/store/gen/predicate"
 	"github.com/ekhvalov/bank-chat-service/internal/store/gen/problem"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 )
@@ -24,4 +25,13 @@ func (r *Repo) CreateIfNotExists(ctx context.Context, chatID types.ChatID) (type
 		return types.ProblemIDNil, fmt.Errorf("create problem: %v", err)
 	}
 	return p.ID, nil
+}
+
+func (r *Repo) CountManagerOpenProblems(ctx context.Context, managerID types.UserID) (int, error) {
+	conditions := []predicate.Problem{problem.ManagerID(managerID), problem.ResolvedAtIsNil()}
+	count, err := r.db.Problem(ctx).Query().Where(conditions...).Count(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("count: %v", err)
+	}
+	return count, nil
 }

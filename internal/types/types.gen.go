@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func Parse[T ChatID | MessageID | ProblemID | UserID | RequestID](id string) (T, error) {
+func Parse[T ChatID | FailedJobID | JobID | MessageID | ProblemID | UserID | RequestID](id string) (T, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return T(uuid.Nil), err
@@ -16,7 +16,7 @@ func Parse[T ChatID | MessageID | ProblemID | UserID | RequestID](id string) (T,
 	return T(uid), nil
 }
 
-func MustParse[T ChatID | MessageID | ProblemID | UserID | RequestID](id string) T {
+func MustParse[T ChatID | FailedJobID | JobID | MessageID | ProblemID | UserID | RequestID](id string) T {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		panic(err)
@@ -66,6 +66,94 @@ func (c ChatID) String() string {
 
 func (c ChatID) IsZero() bool {
 	return c == ChatIDNil
+}
+
+type FailedJobID uuid.UUID
+
+var FailedJobIDNil = FailedJobID(uuid.Nil)
+
+func NewFailedJobID() FailedJobID {
+	return FailedJobID(uuid.New())
+}
+
+func (c FailedJobID) MarshalText() (text []byte, err error) {
+	return uuid.UUID(c).MarshalText()
+}
+
+func (c *FailedJobID) UnmarshalText(text []byte) error {
+	return (*uuid.UUID)(c).UnmarshalText(text)
+}
+
+func (c FailedJobID) Value() (driver.Value, error) {
+	return c.String(), nil
+}
+
+func (c *FailedJobID) Scan(src any) error {
+	return (*uuid.UUID)(c).Scan(src)
+}
+
+func (c FailedJobID) Validate() error {
+	if c.IsZero() {
+		return errors.New("zero FailedJobID")
+	}
+	return nil
+}
+
+func (c FailedJobID) Matches(x interface{}) bool {
+	return c == x
+}
+
+// String describes what the matcher matches.
+func (c FailedJobID) String() string {
+	return uuid.UUID(c).String()
+}
+
+func (c FailedJobID) IsZero() bool {
+	return c == FailedJobIDNil
+}
+
+type JobID uuid.UUID
+
+var JobIDNil = JobID(uuid.Nil)
+
+func NewJobID() JobID {
+	return JobID(uuid.New())
+}
+
+func (c JobID) MarshalText() (text []byte, err error) {
+	return uuid.UUID(c).MarshalText()
+}
+
+func (c *JobID) UnmarshalText(text []byte) error {
+	return (*uuid.UUID)(c).UnmarshalText(text)
+}
+
+func (c JobID) Value() (driver.Value, error) {
+	return c.String(), nil
+}
+
+func (c *JobID) Scan(src any) error {
+	return (*uuid.UUID)(c).Scan(src)
+}
+
+func (c JobID) Validate() error {
+	if c.IsZero() {
+		return errors.New("zero JobID")
+	}
+	return nil
+}
+
+func (c JobID) Matches(x interface{}) bool {
+	return c == x
+}
+
+// String describes what the matcher matches.
+func (c JobID) String() string {
+	return uuid.UUID(c).String()
+}
+
+func (c JobID) IsZero() bool {
+	return c == JobIDNil
 }
 
 type MessageID uuid.UUID

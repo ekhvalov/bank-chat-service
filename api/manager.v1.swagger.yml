@@ -1,0 +1,109 @@
+openapi: 3.0.3
+info:
+  title: Bank Support Chat Manager API
+  version: v1
+
+servers:
+  - url: http://localhost:8081/v1
+    description: Development server
+  - url: /v1
+    description: Development e2e server
+
+paths:
+  /getFreeHandsBtnAvailability:
+    post:
+      description: Get availability to handle new problems.
+      parameters:
+        - $ref: '#/components/parameters/XRequestIDHeader'
+      requestBody:
+        required: false
+      responses:
+        '200':
+          description: Availability result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetFreeHandsBtnAvailabilityResponse'
+
+  /freeHands:
+    post:
+      description: Declare readiness to handle problems.
+      parameters:
+        - $ref: '#/components/parameters/XRequestIDHeader'
+      requestBody:
+        required: false
+      responses:
+        '200':
+          description: Declaration sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FreeHandsResponse'
+
+security:
+  - bearerAuth: [ ]
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    XRequestIDHeader:
+      in: header
+      name: X-Request-ID
+      schema:
+        type: string
+        format: uuid
+        x-go-type: types.RequestID
+        x-go-type-import:
+          path: "github.com/ekhvalov/bank-chat-service/internal/types"
+      required: true
+
+  schemas:
+    # Common.
+
+    Error:
+      required: [ message, code ]
+      properties:
+        code:
+          $ref: "#/components/schemas/ErrorCode"
+        message:
+          type: string
+        details:
+          type: string
+
+    ErrorCode:
+      type: integer
+      description: contains HTTP error codes and specific business logic error codes (the last must be >= 1000).
+      minimum: 400
+      enum:
+        - 5000
+      x-enum-varnames:
+        - ErrorCodeManagerOverloadedError
+
+    # /getFreeHandsBtnAvailability
+
+    GetFreeHandsBtnAvailabilityResponse:
+      properties:
+        data:
+          $ref: '#/components/schemas/FreeHandsAvailability'
+        error:
+          $ref: "#/components/schemas/Error"
+
+    FreeHandsAvailability:
+      required: [ available ]
+      properties:
+        available:
+          type: boolean
+
+    # /freeHands
+
+    FreeHandsResponse:
+      properties:
+        data:
+          type: null
+        error:
+          $ref: '#/components/schemas/Error'

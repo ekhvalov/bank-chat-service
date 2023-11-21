@@ -9,4 +9,7 @@ services:
     volumes:
       - ../../api:/usr/share/nginx/html/api
     environment:
-      URLS: '[{ url: "./api/client.v1.swagger.yml", name: "client" }]'
+      URLS: '[
+          { url: "./api/client.v1.swagger.yml", name: "client" },
+          { url: "./api/manager.v1.swagger.yml", name: "manager" }
+        ]'

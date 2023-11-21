@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	messagesrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/messages"
+	sendclientmessagejob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/send-client-message"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 )
 
@@ -42,10 +44,15 @@ type transactor interface {
 	RunInTx(ctx context.Context, f func(context.Context) error) error
 }
 
+type outboxService interface {
+	Put(ctx context.Context, name, payload string, availableAt time.Time) (types.JobID, error)
+}
+
 //go:generate options-gen -out-filename=usecase_options.gen.go -from-struct=Options
 type Options struct {
 	chatsRepo    chatsRepository    `option:"mandatory" validate:"required"`
 	messagesRepo messagesRepository `option:"mandatory" validate:"required"`
+	outboxSvc    outboxService      `option:"mandatory" validate:"required"`
 	problemsRepo problemsRepository `option:"mandatory" validate:"required"`
 	tor          transactor         `option:"mandatory" validate:"required"`
 }
@@ -67,24 +74,29 @@ func (u UseCase) Handle(ctx context.Context, req Request) (Response, error) {
 	tx := func(ctx context.Context) error {
 		var err error
 		message, err = u.messagesRepo.GetMessageByRequestID(ctx, req.ID)
+		if nil == err {
+			return nil
+		}
+		if !errors.Is(err, messagesrepo.ErrMsgNotFound) {
+			return fmt.Errorf("GetMessageByRequestID: %v", err)
+		}
+		var chatID types.ChatID
+		chatID, err = u.chatsRepo.CreateIfNotExists(ctx, req.ClientID)
 		if err != nil {
-			if !errors.Is(err, messagesrepo.ErrMsgNotFound) {
-				return fmt.Errorf("GetMessageByRequestID: %v", err)
-			}
-			var chatID types.ChatID
-			chatID, err = u.chatsRepo.CreateIfNotExists(ctx, req.ClientID)
-			if err != nil {
-				return ErrChatNotCreated
-			}
-			var problemID types.ProblemID
-			problemID, err = u.problemsRepo.CreateIfNotExists(ctx, chatID)
-			if err != nil {
-				return ErrProblemNotCreated
-			}
-			message, err = u.messagesRepo.CreateClientVisible(ctx, req.ID, problemID, chatID, req.ClientID, req.MessageBody)
-			if err != nil {
-				return ErrMessageNotCreated
-			}
+			return ErrChatNotCreated
+		}
+		var problemID types.ProblemID
+		problemID, err = u.problemsRepo.CreateIfNotExists(ctx, chatID)
+		if err != nil {
+			return ErrProblemNotCreated
+		}
+		message, err = u.messagesRepo.CreateClientVisible(ctx, req.ID, problemID, chatID, req.ClientID, req.MessageBody)
+		if err != nil {
+			return ErrMessageNotCreated
+		}
+		_, err = u.outboxSvc.Put(ctx, sendclientmessagejob.Name, message.ID.String(), time.Now())
+		if err != nil {
+			return fmt.Errorf("outbox put: %v", err)
 		}
 		return nil
 	}

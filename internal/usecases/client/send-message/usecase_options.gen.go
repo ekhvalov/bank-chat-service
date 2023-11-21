@@ -13,6 +13,7 @@ type OptOptionsSetter func(o *Options)
 func NewOptions(
 	chatsRepo chatsRepository,
 	messagesRepo messagesRepository,
+	outboxSvc outboxService,
 	problemsRepo problemsRepository,
 	tor transactor,
 	options ...OptOptionsSetter,
@@ -23,6 +24,7 @@ func NewOptions(
 
 	o.chatsRepo = chatsRepo
 	o.messagesRepo = messagesRepo
+	o.outboxSvc = outboxSvc
 	o.problemsRepo = problemsRepo
 	o.tor = tor
 
@@ -36,6 +38,7 @@ func (o *Options) Validate() error {
 	errs := new(errors461e464ebed9.ValidationErrors)
 	errs.Add(errors461e464ebed9.NewValidationError("chatsRepo", _validate_Options_chatsRepo(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("messagesRepo", _validate_Options_messagesRepo(o)))
+	errs.Add(errors461e464ebed9.NewValidationError("outboxSvc", _validate_Options_outboxSvc(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("problemsRepo", _validate_Options_problemsRepo(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("tor", _validate_Options_tor(o)))
 	return errs.AsError()
@@ -51,6 +54,13 @@ func _validate_Options_chatsRepo(o *Options) error {
 func _validate_Options_messagesRepo(o *Options) error {
 	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.messagesRepo, "required"); err != nil {
 		return fmt461e464ebed9.Errorf("field `messagesRepo` did not pass the test: %w", err)
+	}
+	return nil
+}
+
+func _validate_Options_outboxSvc(o *Options) error {
+	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.outboxSvc, "required"); err != nil {
+		return fmt461e464ebed9.Errorf("field `outboxSvc` did not pass the test: %w", err)
 	}
 	return nil
 }
