@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 	"github.com/ekhvalov/bank-chat-service/internal/store/gen/job"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 )
@@ -18,41 +17,40 @@ type Job struct {
 }
 
 func (r *Repo) FindAndReserveJob(ctx context.Context, until time.Time) (Job, error) {
-	var j *store.Job
+	query := `
+	with cte as (
+		select "id" from "jobs" 
+		where "available_at" <= now() 
+			and "reserved_until" <= now() 
+		limit 1 for update skip locked
+	) 
+	update "jobs" as "j" 
+	set "attempts" = "attempts" + 1, "reserved_until" = $1 
+	from cte 
+	where "cte"."id" = "j"."id" returning
+		"j".id,
+		"j".name,
+		"j".payload,
+		"j".attempts;`
 
-	findAndReserve := func(ctx context.Context) error {
-		now := time.Now()
-		var err error
-		j, err = r.db.Job(ctx).Query().
-			Where(
-				job.AvailableAtLTE(now),
-				job.ReservedUntilLTE(now),
-			).
-			ForUpdate().
-			First(ctx)
-		if err != nil {
-			if store.IsNotFound(err) {
-				return ErrNoJobs
-			}
-			return fmt.Errorf("find job: %v", err)
-		}
-
-		j, err = j.Update().AddAttempts(1).SetReservedUntil(until).Save(ctx)
-		if err != nil {
-			return fmt.Errorf("update job: %v", err)
-		}
-		return nil
+	rows, err := r.db.Job(ctx).QueryContext(ctx, query, until)
+	if err != nil {
+		return Job{}, fmt.Errorf("query context: %w", err)
 	}
-	if err := r.db.RunInTx(ctx, findAndReserve); err != nil {
-		return Job{}, err
+	defer rows.Close()
+
+	if !rows.Next() {
+		if err := rows.Err(); err != nil {
+			return Job{}, fmt.Errorf("rows err: %v", err)
+		}
+		return Job{}, ErrNoJobs
 	}
 
-	return Job{
-		ID:       j.ID,
-		Name:     j.Name,
-		Payload:  j.Payload,
-		Attempts: j.Attempts,
-	}, nil
+	var j Job
+	if err := rows.Scan(&j.ID, &j.Name, &j.Payload, &j.Attempts); err != nil {
+		return Job{}, fmt.Errorf("scan job: %v", err)
+	}
+	return j, nil
 }
 
 func (r *Repo) CreateJob(ctx context.Context, name, payload string, availableAt time.Time) (types.JobID, error) {
