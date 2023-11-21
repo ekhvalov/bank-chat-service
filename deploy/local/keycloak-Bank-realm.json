@@ -84,6 +84,15 @@
       "attributes" : { }
     } ],
     "client" : {
+      "chat-ui-manager" : [ {
+        "id" : "8201ae0d-279d-461b-b428-635cbb7daeab",
+        "name" : "support-chat-manager",
+        "description" : "",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "696d97e8-6087-4045-a076-43e1634cf461",
+        "attributes" : { }
+      } ],
       "realm-management" : [ {
         "id" : "ed8d48f3-dde9-466e-9061-d2c376de69ea",
         "name" : "view-authorization",
@@ -377,7 +386,7 @@
   "otpPolicyLookAheadWindow" : 1,
   "otpPolicyPeriod" : 30,
   "otpPolicyCodeReusable" : false,
-  "otpSupportedApplications" : [ "totpAppGoogleName", "totpAppMicrosoftAuthenticatorName", "totpAppFreeOTPName" ],
+  "otpSupportedApplications" : [ "totpAppGoogleName", "totpAppFreeOTPName", "totpAppMicrosoftAuthenticatorName" ],
   "webAuthnPolicyRpEntityName" : "keycloak",
   "webAuthnPolicySignatureAlgorithms" : [ "ES256" ],
   "webAuthnPolicyRpId" : "",
@@ -412,8 +421,8 @@
       "id" : "b387757d-5850-44bf-9b94-d706c16c937c",
       "type" : "password",
       "userLabel" : "My password",
-      "createdDate" : 1696746187329,
-      "secretData" : "{\"value\":\"EHpiqnLgoJtpIgvD77jO9v1Jrdy5p2/bit6dRZ5nq6Y=\",\"salt\":\"UgLSe853jpPJCtA7E7B4OA==\",\"additionalParameters\":{}}",
+      "createdDate" : 1699780830400,
+      "secretData" : "{\"value\":\"lihN6lKlweCATUlomabm3f8P/05A1mYnA6kZHfOVHtY=\",\"salt\":\"5sTZCvVQXg/GD8pWuwIpqA==\",\"additionalParameters\":{}}",
       "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
     } ],
     "disableableCredentialTypes" : [ ],
@@ -499,6 +508,32 @@
     "realmRoles" : [ "default-roles-bank" ],
     "clientRoles" : {
       "chat-ui-client" : [ "support-chat-client" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "1bb33502-ba4a-4914-b734-3748694dfb41",
+    "createdTimestamp" : 1699688393596,
+    "username" : "manager",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : true,
+    "firstName" : "",
+    "lastName" : "",
+    "email" : "manager@example.com",
+    "credentials" : [ {
+      "id" : "92f94f6f-c8ff-438d-a369-769b0056cdd7",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1699688409680,
+      "secretData" : "{\"value\":\"D6KETGmLUfHjZhHIRTRwayxo24HZ1NPkQj21hHBf4IA=\",\"salt\":\"K0yBG1T2UMAkp6CsGjETeg==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-bank" ],
+    "clientRoles" : {
+      "chat-ui-manager" : [ "support-chat-manager" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -668,6 +703,42 @@
       "post.logout.redirect.uris" : "+",
       "oauth2.device.authorization.grant.enabled" : "false",
       "display.on.consent.screen" : "false",
+      "backchannel.logout.revoke.offline.tokens" : "false"
+    },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : true,
+    "nodeReRegistrationTimeout" : -1,
+    "defaultClientScopes" : [ "web-origins", "acr", "profile", "roles", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
+  }, {
+    "id" : "696d97e8-6087-4045-a076-43e1634cf461",
+    "clientId" : "chat-ui-manager",
+    "name" : "",
+    "description" : "",
+    "rootUrl" : "",
+    "adminUrl" : "",
+    "baseUrl" : "",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "alwaysDisplayInConsole" : false,
+    "clientAuthenticatorType" : "client-secret",
+    "redirectUris" : [ "http://localhost:3001/", "http://localhost:3001/*" ],
+    "webOrigins" : [ "*" ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : true,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : true,
+    "serviceAccountsEnabled" : false,
+    "publicClient" : true,
+    "frontchannelLogout" : true,
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "oidc.ciba.grant.enabled" : "false",
+      "oauth2.device.authorization.grant.enabled" : "false",
+      "display.on.consent.screen" : "false",
+      "backchannel.logout.session.required" : "true",
       "backchannel.logout.revoke.offline.tokens" : "false"
     },
     "authenticationFlowBindingOverrides" : { },

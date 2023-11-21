@@ -56,7 +56,9 @@ services:
     volumes:
       - ../../:/src
     working_dir: /src
-    command: go run ./cmd/chat-service -config ./configs/config.e2e.toml
+    environment:
+      GOCOVERDIR: /src/tools/coverage/e2e
+    command: bash -c 'go build -buildvcs=false -cover ./cmd/chat-service && trap - "" SIGTERM; ./chat-service -config ./configs/config.e2e.toml'
 
   tester:
     image: golang:1.20.4

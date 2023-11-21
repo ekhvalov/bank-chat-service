@@ -25,6 +25,8 @@ vars:
 
   TOOLS_DIR:
     sh: echo "$(pwd)/tools/bin"
+  TOOLS_COVERAGE_DIR:
+    sh: echo "$(pwd)/tools/coverage"
 
 env:
   COMPOSE_PROJECT_NAME: bankchat
@@ -217,6 +219,23 @@ tasks:
       - task: tests
       - task: tests:integration
       - task: tests:e2e
+
+  tests:coverage:
+    dotenv: [ ".env" ]
+    cmds:
+      - mkdir -p ./tools/coverage/unit ./tools/coverage/integration ./tools/coverage/e2e
+      - rm -rf ./tools/coverage/e2e/*
+      - rm -rf ./tools/coverage/unit/*
+      - rm -rf ./tools/coverage/integration/*
+      - echo "- Unit tests"
+      - "go test -cover ./... -args -test.gocoverdir={{.TOOLS_COVERAGE_DIR}}/unit | grep -v '\\[no test files\\]'"
+      - echo "- Integration tests"
+      - "go test -cover -tags integration ./... -args -test.gocoverdir={{.TOOLS_COVERAGE_DIR}}/integration | grep -v '\\[no test files\\]'"
+      - task: tests:e2e
+      - go tool covdata textfmt -i=./tools/coverage/unit,./tools/coverage/integration,./tools/coverage/e2e -o coverage.out
+      - go tool covdata percent -i=./tools/coverage/unit,./tools/coverage/integration,./tools/coverage/e2e
+      - echo "- Average coverage, %"
+      - go tool covdata percent -i=./tools/coverage/unit,./tools/coverage/integration,./tools/coverage/e2e | grep -v '\[no statements\]' | awk '{print $3}' | sed 's/%//' |  awk '{ total += $1; count++ } END { print total/count }'
 
   tools:install:
     aliases: [ "dev-tools:install" ]

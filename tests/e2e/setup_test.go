@@ -24,6 +24,11 @@ import (
 	clientchat "github.com/ekhvalov/bank-chat-service/tests/e2e/client-chat"
 )
 
+const (
+	eventuallyTick    = time.Second
+	eventuallyTimeout = eventuallyTick * 20
+)
+
 func TestE2E(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "E2E Suite")
@@ -120,7 +125,7 @@ func newClientAPI(ctx context.Context, client user) (*apiclientv1.ClientWithResp
 		token, err = kc.Auth(ctx, client.Name, client.Password)
 		g.Expect(err).ShouldNot(HaveOccurred())
 		g.Expect(token).ShouldNot(BeNil())
-	}).WithTimeout(time.Second * 10).WithPolling(time.Second).Should(Succeed())
+	}).WithTimeout(eventuallyTimeout).WithPolling(eventuallyTick).Should(Succeed())
 
 	authorizator := func(ctx context.Context, req *http.Request) error {
 		req.Header.Set("Authorization", "Bearer "+token.AccessToken)
@@ -134,7 +139,7 @@ func newClientAPI(ctx context.Context, client user) (*apiclientv1.ClientWithResp
 		)
 		g.Expect(err).ShouldNot(HaveOccurred())
 		g.Expect(apiClientV1).ShouldNot(BeNil())
-	}).WithTimeout(time.Second * 10).WithPolling(time.Second).Should(Succeed())
+	}).WithTimeout(eventuallyTimeout).WithPolling(eventuallyTick).Should(Succeed())
 
 	return apiClientV1, token.AccessToken
 }
