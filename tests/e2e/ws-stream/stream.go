@@ -60,7 +60,6 @@ func (s *Stream) Run(ctx context.Context) (errReturned error) {
 
 	for {
 		_, event, err := conn.ReadMessage()
-		fmt.Printf("event: %v\n", event)
 		if gorillaws.IsCloseError(err, gorillaws.CloseNormalClosure) || len(event) == 0 {
 			return nil
 		}
