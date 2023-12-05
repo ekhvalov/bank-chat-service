@@ -44,8 +44,22 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_CREATE_TOPICS: "chat.messages:16:1"
+      KAFKA_CREATE_TOPICS: "chat.messages:16:1,afc.msg-verdicts:16:1,afc.msg-verdicts.dlq:1:1"
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+
+#  kafka:
+#    image: docker.io/bitnami/kafka:3.4
+#    environment:
+#      KAFKA_CFG_NODE_ID: 0
+#      KAFKA_CFG_PROCESS_ROLES: controller,broker
+#      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
+#      KAFKA_CFG_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093,EXTERNAL://kafka:9094
+#      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://kafka:9094
+#      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+#      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+#      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: true
+#    depends_on:
+#      - zookeeper
 
   client:
     image: golang:1.20.4
@@ -60,6 +74,40 @@ services:
       GOCOVERDIR: /src/tools/coverage/e2e
     command: bash -c 'go build -buildvcs=false -cover ./cmd/chat-service && trap - "" SIGTERM; ./chat-service -config ./configs/config.e2e.toml'
 
+
+  afc_emulator:
+    build:
+      dockerfile: afc.Dockerfile
+    depends_on:
+      - client
+    restart: on-failure
+    environment:
+      AFC_LOG_LEVEL: "DEBUG"
+      AFC_BROKER_ADDR: "kafka:9092"
+      AFC_MESSAGES_TOPIC: "chat.messages"
+      AFC_VERDICTS_TOPIC: "afc.msg-verdicts"
+#      AFC_MSG_DECRYPTION_KEY: ""
+#      AFC_VERDICTS_SIGN_PRIVATE_KEY: ""
+      AFC_MSG_DECRYPTION_KEY: "68566D597133743677397A2443264629"
+      AFC_VERDICTS_SIGN_PRIVATE_KEY: |
+        -----BEGIN PRIVATE KEY-----
+        MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAOuO9nyyxqCMyKHC
+        2W3XUSleWaaXfGx32BUuekSmzb3Q+K/d6q7TmtRbd1gE6B5Lb3uWiBmNR6LIHUbc
+        QsxPWmj0+jek0yeDh+aQWjuIikEYC2uFGfxa4RQTugc1mCKfwH97t+mS3LGKZJu6
+        sH7D4zp5RPuyeMqmHbm2MJXbLtm9AgMBAAECgYEAx5VR80XmVZHzTFuzrgWJluuC
+        OkyP97dzNj8zCYfrOrEchKYaehaAUP1OmR1PLpvr0WMx3bR+xcWYSLnHPyTdDABN
+        Jq4wf0qHLanzLsQ33OyPl0zcJ/nEZsCgIEjYG67NVKuV9/35uQSC+aiM/NcnQyq2
+        QnaoA26NR+L+T/hqo2ECQQD/pAxtx+EnYMImbWpZhUHqjhv5Qmm6fyBjGZ5mbeit
+        0KVbX8GwzWi3wdVOuK1lKZyrfgw7/nTWx3FJQwL+RQOXAkEA6+Ow3G2T6NQ63rDE
+        +nf0ISZl8z59K6q34W1Sv8iBGJW7i/Ro2fl93h/s1jtvZD0N4Uf/47+qDkFEZ3Dc
+        aX8nywJAbPBju4SqFjXNhsKpx2xaIrJciWQb2jXCf3izX8MGnMuFK+Mqj0V5kpUv
+        aVSZz7pj4VDdtdNBxyVGyYmdBO40EQJBAK0KnpdVGwfViEoMSrOig0g+LtO9p3z9
+        A18vH2Do6SrrzGTiqngceaUUrlyJxTE3SJNWifS8iTdj0ZZASLBrQvkCQQD/IIrW
+        bjVjqg7emlXCxV4NKvmv/WgGOCvh4rMvWAbH+ZqAjJRjD45UG/Kf/FjhMGKqb8wT
+        9sBy2VsPGFA75abm
+        -----END PRIVATE KEY-----
+    command: /bin/sh -c 'sleep 30 && afc'
+
   tester:
     image: golang:1.20.4
     depends_on:
@@ -73,6 +121,9 @@ services:
       E2E_KEYCLOAK_REALM: "Bank"
       E2E_KEYCLOAK_CLIENT_ID: "e2e-testing"
       E2E_KEYCLOAK_CLIENT_SECRET: "hVjoxHeYBMJ9pGhXYuUUgIzJ8rEhicsv"
-      E2E_KEYCLOAK_CLIENT_DEBUG: "false"
-      E2E_KEYCLOAK_CLIENTS: "e2e_client_0,e2e_client_1"
-    command: /src/tools/bin/ginkgo --fail-fast --timeout=1m --tags e2e ./tests/e2e
+      E2E_KEYCLOAK_CLIENT_DEBUG: "true"
+      E2E_KEYCLOAK_CLIENTS: "e2e_client_0,e2e_client_1,e2e_client_2,e2e_client_3"
+      E2E_CLIENT_WS_ENDPOINT: "ws://client:8080/ws"
+      E2E_CLIENT_WS_SEC_PROTOCOL: "chat-service-protocol"
+      E2E_CLIENT_WS_ORIGIN: "http://localhost:3000"
+    command: /bin/sh -c 'sleep 20 && /src/tools/bin/ginkgo -vv --fail-fast --timeout=1m --tags e2e ./tests/e2e'

@@ -1,4 +1,4 @@
-package sendclientmessagejob
+package clientmessageblockedjob
 
 import (
 	"context"
@@ -8,18 +8,14 @@ import (
 
 	messagesrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/messages"
 	eventstream "github.com/ekhvalov/bank-chat-service/internal/services/event-stream"
-	msgproducer "github.com/ekhvalov/bank-chat-service/internal/services/msg-producer"
 	"github.com/ekhvalov/bank-chat-service/internal/services/outbox"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
+	"github.com/ekhvalov/bank-chat-service/pkg/jobpayload"
 )
 
-//go:generate mockgen -source=$GOFILE -destination=mocks/job_mock.gen.go -package=sendclientmessagejobmocks
+const Name = "client-message-blocked"
 
-const Name = "send-client-message"
-
-type messageProducer interface {
-	ProduceMessage(ctx context.Context, message msgproducer.Message) error
-}
+//go:generate mockgen -source=$GOFILE -destination=mocks/job_mock.gen.go -package=clientmessageblockedjobmocks
 
 type messageRepository interface {
 	GetMessageByID(ctx context.Context, msgID types.MessageID) (*messagesrepo.Message, error)
@@ -31,15 +27,9 @@ type eventStream interface {
 
 //go:generate options-gen -out-filename=job_options.gen.go -from-struct=Options
 type Options struct {
-	producer messageProducer   `option:"mandatory" validate:"required"`
 	repo     messageRepository `option:"mandatory" validate:"required"`
 	evStream eventStream       `option:"mandatory" validate:"required"`
 	log      *zap.Logger       `option:"mandatory" validate:"required"`
-}
-
-type Job struct {
-	Options
-	outbox.DefaultJob
 }
 
 func New(opts Options) (*Job, error) {
@@ -49,12 +39,17 @@ func New(opts Options) (*Job, error) {
 	return &Job{Options: opts}, nil
 }
 
+type Job struct {
+	Options
+	outbox.DefaultJob
+}
+
 func (j *Job) Name() string {
 	return Name
 }
 
 func (j *Job) Handle(ctx context.Context, payload string) error {
-	msgID, err := UnmarshalPayload(payload)
+	msgID, err := jobpayload.Unmarshal(payload)
 	if err != nil {
 		return fmt.Errorf("unvarshal payload: %v", err)
 	}
@@ -64,40 +59,19 @@ func (j *Job) Handle(ctx context.Context, payload string) error {
 		return fmt.Errorf("get message: %v", err)
 	}
 
-	err = j.producer.ProduceMessage(ctx, msgproducer.Message{
-		ID:         msg.ID,
-		ChatID:     msg.ChatID,
-		Body:       msg.Body,
-		FromClient: true,
-	})
-	if err != nil {
-		j.log.Error("produce message", zap.Error(err), zap.String("id", msgID.String()))
-		return fmt.Errorf("produce message: %v", err)
-	}
-	requestID := types.NewRequestID()
 	eventID := types.NewEventID()
-	event := eventstream.NewNewMessageEvent(
-		eventID,
-		requestID,
-		msg.ChatID,
-		msg.ID,
-		msg.AuthorID,
-		msg.CreatedAt,
-		msg.Body,
-		msg.IsService,
-	)
+	event := eventstream.NewMessageBlockedEvent(eventID, types.NewRequestID(), msg.ID)
 	err = j.evStream.Publish(ctx, msg.AuthorID, event)
 	if err != nil {
-		j.log.Error("publish new message event", zap.Error(err), zap.String("id", msgID.String()))
-		return fmt.Errorf("publish new message event: %v", err)
+		j.log.Error("publish message blocked event", zap.Error(err), zap.String("id", msgID.String()))
+		return fmt.Errorf("publish message blocked event: %v", err)
 	}
 	j.log.Debug(
-		"NewMessageEvent published",
+		"MessageBlockedEvent published",
 		zap.Stringer("event_id", eventID),
 		zap.Stringer("author_id", msg.AuthorID),
 		zap.Stringer("msg_id", msg.ID),
 	)
 
-	j.log.Debug("message produced", zap.String("id", msgID.String()))
 	return nil
 }

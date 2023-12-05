@@ -121,19 +121,17 @@ func (h *HTTPHandler) writeLoop(ctx context.Context, ws Websocket, events <-chan
 				return fmt.Errorf("get message writer: %v", err)
 			}
 			adapted, err := h.eventAdapter.Adapt(e)
+			h.logger.Debug("got event", zap.String("event", fmt.Sprintf("%v", adapted)))
 			if err != nil {
-				h.logger.Error("adapt event: %v", zap.Error(err))
+				h.logger.Error("adapt event error", zap.Error(err))
 			}
 			err = jsonWriter.Write(adapted, w)
-			if nil == err {
-				h.logger.Debug("event sent", zap.String("type", fmt.Sprintf("%T", adapted)))
-			}
-			if errClose := w.Close(); errClose != nil {
-				h.logger.Error("close writer", zap.Error(errClose))
-			}
-
 			if err != nil {
 				return fmt.Errorf("event write: %v", err)
+			}
+			h.logger.Debug("event sent", zap.String("type", fmt.Sprintf("%T", adapted)))
+			if errClose := w.Close(); errClose != nil {
+				h.logger.Error("close writer", zap.Error(errClose))
 			}
 		}
 	}

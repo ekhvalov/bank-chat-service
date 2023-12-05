@@ -23,13 +23,14 @@ components:
   schemas:
     Event:
       oneOf:
-        - $ref: "#/components/schemas/MessageSentEvent"
         - $ref: "#/components/schemas/NewMessageEvent"
+        - $ref: "#/components/schemas/MessageSentEvent"
+        - $ref: "#/components/schemas/MessageBlockedEvent"
       discriminator:
         propertyName: eventType
 
     NewMessageEvent:
-      required: [ eventId, messageId, requestId, eventType, body ]
+      required: [ eventId, messageId, requestId, eventType, body, createdAt, isService ]
       properties:
         eventId:
           $ref: "#/components/schemas/EventID"
@@ -50,6 +51,18 @@ components:
           type: boolean
 
     MessageSentEvent:
+      required: [ eventId, messageId, requestId, eventType ]
+      properties:
+        eventId:
+          $ref: "#/components/schemas/EventID"
+        messageId:
+          $ref: "#/components/schemas/MessageID"
+        requestId:
+          $ref: "#/components/schemas/RequestID"
+        eventType:
+          $ref: "#/components/schemas/EventType"
+
+    MessageBlockedEvent:
       required: [ eventId, messageId, requestId, eventType ]
       properties:
         eventId:

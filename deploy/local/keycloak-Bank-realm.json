@@ -486,6 +486,58 @@
     "notBefore" : 0,
     "groups" : [ ]
   }, {
+    "id" : "bbe900a3-ef3a-4ace-825e-0c6695d193fe",
+    "createdTimestamp" : 1701789487800,
+    "username" : "e2e_client_2",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : true,
+    "firstName" : "",
+    "lastName" : "",
+    "email" : "e2e-2@test.com",
+    "credentials" : [ {
+      "id" : "3be46bfe-26ba-4e0c-ae4a-273f42ef07f4",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1701789506407,
+      "secretData" : "{\"value\":\"a2QfdpBO0jOCgu2Zw7EUsBG1ljVJcuCW/t1SqSwnMGg=\",\"salt\":\"SgU0yhuTghz18vwIcjc94A==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-bank" ],
+    "clientRoles" : {
+      "e2e-testing" : [ "support-chat-client" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "0673e1a7-9596-4b9f-9737-5e5d2d35ac92",
+    "createdTimestamp" : 1701789572129,
+    "username" : "e2e_client_3",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : true,
+    "firstName" : "",
+    "lastName" : "",
+    "email" : "e2e-3@test.com",
+    "credentials" : [ {
+      "id" : "194a7442-25dc-487f-8360-d83f8c57a020",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1701789582253,
+      "secretData" : "{\"value\":\"PbsJdDdbSiFIe6zaC8dYRSYVMLsz8xNhrfmib9Wszmw=\",\"salt\":\"EdNb95ge6nZWtekOCqbjDg==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-bank" ],
+    "clientRoles" : {
+      "e2e-testing" : [ "support-chat-client" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
     "id" : "fdcfa253-40e6-4fbc-8dab-ad7179505fe3",
     "createdTimestamp" : 1696747478335,
     "username" : "integration-testing",

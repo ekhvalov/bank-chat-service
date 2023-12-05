@@ -56,13 +56,45 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_CREATE_TOPICS: "chat.messages:16:1"
+      KAFKA_CREATE_TOPICS: "chat.messages:16:1,afc.msg-verdicts:16:1,afc.msg-verdicts.dlq:1:1"
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
 
   kcat:
     image: edenhill/kcat:1.7.1
     network_mode: host
     command: -b 127.0.0.1:9092 -t chat.messages -C -u
+
+  afc_emulator:
+    image: antonboom/writing-go-service.afc
+    depends_on:
+      - kafka
+    restart: on-failure
+    environment:
+      AFC_LOG_LEVEL: "DEBUG"
+      AFC_BROKER_ADDR: "kafka:29092"
+      AFC_MESSAGES_TOPIC: "chat.messages"
+      AFC_VERDICTS_TOPIC: "afc.msg-verdicts"
+      AFC_MSG_DECRYPTION_KEY: ""
+      AFC_VERDICTS_SIGN_PRIVATE_KEY: ""
+#      AFC_MSG_DECRYPTION_KEY: "68566D597133743677397A2443264629"
+#      AFC_VERDICTS_SIGN_PRIVATE_KEY: |
+#        -----BEGIN PRIVATE KEY-----
+#        MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAOuO9nyyxqCMyKHC
+#        2W3XUSleWaaXfGx32BUuekSmzb3Q+K/d6q7TmtRbd1gE6B5Lb3uWiBmNR6LIHUbc
+#        QsxPWmj0+jek0yeDh+aQWjuIikEYC2uFGfxa4RQTugc1mCKfwH97t+mS3LGKZJu6
+#        sH7D4zp5RPuyeMqmHbm2MJXbLtm9AgMBAAECgYEAx5VR80XmVZHzTFuzrgWJluuC
+#        OkyP97dzNj8zCYfrOrEchKYaehaAUP1OmR1PLpvr0WMx3bR+xcWYSLnHPyTdDABN
+#        Jq4wf0qHLanzLsQ33OyPl0zcJ/nEZsCgIEjYG67NVKuV9/35uQSC+aiM/NcnQyq2
+#        QnaoA26NR+L+T/hqo2ECQQD/pAxtx+EnYMImbWpZhUHqjhv5Qmm6fyBjGZ5mbeit
+#        0KVbX8GwzWi3wdVOuK1lKZyrfgw7/nTWx3FJQwL+RQOXAkEA6+Ow3G2T6NQ63rDE
+#        +nf0ISZl8z59K6q34W1Sv8iBGJW7i/Ro2fl93h/s1jtvZD0N4Uf/47+qDkFEZ3Dc
+#        aX8nywJAbPBju4SqFjXNhsKpx2xaIrJciWQb2jXCf3izX8MGnMuFK+Mqj0V5kpUv
+#        aVSZz7pj4VDdtdNBxyVGyYmdBO40EQJBAK0KnpdVGwfViEoMSrOig0g+LtO9p3z9
+#        A18vH2Do6SrrzGTiqngceaUUrlyJxTE3SJNWifS8iTdj0ZZASLBrQvkCQQD/IIrW
+#        bjVjqg7emlXCxV4NKvmv/WgGOCvh4rMvWAbH+ZqAjJRjD45UG/Kf/FjhMGKqb8wT
+#        9sBy2VsPGFA75abm
+#        -----END PRIVATE KEY-----
+
 
 volumes:
   postgresql-data:

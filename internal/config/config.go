@@ -76,9 +76,10 @@ type DebugServerConfig struct {
 }
 
 type ServicesConfig struct {
-	MsgProducer   MsgProducerServiceConfig `toml:"msg_producer"`
-	ManagerLoad   ManagerLoadService       `toml:"manager_load"`
-	OutboxService OutboxService            `toml:"outbox"`
+	MsgProducer                 MsgProducerServiceConfig    `toml:"msg_producer"`
+	ManagerLoad                 ManagerLoadService          `toml:"manager_load"`
+	OutboxService               OutboxService               `toml:"outbox"`
+	AFCVerdictsProcessorService AFCVerdictsProcessorService `toml:"afc_verdicts_processor"`
 }
 
 type MsgProducerServiceConfig struct {
@@ -96,6 +97,15 @@ type OutboxService struct {
 	Workers    int           `toml:"workers" validate:"min=1"`
 	IdleTime   time.Duration `toml:"idle_time" validate:"required"`
 	ReserveFor time.Duration `toml:"reserve_for" validate:"required"`
+}
+
+type AFCVerdictsProcessorService struct {
+	Brokers               []string `toml:"brokers" validate:"dive,required,hostname_port"`
+	Consumers             int      `toml:"consumers" validate:"min=1,max=16"`
+	ConsumerGroup         string   `toml:"consumer_group" validate:"required"`
+	VerdictsTopic         string   `toml:"verdicts_topic" validate:"required"`
+	VerdictsSignPublicKey string   `toml:"verdicts_signing_public_key" validate:"omitempty,min=1"`
+	VerdictsDLQTopic      string   `toml:"verdicts_dlq_topic" validate:"required"`
 }
 
 type SentryConfig struct {

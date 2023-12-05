@@ -40,6 +40,20 @@ resource = "chat-ui-manager"
 role = "support-chat-manager"
 
 [services]
+[services.afc_verdicts_processor]
+brokers = ["localhost:9092"]
+consumers = 1
+consumer_group = "consumerGroup"
+verdicts_topic = "afc.msg-verdicts"
+verdicts_dlq_topic = "afc.msg-verdicts.dlq"
+verdicts_signing_public_key = """
+-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDrjvZ8ssagjMihwtlt11EpXlmm
+l3xsd9gVLnpEps290Piv3equ05rUW3dYBOgeS297logZjUeiyB1G3ELMT1po9Po3
+pNMng4fmkFo7iIpBGAtrhRn8WuEUE7oHNZgin8B/e7fpktyximSburB+w+M6eUT7
+snjKph25tjCV2y7ZvQIDAQAB
+-----END PUBLIC KEY-----
+"""
 [services.msg_producer]
 brokers = ["localhost:9092"]
 topic = "chat.messages"

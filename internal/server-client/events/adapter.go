@@ -18,20 +18,27 @@ func (Adapter) Adapt(ev eventstream.Event) (any, error) {
 	}
 	switch t := ev.(type) {
 	case *eventstream.NewMessageEvent:
-		return &NewMessageEvent{
+		return NewMessageEvent{
 			AuthorID:  pointer.PtrWithZeroAsNil(t.UserID),
 			Body:      t.MessageBody,
-			CreatedAt: &t.Time,
+			CreatedAt: t.Time,
 			ID:        t.ID,
 			EventType: EventTypeNewMessageEvent,
-			IsService: &t.IsService,
+			IsService: t.IsService,
 			MessageID: t.MessageID,
 			RequestID: t.RequestID,
 		}, nil
 	case *eventstream.MessageSentEvent:
-		return &MessageSentEvent{
+		return MessageSentEvent{
 			ID:        t.ID,
 			EventType: EventTypeMessageSentEvent,
+			MessageID: t.MessageID,
+			RequestID: t.RequestID,
+		}, nil
+	case *eventstream.MessageBlockedEvent:
+		return MessageBlockedEvent{
+			ID:        t.ID,
+			EventType: EventTypeMessageBlockedEvent,
 			MessageID: t.MessageID,
 			RequestID: t.RequestID,
 		}, nil

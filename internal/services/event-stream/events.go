@@ -36,6 +36,27 @@ func (e MessageSentEvent) Validate() error {
 	return validator.Validator.Struct(e)
 }
 
+func NewMessageBlockedEvent(id types.EventID, requestID types.RequestID, messageID types.MessageID) *MessageBlockedEvent {
+	return &MessageBlockedEvent{
+		ID:        id,
+		RequestID: requestID,
+		MessageID: messageID,
+	}
+}
+
+// MessageBlockedEvent indicates that the message was checked by AFC
+// and was blocked. Message blocked notification.
+type MessageBlockedEvent struct {
+	event
+	ID        types.EventID   `validate:"required"`
+	MessageID types.MessageID `validate:"required"`
+	RequestID types.RequestID `validate:"required"`
+}
+
+func (e MessageBlockedEvent) Validate() error {
+	return validator.Validator.Struct(e)
+}
+
 func NewNewMessageEvent(
 	eventID types.EventID,
 	requestID types.RequestID,
