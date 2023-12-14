@@ -11,6 +11,7 @@ realm = "Bank"
 client_id = "e2e-testing"
 client_secret = "hVjoxHeYBMJ9pGhXYuUUgIzJ8rEhicsv"
 debug_mode = false
+
 [clients.postgres]
 address = "postgres:5432"
 username = "chat-service"
@@ -57,6 +58,9 @@ snjKph25tjCV2y7ZvQIDAQAB
 
 [services.manager_load]
 max_problems_at_same_time = 5
+
+[services.manager_scheduler]
+idle_duration = "300ms"
 
 [services.msg_producer]
 brokers = ["kafka:9092"]

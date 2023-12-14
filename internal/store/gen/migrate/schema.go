@@ -66,7 +66,7 @@ var (
 	MessagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "author_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "initial_request_id", Type: field.TypeUUID, Unique: true},
+		{Name: "initial_request_id", Type: field.TypeUUID},
 		{Name: "is_visible_for_client", Type: field.TypeBool, Default: false},
 		{Name: "is_visible_for_manager", Type: field.TypeBool, Default: false},
 		{Name: "body", Type: field.TypeString, Size: 12288},
@@ -123,9 +123,9 @@ var (
 				Columns: []*schema.Column{MessagesColumns[3]},
 			},
 			{
-				Name:    "message_initial_request_id",
+				Name:    "message_initial_request_id_is_service",
 				Unique:  true,
-				Columns: []*schema.Column{MessagesColumns[2]},
+				Columns: []*schema.Column{MessagesColumns[2], MessagesColumns[8]},
 			},
 		},
 	}

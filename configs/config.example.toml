@@ -64,6 +64,9 @@ encrypt_key = "68566D597133743677397A2443264629"
 [services.manager_load]
 max_problems_at_same_time = 5
 
+[services.manager_scheduler]
+idle_duration = "300ms"
+
 [services.outbox]
 workers = 2
 idle_time = "1s"

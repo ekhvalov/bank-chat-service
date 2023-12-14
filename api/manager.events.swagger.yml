@@ -1,0 +1,83 @@
+openapi: 3.1.0
+info:
+  title: Bank Support Chat Manager Events
+  version: v1
+
+servers:
+  - url: ws://localhost:8080/ws
+    description: Development server
+  - url: /ws
+    description: E2E server
+
+paths:
+  /stub:
+    get:
+      description: It uses for generating events. Otherwise it doesn't.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+
+components:
+  schemas:
+    Event:
+      oneOf:
+        - $ref: "#/components/schemas/NewChatEvent"
+      discriminator:
+        propertyName: eventType
+
+    NewChatEvent:
+      required: [ eventId, eventType, chatId, clientId, requestId, canTakeMoreProblems ]
+      properties:
+        eventId:
+          $ref: "#/components/schemas/EventID"
+        eventType:
+          $ref: "#/components/schemas/EventType"
+        chatId:
+          $ref: "#/components/schemas/ChatID"
+        clientId:
+          $ref: "#/components/schemas/ClientID"
+        requestId:
+          $ref: "#/components/schemas/RequestID"
+        canTakeMoreProblems:
+          type: boolean
+
+    EventType:
+      type: string
+      enum:
+        - NewChatEvent
+
+    EventID:
+      type: string
+      format: uuid
+      x-go-type: types.EventID
+      x-go-name: ID
+      x-go-type-import:
+        path: "github.com/ekhvalov/bank-chat-service/internal/types"
+
+    ClientID:
+      type: string
+      format: uuid
+      x-go-type: types.UserID
+      x-go-name: ClientID
+      x-go-type-import:
+        path: "github.com/ekhvalov/bank-chat-service/internal/types"
+
+    ChatID:
+      type: string
+      format: uuid
+      x-go-type: types.ChatID
+      x-go-name: ChatID
+      x-go-type-import:
+        path: "github.com/ekhvalov/bank-chat-service/internal/types"
+
+    RequestID:
+      type: string
+      format: uuid
+      x-go-type: types.RequestID
+      x-go-name: RequestID
+      x-go-type-import:
+        path: "github.com/ekhvalov/bank-chat-service/internal/types"

@@ -96,3 +96,32 @@ type NewMessageEvent struct {
 func (e NewMessageEvent) Validate() error {
 	return validator.Validator.Struct(e)
 }
+
+func NewNewChatEvent(
+	id types.EventID,
+	chatID types.ChatID,
+	clientID types.UserID,
+	requestID types.RequestID,
+	canTakeMoreProblems bool,
+) Event {
+	return &NewChatEvent{
+		ID:                  id,
+		ChatID:              chatID,
+		ClientID:            clientID,
+		RequestID:           requestID,
+		CanTakeMoreProblems: canTakeMoreProblems,
+	}
+}
+
+type NewChatEvent struct {
+	event
+	ID                  types.EventID   `validate:"required"`
+	ChatID              types.ChatID    `validate:"required"`
+	ClientID            types.UserID    `validate:"required"`
+	RequestID           types.RequestID `validate:"required"`
+	CanTakeMoreProblems bool
+}
+
+func (e NewChatEvent) Validate() error {
+	return validator.Validator.Struct(e)
+}

@@ -6,7 +6,9 @@ import (
 	"fmt"
 
 	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
+	"github.com/ekhvalov/bank-chat-service/internal/store/gen/chat"
 	"github.com/ekhvalov/bank-chat-service/internal/store/gen/message"
+	"github.com/ekhvalov/bank-chat-service/internal/store/gen/problem"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 	"github.com/ekhvalov/bank-chat-service/pkg/pointer"
 )
@@ -21,6 +23,21 @@ func (r *Repo) GetMessageByID(ctx context.Context, id types.MessageID) (*Message
 		}
 		return nil, fmt.Errorf("get message: %v", err)
 	}
+	return pointer.Ptr(adaptStoreMessage(msg)), nil
+}
+
+func (r *Repo) GetInitialMessageByProblemID(ctx context.Context, problemID types.ProblemID) (*Message, error) {
+	msg, err := r.db.Message(ctx).
+		Query().
+		Where(
+			message.HasChatWith(chat.HasProblemsWith(problem.ID(problemID))),
+			message.IsVisibleForManager(true),
+		).
+		First(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("find message: %v", err)
+	}
+
 	return pointer.Ptr(adaptStoreMessage(msg)), nil
 }
 
@@ -53,6 +70,29 @@ func (r *Repo) CreateClientVisible(
 		SetBody(msgBody).
 		SetIsVisibleForClient(true).
 		SetIsVisibleForManager(false).
+		Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("create message: %v", err)
+	}
+	return pointer.Ptr(adaptStoreMessage(msg)), nil
+}
+
+func (r *Repo) CreateServiceClientVisible(
+	ctx context.Context,
+	reqID types.RequestID,
+	problemID types.ProblemID,
+	chatID types.ChatID,
+	msgBody string,
+) (*Message, error) {
+	msg, err := r.db.Message(ctx).
+		Create().
+		SetInitialRequestID(reqID).
+		SetProblemID(problemID).
+		SetChatID(chatID).
+		SetBody(msgBody).
+		SetIsVisibleForClient(true).
+		SetIsVisibleForManager(false).
+		SetIsService(true).
 		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("create message: %v", err)
