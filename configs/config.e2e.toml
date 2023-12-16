@@ -1,8 +1,8 @@
 [global]
-env = "prod"
+env = "dev"
 
 [log]
-level = "warn"
+level = "debug"
 
 [clients]
 [clients.keycloak]
@@ -25,6 +25,7 @@ addr = ":8079"
 [servers.client]
 addr = ":8080"
 allow_origins = ["http://localhost:3011", "http://localhost:3000"]
+sec_ws_protocol = "chat-service-protocol"
 [servers.client.required_access]
 resource = "e2e-testing"
 role = "support-chat-client"
@@ -32,11 +33,28 @@ role = "support-chat-client"
 [servers.manager]
 addr = ":8081"
 allow_origins = ["http://localhost:3011", "http://localhost:3001"]
+sec_ws_protocol = "chat-service-protocol"
 [servers.manager.required_access]
 resource = "chat-ui-manager"
 role = "support-chat-manager"
 
 [services]
+[services.afc_verdicts_processor]
+brokers = ["kafka:9092"]
+consumers = 1
+consumer_group = "consumerGroup"
+verdicts_topic = "afc.msg-verdicts"
+verdicts_dlq_topic = "afc.msg-verdicts.dlq"
+#verdicts_signing_public_key = ""
+verdicts_signing_public_key = """
+-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDrjvZ8ssagjMihwtlt11EpXlmm
+l3xsd9gVLnpEps290Piv3equ05rUW3dYBOgeS297logZjUeiyB1G3ELMT1po9Po3
+pNMng4fmkFo7iIpBGAtrhRn8WuEUE7oHNZgin8B/e7fpktyximSburB+w+M6eUT7
+snjKph25tjCV2y7ZvQIDAQAB
+-----END PUBLIC KEY-----
+"""
+
 [services.manager_load]
 max_problems_at_same_time = 5
 
@@ -44,8 +62,8 @@ max_problems_at_same_time = 5
 brokers = ["kafka:9092"]
 topic = "chat.messages"
 batch_size = 1
-encrypt_key = "" # Leave it blank to disable encryption.
-#encrypt_key = "68566D597133743677397A2443264629"
+#encrypt_key = "" # Leave it blank to disable encryption.
+encrypt_key = "68566D597133743677397A2443264629"
 
 [services.outbox]
 workers = 2

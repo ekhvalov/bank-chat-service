@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func Parse[T ChatID | FailedJobID | JobID | MessageID | ProblemID | UserID | RequestID](id string) (T, error) {
+func Parse[T ChatID | EventID | FailedJobID | JobID | MessageID | ProblemID | UserID | RequestID](id string) (T, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return T(uuid.Nil), err
@@ -16,7 +16,7 @@ func Parse[T ChatID | FailedJobID | JobID | MessageID | ProblemID | UserID | Req
 	return T(uid), nil
 }
 
-func MustParse[T ChatID | FailedJobID | JobID | MessageID | ProblemID | UserID | RequestID](id string) T {
+func MustParse[T ChatID | EventID | FailedJobID | JobID | MessageID | ProblemID | UserID | RequestID](id string) T {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		panic(err)
@@ -66,6 +66,50 @@ func (c ChatID) String() string {
 
 func (c ChatID) IsZero() bool {
 	return c == ChatIDNil
+}
+
+type EventID uuid.UUID
+
+var EventIDNil = EventID(uuid.Nil)
+
+func NewEventID() EventID {
+	return EventID(uuid.New())
+}
+
+func (c EventID) MarshalText() (text []byte, err error) {
+	return uuid.UUID(c).MarshalText()
+}
+
+func (c *EventID) UnmarshalText(text []byte) error {
+	return (*uuid.UUID)(c).UnmarshalText(text)
+}
+
+func (c EventID) Value() (driver.Value, error) {
+	return c.String(), nil
+}
+
+func (c *EventID) Scan(src any) error {
+	return (*uuid.UUID)(c).Scan(src)
+}
+
+func (c EventID) Validate() error {
+	if c.IsZero() {
+		return errors.New("zero EventID")
+	}
+	return nil
+}
+
+func (c EventID) Matches(x interface{}) bool {
+	return c == x
+}
+
+// String describes what the matcher matches.
+func (c EventID) String() string {
+	return uuid.UUID(c).String()
+}
+
+func (c EventID) IsZero() bool {
+	return c == EventIDNil
 }
 
 type FailedJobID uuid.UUID

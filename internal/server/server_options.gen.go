@@ -5,7 +5,7 @@ import (
 	fmt461e464ebed9 "fmt"
 
 	"github.com/ekhvalov/bank-chat-service/internal/middlewares"
-	"github.com/getkin/kin-openapi/openapi3"
+	websocketstream "github.com/ekhvalov/bank-chat-service/internal/websocket-stream"
 	errors461e464ebed9 "github.com/kazhuravlev/options-gen/pkg/errors"
 	validator461e464ebed9 "github.com/kazhuravlev/options-gen/pkg/validator"
 	"github.com/labstack/echo/v4"
@@ -19,11 +19,11 @@ func NewOptions(
 	allowOrigins []string,
 	accessResource string,
 	accessRole string,
+	secWsProtocol string,
 	logger *zap.Logger,
-	v1Swagger *openapi3.T,
 	introspector middlewares.Introspector,
 	errorHandler echo.HTTPErrorHandler,
-	handlersRegistrar func(e *echo.Echo),
+	wsHandler *websocketstream.HTTPHandler,
 	options ...OptOptionsSetter,
 ) Options {
 	o := Options{}
@@ -34,11 +34,11 @@ func NewOptions(
 	o.allowOrigins = allowOrigins
 	o.accessResource = accessResource
 	o.accessRole = accessRole
+	o.secWsProtocol = secWsProtocol
 	o.logger = logger
-	o.v1Swagger = v1Swagger
 	o.introspector = introspector
 	o.errorHandler = errorHandler
-	o.handlersRegistrar = handlersRegistrar
+	o.wsHandler = wsHandler
 
 	for _, opt := range options {
 		opt(&o)
@@ -52,11 +52,11 @@ func (o *Options) Validate() error {
 	errs.Add(errors461e464ebed9.NewValidationError("allowOrigins", _validate_Options_allowOrigins(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("accessResource", _validate_Options_accessResource(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("accessRole", _validate_Options_accessRole(o)))
+	errs.Add(errors461e464ebed9.NewValidationError("secWsProtocol", _validate_Options_secWsProtocol(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("logger", _validate_Options_logger(o)))
-	errs.Add(errors461e464ebed9.NewValidationError("v1Swagger", _validate_Options_v1Swagger(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("introspector", _validate_Options_introspector(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("errorHandler", _validate_Options_errorHandler(o)))
-	errs.Add(errors461e464ebed9.NewValidationError("handlersRegistrar", _validate_Options_handlersRegistrar(o)))
+	errs.Add(errors461e464ebed9.NewValidationError("wsHandler", _validate_Options_wsHandler(o)))
 	return errs.AsError()
 }
 
@@ -88,16 +88,16 @@ func _validate_Options_accessRole(o *Options) error {
 	return nil
 }
 
-func _validate_Options_logger(o *Options) error {
-	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.logger, "required"); err != nil {
-		return fmt461e464ebed9.Errorf("field `logger` did not pass the test: %w", err)
+func _validate_Options_secWsProtocol(o *Options) error {
+	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.secWsProtocol, "required"); err != nil {
+		return fmt461e464ebed9.Errorf("field `secWsProtocol` did not pass the test: %w", err)
 	}
 	return nil
 }
 
-func _validate_Options_v1Swagger(o *Options) error {
-	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.v1Swagger, "required"); err != nil {
-		return fmt461e464ebed9.Errorf("field `v1Swagger` did not pass the test: %w", err)
+func _validate_Options_logger(o *Options) error {
+	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.logger, "required"); err != nil {
+		return fmt461e464ebed9.Errorf("field `logger` did not pass the test: %w", err)
 	}
 	return nil
 }
@@ -116,9 +116,9 @@ func _validate_Options_errorHandler(o *Options) error {
 	return nil
 }
 
-func _validate_Options_handlersRegistrar(o *Options) error {
-	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.handlersRegistrar, "required"); err != nil {
-		return fmt461e464ebed9.Errorf("field `handlersRegistrar` did not pass the test: %w", err)
+func _validate_Options_wsHandler(o *Options) error {
+	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.wsHandler, "required"); err != nil {
+		return fmt461e464ebed9.Errorf("field `wsHandler` did not pass the test: %w", err)
 	}
 	return nil
 }

@@ -7,10 +7,12 @@ import (
 
 	"github.com/ekhvalov/bank-chat-service/internal/config"
 	problemsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/problems"
+	"github.com/ekhvalov/bank-chat-service/internal/server"
 	servermanager "github.com/ekhvalov/bank-chat-service/internal/server-manager"
-	errhandlermgr "github.com/ekhvalov/bank-chat-service/internal/server-manager/errhandler"
+	errhandlermanager "github.com/ekhvalov/bank-chat-service/internal/server-manager/errhandler"
 	managerv1 "github.com/ekhvalov/bank-chat-service/internal/server-manager/v1"
 	"github.com/ekhvalov/bank-chat-service/internal/server/errhandler"
+	eventstream "github.com/ekhvalov/bank-chat-service/internal/services/event-stream"
 	managerload "github.com/ekhvalov/bank-chat-service/internal/services/manager-load"
 	inmemmanagerpool "github.com/ekhvalov/bank-chat-service/internal/services/manager-pool/in-mem"
 	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
@@ -25,7 +27,8 @@ const (
 func initServerManager(
 	cfg config.Config,
 	storeDB *store.Database,
-) (*servermanager.Server, error) {
+	eventStream eventstream.EventStream,
+) (*server.Server, error) {
 	lg := zap.L().Named(logNameServerManager)
 
 	v1Swagger, err := managerv1.GetSwagger()
@@ -33,37 +36,47 @@ func initServerManager(
 		return nil, fmt.Errorf("get swagger: %v", err)
 	}
 
-	keycloakClient, err := initKeycloakClient(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("create keycloak client: %v", err)
-	}
-
 	v1Handlers, err := initV1ManagerHandlers(lg, storeDB, cfg.Services.ManagerLoad)
 	if err != nil {
 		return nil, fmt.Errorf("create v1Handlers: %v", err)
 	}
 
-	errHandler, err := errhandler.New(errhandler.NewOptions(lg, cfg.Global.IsProduction(), errhandlermgr.ResponseBuilder))
+	handlersRegistrar, err := servermanager.New(servermanager.NewOptions(v1Swagger, v1Handlers))
+	if err != nil {
+		return nil, fmt.Errorf("create handlers registrar: %v", err)
+	}
+
+	keycloakClient, err := initKeycloakClient(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("create keycloak client: %v", err)
+	}
+
+	errHandler, err := errhandler.New(errhandler.NewOptions(lg, cfg.Global.IsProduction(), errhandlermanager.ResponseBuilder))
 	if err != nil {
 		return nil, fmt.Errorf("create error handler: %v", err)
 	}
 
-	server, err := servermanager.New(servermanager.NewOptions(
+	wsHandler, err := initWebsocketHandler(lg, cfg.Servers.Client.AllowOrigins, cfg.Servers.Client.SecWsProtocol, eventStream)
+	if err != nil {
+		return nil, fmt.Errorf("create websocket: %v", err)
+	}
+
+	s, err := server.New(server.NewOptions(
 		cfg.Servers.Manager.Addr,
 		cfg.Servers.Manager.AllowOrigins,
 		cfg.Servers.Manager.RequiredAccess.Resource,
 		cfg.Servers.Manager.RequiredAccess.Role,
+		cfg.Servers.Manager.SecWsProtocol,
 		lg,
-		v1Swagger,
-		v1Handlers,
 		keycloakClient,
 		errHandler.Handle,
-	))
+		wsHandler,
+	), handlersRegistrar)
 	if err != nil {
 		return nil, fmt.Errorf("build server: %v", err)
 	}
 
-	return server, nil
+	return s, nil
 }
 
 func initV1ManagerHandlers(lg *zap.Logger, storeDB *store.Database, cfg config.ManagerLoadService) (managerv1.Handlers, error) {

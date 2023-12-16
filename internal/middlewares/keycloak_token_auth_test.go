@@ -23,6 +23,7 @@ import (
 const (
 	requiredResource = "chat-ui-client"
 	requiredRole     = "support-chat-client"
+	secWsProtocol    = "chat-service-protocol"
 )
 
 func TestNewKeycloakTokenAuth(t *testing.T) {
@@ -43,7 +44,7 @@ func (s *KeycloakTokenAuthSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 
 	s.introspector = middlewaresmocks.NewMockIntrospector(s.ctrl)
-	s.authMdlwr = middlewares.NewKeycloakTokenAuth(s.introspector, requiredResource, requiredRole)
+	s.authMdlwr = middlewares.NewKeycloakTokenAuth(s.introspector, requiredResource, requiredRole, secWsProtocol)
 
 	s.req = httptest.NewRequest(http.MethodPost, "/getHistory",
 		bytes.NewBufferString(`{"pageSize": 100, "cursor": ""}`))

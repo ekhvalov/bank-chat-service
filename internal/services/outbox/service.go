@@ -76,13 +76,17 @@ func (s *Service) MustRegisterJob(job Job) {
 
 func (s *Service) Run(ctx context.Context) error {
 	eg, ctx := errgroup.WithContext(ctx)
+	logger := zap.L().Named(serviceName)
+	defer func() {
+		logger.Debug("done")
+	}()
 
 	for i := 0; i < s.workers; i++ {
-		logger := zap.L().Named(serviceName).With(zap.Int("worker", i+1))
+		workerLogger := zap.L().Named(serviceName).With(zap.Int("worker", i+1))
 		eg.Go(func() error {
 			for {
 				// Process all available jobs in one go.
-				if err := s.processAvailableJobs(ctx, logger); err != nil {
+				if err := s.processAvailableJobs(ctx, workerLogger); err != nil {
 					if ctx.Err() != nil {
 						return nil //nolint:nilerr
 					}
@@ -112,7 +116,6 @@ func (s *Service) processAvailableJobs(ctx context.Context, log *zap.Logger) err
 
 		if err := s.findAndProcessJob(ctx, log); err != nil {
 			if errors.Is(err, jobsrepo.ErrNoJobs) {
-				log.Debug("no jobs found to process")
 				return nil
 			}
 			return err

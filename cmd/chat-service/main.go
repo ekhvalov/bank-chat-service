@@ -16,20 +16,28 @@ import (
 	"github.com/ekhvalov/bank-chat-service/internal/logger"
 	jobsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/jobs"
 	messagesrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/messages"
+	clientevents "github.com/ekhvalov/bank-chat-service/internal/server-client/events"
 	serverdebug "github.com/ekhvalov/bank-chat-service/internal/server-debug"
+	afcverdictsprocessor "github.com/ekhvalov/bank-chat-service/internal/services/afc-verdicts-processor"
+	eventstream "github.com/ekhvalov/bank-chat-service/internal/services/event-stream"
+	inmemeventstream "github.com/ekhvalov/bank-chat-service/internal/services/event-stream/in-mem"
 	msgproducer "github.com/ekhvalov/bank-chat-service/internal/services/msg-producer"
 	"github.com/ekhvalov/bank-chat-service/internal/services/outbox"
+	clientmessageblockedjob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/client-message-blocked"
+	clientmessagesentjob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/client-message-sent"
 	sendclientmessagejob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/send-client-message"
 	"github.com/ekhvalov/bank-chat-service/internal/store"
 	storegen "github.com/ekhvalov/bank-chat-service/internal/store/gen"
+	websocketstream "github.com/ekhvalov/bank-chat-service/internal/websocket-stream"
 )
 
 var configPath = flag.String("config", "configs/config.toml", "Path to config file")
 
 const (
-	logNameMain        = "main"
-	logNameMsgProducer = "msg-producer"
-	logNameOutbox      = "outbox"
+	logNameMain         = "main"
+	logNameMsgProducer  = "msg-producer"
+	logNameOutbox       = "outbox"
+	logNameAFCProcessor = "afc-processor"
 )
 
 func main() {
@@ -69,8 +77,10 @@ func run() (errReturned error) {
 		return fmt.Errorf("init store client: %v", err)
 	}
 	defer func() {
-		if err := storeClient.Close(); err != nil {
-			errReturned = errors.Join(errReturned, fmt.Errorf("store client close: %v", err))
+		for _, shutdownFunc := range shutdownFunctions {
+			if err := shutdownFunc(); err != nil {
+				errReturned = errors.Join(errReturned, err)
+			}
 		}
 	}()
 
@@ -81,19 +91,31 @@ func run() (errReturned error) {
 		return fmt.Errorf("inig msg producer service: %v", err)
 	}
 
-	outboxSvc, err := initOutboxService(cfg.Services.OutboxService, storeDB, msgProducerSvc)
+	eventStream := inmemeventstream.New()
+
+	messagesRepo, err := messagesrepo.New(messagesrepo.NewOptions(storeDB))
+	if err != nil {
+		return fmt.Errorf("create messages repo: %v", err)
+	}
+
+	outboxSvc, err := initOutboxService(cfg.Services.OutboxService, storeDB, msgProducerSvc, messagesRepo, eventStream)
 	if err != nil {
 		return fmt.Errorf("init outbox service: %v", err)
 	}
 
-	srvClient, err := initServerClient(cfg, storeDB, outboxSvc)
+	srvClient, err := initServerClient(cfg, storeDB, outboxSvc, eventStream)
 	if err != nil {
 		return fmt.Errorf("init client server: %v", err)
 	}
 
-	srvManager, err := initServerManager(cfg, storeDB)
+	srvManager, err := initServerManager(cfg, storeDB, eventStream)
 	if err != nil {
 		return fmt.Errorf("init manager server: %v", err)
+	}
+
+	afcProcessor, err := initAFCVerdictsProcessor(cfg.Services.AFCVerdictsProcessorService, storeDB, messagesRepo, outboxSvc)
+	if err != nil {
+		return fmt.Errorf("init AFC verdicts processor: %v", err)
 	}
 
 	eg, ctx := errgroup.WithContext(ctx)
@@ -105,6 +127,7 @@ func run() (errReturned error) {
 
 	// Run services.
 	eg.Go(func() error { return outboxSvc.Run(ctx) })
+	eg.Go(func() error { return afcProcessor.Run(ctx) })
 
 	if err = eg.Wait(); err != nil && !errors.Is(err, context.Canceled) {
 		return fmt.Errorf("wait app stop: %v", err)
@@ -138,6 +161,13 @@ func initStoreClient(ctx context.Context, cfg config.PostgresClientConfig) (*sto
 		return nil, fmt.Errorf("create schema: %v", err)
 	}
 
+	registerShutdownFunc(func() error {
+		if err := client.Close(); err != nil {
+			return fmt.Errorf("close pgsql: %v", err)
+		}
+		return nil
+	})
+
 	return client, nil
 }
 
@@ -145,28 +175,28 @@ func initOutboxService(
 	cfg config.OutboxService,
 	storeDB *storegen.Database,
 	msgProducer *msgproducer.Service,
+	messagesRepo *messagesrepo.Repo,
+	eventStream eventstream.EventStream,
 ) (*outbox.Service, error) {
 	repo, err := jobsrepo.New(jobsrepo.NewOptions(storeDB))
 	if err != nil {
 		return nil, fmt.Errorf("create jobs repo: %v", err)
 	}
-	lg := zap.L().Named(logNameOutbox)
-	outboxSvc, err := outbox.New(outbox.NewOptions(cfg.Workers, cfg.IdleTime, cfg.ReserveFor, repo, storeDB, lg))
+	srvLogger := zap.L().Named(logNameOutbox)
+	outboxSvc, err := outbox.New(outbox.NewOptions(cfg.Workers, cfg.IdleTime, cfg.ReserveFor, repo, storeDB, srvLogger))
 	if err != nil {
 		return nil, fmt.Errorf("create outbox service: %v", err)
 	}
-	messagesRepo, err := messagesrepo.New(messagesrepo.NewOptions(storeDB))
-	if err != nil {
-		return nil, fmt.Errorf("create messages repo: %v", err)
-	}
 
-	sendClientMsgJob, err := sendclientmessagejob.New(sendclientmessagejob.NewOptions(msgProducer, messagesRepo, lg))
+	jobs, err := createOutboxJobs(msgProducer, messagesRepo, eventStream, srvLogger)
 	if err != nil {
-		return nil, fmt.Errorf("create send-client-message job: %v", err)
+		return nil, fmt.Errorf("create outbox jobs: %v", err)
 	}
-	err = outboxSvc.RegisterJob(sendClientMsgJob)
-	if err != nil {
-		return nil, fmt.Errorf("register send-client-message job: %v", err)
+	for _, job := range jobs {
+		err = outboxSvc.RegisterJob(job)
+		if err != nil {
+			return nil, fmt.Errorf("register %q job: %v", job.Name(), err)
+		}
 	}
 
 	return outboxSvc, nil
@@ -180,4 +210,76 @@ func initMsgProducerService(cfg config.MsgProducerServiceConfig) (*msgproducer.S
 		return nil, fmt.Errorf("create msg producer: %v", err)
 	}
 	return msgProducer, nil
+}
+
+func initWebsocketHandler(lg *zap.Logger, allowOrigins []string, secWsProtocol string, eventStream eventstream.EventStream) (
+	*websocketstream.HTTPHandler,
+	error,
+) {
+	shutdownCh := make(chan struct{})
+	wsHandler, err := websocketstream.NewHTTPHandler(websocketstream.NewOptions(
+		lg,
+		eventStream,
+		clientevents.Adapter{},
+		websocketstream.JSONEventWriter{},
+		websocketstream.NewUpgrader(allowOrigins, secWsProtocol),
+		shutdownCh,
+	))
+	registerShutdownFunc(func() error {
+		close(shutdownCh)
+		return nil
+	})
+	return wsHandler, err
+}
+
+func initAFCVerdictsProcessor(
+	cfg config.AFCVerdictsProcessorService,
+	storeDB *storegen.Database,
+	messagesRepo *messagesrepo.Repo,
+	outboxSvc *outbox.Service,
+) (*afcverdictsprocessor.Service, error) {
+	return afcverdictsprocessor.New(afcverdictsprocessor.NewOptions(
+		cfg.Brokers,
+		cfg.Consumers,
+		cfg.ConsumerGroup,
+		cfg.VerdictsTopic,
+		afcverdictsprocessor.NewKafkaReader,
+		afcverdictsprocessor.NewKafkaDLQWriter(cfg.Brokers, cfg.VerdictsDLQTopic),
+		storeDB,
+		messagesRepo,
+		outboxSvc,
+		zap.L().Named(logNameAFCProcessor),
+		afcverdictsprocessor.WithVerdictsSignKey(cfg.VerdictsSignPublicKey),
+	))
+}
+
+func createOutboxJobs(msgProducer *msgproducer.Service,
+	messagesRepo *messagesrepo.Repo,
+	eventStream eventstream.EventStream, log *zap.Logger,
+) ([]outbox.Job, error) {
+	jobs := make([]outbox.Job, 0)
+	sendClientMsgJob, err := sendclientmessagejob.New(sendclientmessagejob.NewOptions(
+		msgProducer,
+		messagesRepo,
+		eventStream,
+		log,
+	))
+	if err != nil {
+		return nil, fmt.Errorf("create send-client-message job: %v", err)
+	}
+	jobs = append(jobs, sendClientMsgJob)
+
+	clientMessageSentJob, err := clientmessagesentjob.New(clientmessagesentjob.NewOptions(messagesRepo, eventStream, log))
+	if err != nil {
+		return nil, fmt.Errorf("create %q job: %v", clientmessagesentjob.Name, err)
+	}
+	jobs = append(jobs, clientMessageSentJob)
+
+	clientMessageBlockedJob, err := clientmessageblockedjob.New(clientmessageblockedjob.NewOptions(messagesRepo, eventStream, log))
+	if err != nil {
+		return nil, fmt.Errorf("create %q job: %v", clientmessagesentjob.Name, err)
+	}
+	jobs = append(jobs, clientMessageBlockedJob)
+
+	return jobs, nil
 }

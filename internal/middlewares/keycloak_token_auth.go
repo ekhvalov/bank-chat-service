@@ -5,6 +5,7 @@ package middlewares
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
@@ -24,11 +25,13 @@ type Introspector interface {
 
 // NewKeycloakTokenAuth returns a middleware that implements "active" authentication:
 // each request is verified by the Keycloak server.
-func NewKeycloakTokenAuth(introspector Introspector, resource, role string) echo.MiddlewareFunc {
+func NewKeycloakTokenAuth(introspector Introspector, resource, role, secWsProtocol string) echo.MiddlewareFunc {
 	return middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		KeyLookup:  "header:" + echo.HeaderAuthorization,
-		AuthScheme: "Bearer",
-		Validator: func(tokenStr string, eCtx echo.Context) (bool, error) {
+		// KeyLookup:  "header:" + echo.HeaderAuthorization,
+		KeyLookup: "header:Authorization,header:Sec-WebSocket-Protocol",
+		// AuthScheme: "Bearer",
+		Validator: func(auth string, eCtx echo.Context) (bool, error) {
+			tokenStr := parseToken(auth, secWsProtocol)
 			if result, err := introspector.IntrospectToken(eCtx.Request().Context(), tokenStr); err != nil {
 				return false, err
 			} else if !result.Active {
@@ -74,4 +77,11 @@ func userID(eCtx echo.Context) (types.UserID, bool) {
 		return types.UserIDNil, false
 	}
 	return userIDProvider.UserID(), true
+}
+
+func parseToken(auth, secWsProtocol string) string {
+	if strings.HasPrefix(auth, secWsProtocol) {
+		return strings.TrimLeft(auth[len(secWsProtocol):], ", ")
+	}
+	return auth
 }

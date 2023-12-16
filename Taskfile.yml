@@ -64,12 +64,20 @@ tasks:
     cmds:
       - task: deps:reset
         vars:
-          SERVICE: postgres
+          SERVICES: postgres
+
+  deps:reset-kafka:
+    cmds:
+      - task: deps:reset
+        vars:
+          SERVICES: kafka zookeeper
 
   deps:reset:
     cmds:
-      - "{{.DOCKER_COMPOSE_CMD}} rm -fsv {{.SERVICE}}"
-      - "{{.DOCKER_COMPOSE_CMD}} up -d {{.SERVICE}}"
+      - for: { var: SERVICES }
+        cmd: "{{.DOCKER_COMPOSE_CMD}} rm -fsv {{.ITEM}}"
+      - for: { var: SERVICES }
+        cmd: "{{.DOCKER_COMPOSE_CMD}} up -d {{.ITEM}}"
 
   deps:sentry-key:
     dir: ./deploy/local # TODO: duplication
@@ -123,6 +131,7 @@ tasks:
     vars:
       TYPES: |-
         ChatID
+        EventID
         FailedJobID
         JobID
         MessageID
@@ -149,6 +158,8 @@ tasks:
         task: gen:api-v1-e2e
         vars:
           TYPE: "{{.ITEM}}"
+      - task: gen:api-events
+      - task: gen:api-events-e2e
 
   gen:api-v1:
     internal: true
@@ -168,10 +179,34 @@ tasks:
       DST: "{{.DIR}}/{{.TYPE}}.gen.go"
       SRC: "./api/{{.TYPE}}.v1.swagger.yml"
       PKG: "api{{.TYPE}}v1"
+
     cmds:
       - echo "[E2E] Generate {{.TYPE}} API..."
       - "mkdir -p {{.DIR}}"
       - "{{.TOOLS_DIR}}/oapi-codegen --old-config-style -generate types,client,spec -package {{.PKG}} {{.SRC}} > {{.DST}}"
+
+  gen:api-events:
+    internal: true
+    vars:
+      SRC: ./api/client.events.swagger.yml
+      DST_DIR: ./internal/server-client/events
+      DST: "{{.DST_DIR}}/events.gen.go"
+      PKG: clientevents
+    cmds:
+      - "mkdir -p {{.DST_DIR}}"
+      - "{{.TOOLS_DIR}}/oapi-codegen --old-config-style -generate skip-prune,types,spec -package {{.PKG}} -o {{.DST}} {{.SRC}}"
+
+  gen:api-events-e2e:
+    internal: true
+    vars:
+      SRC: ./api/client.events.swagger.yml
+      DST_DIR: ./tests/e2e/api/client/events
+      DST: "{{.DST_DIR}}/events.gen.go"
+      PKG: apiclientevents
+    cmds:
+      - echo "[E2E] Generate client events..."
+      - "mkdir -p {{.DST_DIR}}"
+      - "{{.TOOLS_DIR}}/oapi-codegen --old-config-style -generate skip-prune,types -package {{.PKG}} {{.SRC}} > {{.DST}}"
 
   ent:new:
     cmds:
