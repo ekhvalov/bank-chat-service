@@ -78,7 +78,7 @@ func (j *Job) Handle(ctx context.Context, payload string) error {
 	newChatEvent := eventstream.NewNewChatEvent(
 		types.NewEventID(),
 		message.ChatID,
-		pl.ManagerID,
+		pl.ClientID,
 		message.RequestID,
 		canManagerTakeProblem,
 	)

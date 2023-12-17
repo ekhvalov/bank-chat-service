@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -27,6 +28,22 @@ const (
 const (
 	ErrorCodeManagerOverloadedError ErrorCode = 5000
 )
+
+// Chat defines model for Chat.
+type Chat struct {
+	ChatId   types.ChatID `json:"chatId"`
+	ClientId types.UserID `json:"clientId"`
+}
+
+// ChatId defines model for ChatId.
+type ChatId struct {
+	ChatId types.ChatID `json:"chatId"`
+}
+
+// ChatList defines model for ChatList.
+type ChatList struct {
+	Chats []Chat `json:"chats"`
+}
 
 // Error defines model for Error.
 type Error struct {
@@ -50,10 +67,44 @@ type FreeHandsResponse struct {
 	Error *Error       `json:"error,omitempty"`
 }
 
+// GetChatHistoryRequest defines model for GetChatHistoryRequest.
+type GetChatHistoryRequest struct {
+	ChatId   types.ChatID `json:"chatId"`
+	Cursor   *string      `json:"cursor,omitempty"`
+	PageSize *int         `json:"pageSize,omitempty"`
+}
+
+// GetChatHistoryResponse defines model for GetChatHistoryResponse.
+type GetChatHistoryResponse struct {
+	Data  *MessagesPage `json:"data,omitempty"`
+	Error *Error        `json:"error,omitempty"`
+}
+
+// GetChatsResponse defines model for GetChatsResponse.
+type GetChatsResponse struct {
+	Data  *ChatList `json:"data,omitempty"`
+	Error *Error    `json:"error,omitempty"`
+}
+
 // GetFreeHandsBtnAvailabilityResponse defines model for GetFreeHandsBtnAvailabilityResponse.
 type GetFreeHandsBtnAvailabilityResponse struct {
 	Data  *FreeHandsAvailability `json:"data,omitempty"`
 	Error *Error                 `json:"error,omitempty"`
+}
+
+// Message defines model for Message.
+type Message struct {
+	AuthorId   types.UserID    `json:"authorId"`
+	Body       string          `json:"body"`
+	CreatedAt  time.Time       `json:"createdAt"`
+	Id         types.MessageID `json:"id"`
+	IsReceived bool            `json:"isReceived"`
+}
+
+// MessagesPage defines model for MessagesPage.
+type MessagesPage struct {
+	Messages []Message `json:"messages"`
+	Next     string    `json:"next"`
 }
 
 // XRequestIDHeader defines model for XRequestIDHeader.
@@ -64,16 +115,35 @@ type PostFreeHandsParams struct {
 	XRequestID XRequestIDHeader `json:"X-Request-ID"`
 }
 
+// PostGetChatHistoryParams defines parameters for PostGetChatHistory.
+type PostGetChatHistoryParams struct {
+	XRequestID XRequestIDHeader `json:"X-Request-ID"`
+}
+
+// PostGetChatsParams defines parameters for PostGetChats.
+type PostGetChatsParams struct {
+	XRequestID XRequestIDHeader `json:"X-Request-ID"`
+}
+
 // PostGetFreeHandsBtnAvailabilityParams defines parameters for PostGetFreeHandsBtnAvailability.
 type PostGetFreeHandsBtnAvailabilityParams struct {
 	XRequestID XRequestIDHeader `json:"X-Request-ID"`
 }
+
+// PostGetChatHistoryJSONRequestBody defines body for PostGetChatHistory for application/json ContentType.
+type PostGetChatHistoryJSONRequestBody = GetChatHistoryRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
 	// (POST /freeHands)
 	PostFreeHands(ctx echo.Context, params PostFreeHandsParams) error
+
+	// (POST /getChatHistory)
+	PostGetChatHistory(ctx echo.Context, params PostGetChatHistoryParams) error
+
+	// (POST /getChats)
+	PostGetChats(ctx echo.Context, params PostGetChatsParams) error
 
 	// (POST /getFreeHandsBtnAvailability)
 	PostGetFreeHandsBtnAvailability(ctx echo.Context, params PostGetFreeHandsBtnAvailabilityParams) error
@@ -114,6 +184,72 @@ func (w *ServerInterfaceWrapper) PostFreeHands(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PostFreeHands(ctx, params)
+	return err
+}
+
+// PostGetChatHistory converts echo context to params.
+func (w *ServerInterfaceWrapper) PostGetChatHistory(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PostGetChatHistoryParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Request-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Request-ID")]; found {
+		var XRequestID XRequestIDHeader
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Request-ID, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Request-ID", runtime.ParamLocationHeader, valueList[0], &XRequestID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Request-ID: %s", err))
+		}
+
+		params.XRequestID = XRequestID
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Request-ID is required, but not found"))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostGetChatHistory(ctx, params)
+	return err
+}
+
+// PostGetChats converts echo context to params.
+func (w *ServerInterfaceWrapper) PostGetChats(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PostGetChatsParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Request-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Request-ID")]; found {
+		var XRequestID XRequestIDHeader
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Request-ID, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Request-ID", runtime.ParamLocationHeader, valueList[0], &XRequestID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Request-ID: %s", err))
+		}
+
+		params.XRequestID = XRequestID
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Request-ID is required, but not found"))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostGetChats(ctx, params)
 	return err
 }
 
@@ -179,6 +315,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.POST(baseURL+"/freeHands", wrapper.PostFreeHands)
+	router.POST(baseURL+"/getChatHistory", wrapper.PostGetChatHistory)
+	router.POST(baseURL+"/getChats", wrapper.PostGetChats)
 	router.POST(baseURL+"/getFreeHandsBtnAvailability", wrapper.PostGetFreeHandsBtnAvailability)
 
 }
@@ -186,20 +324,25 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9RVW2/bNhT+K8TZHjZAspRmAwoBe0iatcmAYUEbYAUyPxxLxxIXimTJQ62Bof8+kPJF",
-	"qd2ke9yTIfJcvwu9gdr01mjS7KHagEWHPTG59PXxPX0K5Pnm6pqwIRfPpIYKuukzA409QQUf821kfnMF",
-	"GTj6FKSjBip2gTLwdUc9xuy1cT0yVBCCbCADfrQx37OTuoUMPuetybeH8ccv9iPMb3PZW+N4mpg7qKCV",
-	"3IXVojZ9QQ/dgMoMxQr1Q153yLknN8iaCqmZnEZVpNowjuO4my4t/KtzJm1pnbHkWFI6rk1D8fd7R2uo",
-	"4LviAFqxzS5S6psYOGbQEKNUKffphmMGPXmPLZ24G+fI3e8Ds6n/cszg0KTaQEO+dtKyNJGS2mhGqb24",
-	"vru7FRQDRczzAnUjvKVarmUtVsFLTd4LZVpZP4n7gTsSCj2LPngWKxJ/hbI8p1/EWVmWPy4gA9Khh+r+",
-	"57Islxn0Uss+HvxUlnsqI8Rt0sbnPIbnA7qoEh9X2s//O2psyf0xkFMGG2om5OOObx3RNerGXwwoFa6k",
-	"kvx4zAlOt2oO5MoYRaiPkDzEPmnwnrw12tNx8QY5ynXMgHaKeJF7SGJ6R7yvf8l6vsOL7Z7tcRqW/zxh",
-	"1DvVwUl+/BDvpgFWhI7cRYhW2n293Vn1tz/vYOuSBHK6PXi3Y7bT7lKvTWJDcqQFLlE/iA/BRquKNx2y",
-	"2NIuLm5vIIOBnJ/EO5zFTYwljVZCBeeLcnEOWTJ3GrBY79ZP6BnPxw64olqhI+EIm0njbESHulEkrDMr",
-	"Rb2PIo7IY8y5aaCCW+MPjKWWhxfw/jSoh5Di6IUcl5P0yPOlaR6n10MzaYZKB6WSMicdpFVeleWTmA2g",
-	"tUrWacDibx8328we0G+SyF5piZZTKKXywseWkyiK9uvC/Trk74gFziJniGv65wXUn7HK/5uHb3kDTjAz",
-	"jxOOfFATOTPLJijmZr1fxkXj39sOqC/ZHkgZ25NmMUVBBsGprW+rolCmRtUZz9Xr8vVZkZz4XBV6RV9W",
-	"SknL8d8AAAD//zjXNQRMCAAA",
+	"H4sIAAAAAAAC/9RXXW/bNhT9K8TdHjZAtpR2AwoBe0iTtcmwoEGSYQUyP9DStcWGIlXyyo0X6L8PJGX5",
+	"Q0qcpc2QPdmSLslzz7lfvINMl5VWqMhCegcVN7xEQuOfPl7g5xotnR6fIM/RuHdCQQpFeIxA8RIhhY+j",
+	"1nJ0egwRGPxcC4M5pGRqjMBmBZbcrZ5pU3KCFOpa5BABLSu33pIRag4R3I7metS+dD923EHY/DoSZaUN",
+	"BcRUQApzQUU9HWe6jPGmWHCpF/GUq5tRVnAaWTQLkWEsFKFRXMZ+b2iaplmh8w4fFdxvyqX8MIP0+g6+",
+	"NziDFL6L1zzF7YLYWZ/m0ER3UBldoSGBfptMClTu05M8/sOieS53N7W5XuOcdLj09BNmBM2kiaD1L+25",
+	"173/9875Pf8b5wLKlSO/C0vDrvg/grD0f/YJDk3nJjeGL2HoXOuP/dUYbQbO1DnuO8kvPXKGTQQ5EhfS",
+	"r90muImgRGv5HAe+7cBaGUbh/A7fUYsmR5sZUZHQLsEzrYgLZdnJ1dU5Q2fI3DrLuMqZrTATM5GxaW2F",
+	"QmuZ1HORbdn9QAUyyS2xsrbEpsj+qpPkNf7CDpIk+XEMEaCqS0ivf06SZBJBKZQo3YufkqSj2Ik895Xm",
+	"duTMRwtuXM2xzqUO/xlXfI7mwwKN1DzHPDDvfHxnEE+4yu3hggvJp0IKWvY14eGr3CRyqrVErnpMrm23",
+	"DrhAW2llsb95zskVvyYCXEXEXu1DPL9HcjF3Iixps2xL4f8mISPIamODw73ArfgcL8Xfnq6S3wbpD5z0",
+	"XSAc9OPggSTf5WqPGg9KcBaSxZ67jHm6bvbrUHRl62kIush8S2oz+r8O1HBCPQHh2bpy7eRiTYU2L7B7",
+	"RjDV+XIwmjODnDA/pC3QOScckSixh7yJQDzRwZa3Z/NR2AvMUCwwf0Qt9Jg7wVqCNunY2m+ylj2kVk/7",
+	"tks9viWvoqjXlSNQeEuP7osW2gUTPxJiVhtBy0t3SkAzRW7QHNaO3NXTu5V4v/15Be0g6dnyX9dqFkRV",
+	"CHqhZtpjEuR6Dbzl6oZd1pUTj7l8Z20vY4fnpxDBAo0NHXlx4HzSFSpeCUjh9TgZv4bIy+0BxrNVZnpa",
+	"dWgU2239GDPJDTKDPA+NmzQruMolssroqcTSus7sJOFujctCONd2XUz8ketLwj0j8tok7l0imolTINQg",
+	"j/VVkoS5SBGqMH9XlRSZRxB/sg763cYl4lHlqatynvchGvz2zLojw0Ugnm+1kPtpfI/EXBqxIlgOU7bd",
+	"kL4Vb/7d27YOfRPKhoeMnXnaXeSaZ9Ttnu49IN6qgDApLI13pLMPi+ZnUmGJ6ZkX0LIvggrmsmpP/K86",
+	"+gsP/97gMUCgN+ixd9+08DChfMNyo5Yo/LKfz3tPfPEU752sBljftGMGbS1D2dnoNt7XzT5zPXGeuF69",
+	"YmK3ji1Q6qpERSxYQQS1kW3LSeNY6ozLQltK3yRvDmLfRB7aBV/h7k5+0aT5JwAA//+Nj1SgKhIAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

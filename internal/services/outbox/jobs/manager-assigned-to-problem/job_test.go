@@ -131,7 +131,7 @@ func (s *JobSuite) TestHandle_NewChatEventError() {
 	s.managerLoad.EXPECT().CanManagerTakeProblem(s.Ctx, managerID).Return(false, nil)
 
 	errNewChatEvent := errors.New("publish NewChatEvent error")
-	chatEventMatcher := &eventstream.NewChatEventMatcher{NewChatEvent: createNewChatEvent(message, managerID)}
+	chatEventMatcher := &eventstream.NewChatEventMatcher{NewChatEvent: createNewChatEvent(message, clientID)}
 	s.eventStream.EXPECT().Publish(s.Ctx, managerID, chatEventMatcher).Return(errNewChatEvent)
 
 	// Action
@@ -155,7 +155,7 @@ func (s *JobSuite) TestHandle_NewMessageEventError() {
 
 	s.managerLoad.EXPECT().CanManagerTakeProblem(s.Ctx, managerID).Return(false, nil)
 
-	chatEventMatcher := &eventstream.NewChatEventMatcher{NewChatEvent: createNewChatEvent(message, managerID)}
+	chatEventMatcher := &eventstream.NewChatEventMatcher{NewChatEvent: createNewChatEvent(message, clientID)}
 	s.eventStream.EXPECT().Publish(s.Ctx, managerID, chatEventMatcher).Return(nil)
 
 	errNewMessageEvent := errors.New("publish NewMessageEvent error")
@@ -185,7 +185,7 @@ func (s *JobSuite) TestHandle() {
 
 			s.managerLoad.EXPECT().CanManagerTakeProblem(s.Ctx, managerID).Return(canTakeMoreProblem, nil)
 
-			chatEventMatcher := &eventstream.NewChatEventMatcher{NewChatEvent: createNewChatEvent(message, managerID)}
+			chatEventMatcher := &eventstream.NewChatEventMatcher{NewChatEvent: createNewChatEvent(message, clientID)}
 			chatEventMatcher.NewChatEvent.CanTakeMoreProblems = canTakeMoreProblem
 			s.eventStream.EXPECT().Publish(s.Ctx, managerID, chatEventMatcher).Return(nil)
 
@@ -228,11 +228,11 @@ func (s *JobSuite) createPayload(messageID types.MessageID, managerID types.User
 	return payloadStr
 }
 
-func createNewChatEvent(message *messagesrepo.Message, managerID types.UserID) *eventstream.NewChatEvent {
+func createNewChatEvent(message *messagesrepo.Message, clientID types.UserID) *eventstream.NewChatEvent {
 	return &eventstream.NewChatEvent{
 		ID:                  types.NewEventID(),
 		ChatID:              message.ChatID,
-		ClientID:            managerID,
+		ClientID:            clientID,
 		RequestID:           message.RequestID,
 		CanTakeMoreProblems: false,
 	}

@@ -14,6 +14,7 @@ import (
 
 	"github.com/ekhvalov/bank-chat-service/internal/config"
 	"github.com/ekhvalov/bank-chat-service/internal/logger"
+	chatsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/chats"
 	jobsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/jobs"
 	messagesrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/messages"
 	problemsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/problems"
@@ -133,7 +134,12 @@ func run() (errReturned error) {
 
 	managerPool := inmemmanagerpool.New()
 
-	serverManager, err := initServerManager(cfg, storeDB, eventStream, managerPool)
+	chatsRepo, err := chatsrepo.New(chatsrepo.NewOptions(storeDB))
+	if err != nil {
+		return fmt.Errorf("create chats repo: %v", err)
+	}
+
+	serverManager, err := initServerManager(cfg, eventStream, managerPool, chatsRepo, messagesRepo, problemsRepo)
 	if err != nil {
 		return fmt.Errorf("init manager server: %v", err)
 	}
@@ -334,7 +340,9 @@ func createOutboxJobs(
 	}
 	jobs = append(jobs, sendClientMsgJob)
 
-	clientMessageSentJob, err := clientmessagesentjob.New(clientmessagesentjob.NewOptions(messagesRepo, eventStream, log))
+	clientMessageSentJob, err := clientmessagesentjob.New(
+		clientmessagesentjob.NewOptions(messagesRepo, problemsRepo, eventStream, log),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("create %q job: %v", clientmessagesentjob.Name, err)
 	}

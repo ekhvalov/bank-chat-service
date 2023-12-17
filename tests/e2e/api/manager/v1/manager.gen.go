@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -29,6 +30,22 @@ const (
 const (
 	ErrorCodeManagerOverloadedError ErrorCode = 5000
 )
+
+// Chat defines model for Chat.
+type Chat struct {
+	ChatId   types.ChatID `json:"chatId"`
+	ClientId types.UserID `json:"clientId"`
+}
+
+// ChatId defines model for ChatId.
+type ChatId struct {
+	ChatId types.ChatID `json:"chatId"`
+}
+
+// ChatList defines model for ChatList.
+type ChatList struct {
+	Chats []Chat `json:"chats"`
+}
 
 // Error defines model for Error.
 type Error struct {
@@ -52,10 +69,44 @@ type FreeHandsResponse struct {
 	Error *Error       `json:"error,omitempty"`
 }
 
+// GetChatHistoryRequest defines model for GetChatHistoryRequest.
+type GetChatHistoryRequest struct {
+	ChatId   types.ChatID `json:"chatId"`
+	Cursor   *string      `json:"cursor,omitempty"`
+	PageSize *int         `json:"pageSize,omitempty"`
+}
+
+// GetChatHistoryResponse defines model for GetChatHistoryResponse.
+type GetChatHistoryResponse struct {
+	Data  *MessagesPage `json:"data,omitempty"`
+	Error *Error        `json:"error,omitempty"`
+}
+
+// GetChatsResponse defines model for GetChatsResponse.
+type GetChatsResponse struct {
+	Data  *ChatList `json:"data,omitempty"`
+	Error *Error    `json:"error,omitempty"`
+}
+
 // GetFreeHandsBtnAvailabilityResponse defines model for GetFreeHandsBtnAvailabilityResponse.
 type GetFreeHandsBtnAvailabilityResponse struct {
 	Data  *FreeHandsAvailability `json:"data,omitempty"`
 	Error *Error                 `json:"error,omitempty"`
+}
+
+// Message defines model for Message.
+type Message struct {
+	AuthorId   types.UserID    `json:"authorId"`
+	Body       string          `json:"body"`
+	CreatedAt  time.Time       `json:"createdAt"`
+	Id         types.MessageID `json:"id"`
+	IsReceived bool            `json:"isReceived"`
+}
+
+// MessagesPage defines model for MessagesPage.
+type MessagesPage struct {
+	Messages []Message `json:"messages"`
+	Next     string    `json:"next"`
 }
 
 // XRequestIDHeader defines model for XRequestIDHeader.
@@ -66,10 +117,23 @@ type PostFreeHandsParams struct {
 	XRequestID XRequestIDHeader `json:"X-Request-ID"`
 }
 
+// PostGetChatHistoryParams defines parameters for PostGetChatHistory.
+type PostGetChatHistoryParams struct {
+	XRequestID XRequestIDHeader `json:"X-Request-ID"`
+}
+
+// PostGetChatsParams defines parameters for PostGetChats.
+type PostGetChatsParams struct {
+	XRequestID XRequestIDHeader `json:"X-Request-ID"`
+}
+
 // PostGetFreeHandsBtnAvailabilityParams defines parameters for PostGetFreeHandsBtnAvailability.
 type PostGetFreeHandsBtnAvailabilityParams struct {
 	XRequestID XRequestIDHeader `json:"X-Request-ID"`
 }
+
+// PostGetChatHistoryJSONRequestBody defines body for PostGetChatHistory for application/json ContentType.
+type PostGetChatHistoryJSONRequestBody = GetChatHistoryRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -144,15 +208,23 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// PostFreeHandsWithBody request with any body
-	PostFreeHandsWithBody(ctx context.Context, params *PostFreeHandsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostFreeHands request
+	PostFreeHands(ctx context.Context, params *PostFreeHandsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostGetFreeHandsBtnAvailabilityWithBody request with any body
-	PostGetFreeHandsBtnAvailabilityWithBody(ctx context.Context, params *PostGetFreeHandsBtnAvailabilityParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostGetChatHistoryWithBody request with any body
+	PostGetChatHistoryWithBody(ctx context.Context, params *PostGetChatHistoryParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostGetChatHistory(ctx context.Context, params *PostGetChatHistoryParams, body PostGetChatHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostGetChats request
+	PostGetChats(ctx context.Context, params *PostGetChatsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostGetFreeHandsBtnAvailability request
+	PostGetFreeHandsBtnAvailability(ctx context.Context, params *PostGetFreeHandsBtnAvailabilityParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) PostFreeHandsWithBody(ctx context.Context, params *PostFreeHandsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostFreeHandsRequestWithBody(c.Server, params, contentType, body)
+func (c *Client) PostFreeHands(ctx context.Context, params *PostFreeHandsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostFreeHandsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -163,8 +235,8 @@ func (c *Client) PostFreeHandsWithBody(ctx context.Context, params *PostFreeHand
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostGetFreeHandsBtnAvailabilityWithBody(ctx context.Context, params *PostGetFreeHandsBtnAvailabilityParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostGetFreeHandsBtnAvailabilityRequestWithBody(c.Server, params, contentType, body)
+func (c *Client) PostGetChatHistoryWithBody(ctx context.Context, params *PostGetChatHistoryParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostGetChatHistoryRequestWithBody(c.Server, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -175,8 +247,44 @@ func (c *Client) PostGetFreeHandsBtnAvailabilityWithBody(ctx context.Context, pa
 	return c.Client.Do(req)
 }
 
-// NewPostFreeHandsRequestWithBody generates requests for PostFreeHands with any type of body
-func NewPostFreeHandsRequestWithBody(server string, params *PostFreeHandsParams, contentType string, body io.Reader) (*http.Request, error) {
+func (c *Client) PostGetChatHistory(ctx context.Context, params *PostGetChatHistoryParams, body PostGetChatHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostGetChatHistoryRequest(c.Server, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostGetChats(ctx context.Context, params *PostGetChatsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostGetChatsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostGetFreeHandsBtnAvailability(ctx context.Context, params *PostGetFreeHandsBtnAvailabilityParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostGetFreeHandsBtnAvailabilityRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// NewPostFreeHandsRequest generates requests for PostFreeHands
+func NewPostFreeHandsRequest(server string, params *PostFreeHandsParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -185,6 +293,57 @@ func NewPostFreeHandsRequestWithBody(server string, params *PostFreeHandsParams,
 	}
 
 	operationPath := fmt.Sprintf("/freeHands")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "X-Request-ID", runtime.ParamLocationHeader, params.XRequestID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("X-Request-ID", headerParam0)
+
+	}
+
+	return req, nil
+}
+
+// NewPostGetChatHistoryRequest calls the generic PostGetChatHistory builder with application/json body
+func NewPostGetChatHistoryRequest(server string, params *PostGetChatHistoryParams, body PostGetChatHistoryJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostGetChatHistoryRequestWithBody(server, params, "application/json", bodyReader)
+}
+
+// NewPostGetChatHistoryRequestWithBody generates requests for PostGetChatHistory with any type of body
+func NewPostGetChatHistoryRequestWithBody(server string, params *PostGetChatHistoryParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/getChatHistory")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -217,8 +376,48 @@ func NewPostFreeHandsRequestWithBody(server string, params *PostFreeHandsParams,
 	return req, nil
 }
 
-// NewPostGetFreeHandsBtnAvailabilityRequestWithBody generates requests for PostGetFreeHandsBtnAvailability with any type of body
-func NewPostGetFreeHandsBtnAvailabilityRequestWithBody(server string, params *PostGetFreeHandsBtnAvailabilityParams, contentType string, body io.Reader) (*http.Request, error) {
+// NewPostGetChatsRequest generates requests for PostGetChats
+func NewPostGetChatsRequest(server string, params *PostGetChatsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/getChats")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "X-Request-ID", runtime.ParamLocationHeader, params.XRequestID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("X-Request-ID", headerParam0)
+
+	}
+
+	return req, nil
+}
+
+// NewPostGetFreeHandsBtnAvailabilityRequest generates requests for PostGetFreeHandsBtnAvailability
+func NewPostGetFreeHandsBtnAvailabilityRequest(server string, params *PostGetFreeHandsBtnAvailabilityParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -236,12 +435,10 @@ func NewPostGetFreeHandsBtnAvailabilityRequestWithBody(server string, params *Po
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
-
-	req.Header.Add("Content-Type", contentType)
 
 	if params != nil {
 
@@ -302,11 +499,19 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// PostFreeHandsWithBodyWithResponse request with any body
-	PostFreeHandsWithBodyWithResponse(ctx context.Context, params *PostFreeHandsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostFreeHandsResponse, error)
+	// PostFreeHandsWithResponse request
+	PostFreeHandsWithResponse(ctx context.Context, params *PostFreeHandsParams, reqEditors ...RequestEditorFn) (*PostFreeHandsResponse, error)
 
-	// PostGetFreeHandsBtnAvailabilityWithBodyWithResponse request with any body
-	PostGetFreeHandsBtnAvailabilityWithBodyWithResponse(ctx context.Context, params *PostGetFreeHandsBtnAvailabilityParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostGetFreeHandsBtnAvailabilityResponse, error)
+	// PostGetChatHistoryWithBodyWithResponse request with any body
+	PostGetChatHistoryWithBodyWithResponse(ctx context.Context, params *PostGetChatHistoryParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostGetChatHistoryResponse, error)
+
+	PostGetChatHistoryWithResponse(ctx context.Context, params *PostGetChatHistoryParams, body PostGetChatHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*PostGetChatHistoryResponse, error)
+
+	// PostGetChatsWithResponse request
+	PostGetChatsWithResponse(ctx context.Context, params *PostGetChatsParams, reqEditors ...RequestEditorFn) (*PostGetChatsResponse, error)
+
+	// PostGetFreeHandsBtnAvailabilityWithResponse request
+	PostGetFreeHandsBtnAvailabilityWithResponse(ctx context.Context, params *PostGetFreeHandsBtnAvailabilityParams, reqEditors ...RequestEditorFn) (*PostGetFreeHandsBtnAvailabilityResponse, error)
 }
 
 type PostFreeHandsResponse struct {
@@ -325,6 +530,50 @@ func (r PostFreeHandsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r PostFreeHandsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostGetChatHistoryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GetChatHistoryResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PostGetChatHistoryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostGetChatHistoryResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostGetChatsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GetChatsResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PostGetChatsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostGetChatsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -353,18 +602,44 @@ func (r PostGetFreeHandsBtnAvailabilityResponse) StatusCode() int {
 	return 0
 }
 
-// PostFreeHandsWithBodyWithResponse request with arbitrary body returning *PostFreeHandsResponse
-func (c *ClientWithResponses) PostFreeHandsWithBodyWithResponse(ctx context.Context, params *PostFreeHandsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostFreeHandsResponse, error) {
-	rsp, err := c.PostFreeHandsWithBody(ctx, params, contentType, body, reqEditors...)
+// PostFreeHandsWithResponse request returning *PostFreeHandsResponse
+func (c *ClientWithResponses) PostFreeHandsWithResponse(ctx context.Context, params *PostFreeHandsParams, reqEditors ...RequestEditorFn) (*PostFreeHandsResponse, error) {
+	rsp, err := c.PostFreeHands(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParsePostFreeHandsResponse(rsp)
 }
 
-// PostGetFreeHandsBtnAvailabilityWithBodyWithResponse request with arbitrary body returning *PostGetFreeHandsBtnAvailabilityResponse
-func (c *ClientWithResponses) PostGetFreeHandsBtnAvailabilityWithBodyWithResponse(ctx context.Context, params *PostGetFreeHandsBtnAvailabilityParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostGetFreeHandsBtnAvailabilityResponse, error) {
-	rsp, err := c.PostGetFreeHandsBtnAvailabilityWithBody(ctx, params, contentType, body, reqEditors...)
+// PostGetChatHistoryWithBodyWithResponse request with arbitrary body returning *PostGetChatHistoryResponse
+func (c *ClientWithResponses) PostGetChatHistoryWithBodyWithResponse(ctx context.Context, params *PostGetChatHistoryParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostGetChatHistoryResponse, error) {
+	rsp, err := c.PostGetChatHistoryWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostGetChatHistoryResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostGetChatHistoryWithResponse(ctx context.Context, params *PostGetChatHistoryParams, body PostGetChatHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*PostGetChatHistoryResponse, error) {
+	rsp, err := c.PostGetChatHistory(ctx, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostGetChatHistoryResponse(rsp)
+}
+
+// PostGetChatsWithResponse request returning *PostGetChatsResponse
+func (c *ClientWithResponses) PostGetChatsWithResponse(ctx context.Context, params *PostGetChatsParams, reqEditors ...RequestEditorFn) (*PostGetChatsResponse, error) {
+	rsp, err := c.PostGetChats(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostGetChatsResponse(rsp)
+}
+
+// PostGetFreeHandsBtnAvailabilityWithResponse request returning *PostGetFreeHandsBtnAvailabilityResponse
+func (c *ClientWithResponses) PostGetFreeHandsBtnAvailabilityWithResponse(ctx context.Context, params *PostGetFreeHandsBtnAvailabilityParams, reqEditors ...RequestEditorFn) (*PostGetFreeHandsBtnAvailabilityResponse, error) {
+	rsp, err := c.PostGetFreeHandsBtnAvailability(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -387,6 +662,58 @@ func ParsePostFreeHandsResponse(rsp *http.Response) (*PostFreeHandsResponse, err
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest FreeHandsResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostGetChatHistoryResponse parses an HTTP response from a PostGetChatHistoryWithResponse call
+func ParsePostGetChatHistoryResponse(rsp *http.Response) (*PostGetChatHistoryResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostGetChatHistoryResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GetChatHistoryResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostGetChatsResponse parses an HTTP response from a PostGetChatsWithResponse call
+func ParsePostGetChatsResponse(rsp *http.Response) (*PostGetChatsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostGetChatsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GetChatsResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -426,20 +753,25 @@ func ParsePostGetFreeHandsBtnAvailabilityResponse(rsp *http.Response) (*PostGetF
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9RVW2/bNhT+K8TZHjZAspRmAwoBe0iatcmAYUEbYAUyPxxLxxIXimTJQ62Bof8+kPJF",
-	"qd2ke9yTIfJcvwu9gdr01mjS7KHagEWHPTG59PXxPX0K5Pnm6pqwIRfPpIYKuukzA409QQUf821kfnMF",
-	"GTj6FKSjBip2gTLwdUc9xuy1cT0yVBCCbCADfrQx37OTuoUMPuetybeH8ccv9iPMb3PZW+N4mpg7qKCV",
-	"3IXVojZ9QQ/dgMoMxQr1Q153yLknN8iaCqmZnEZVpNowjuO4my4t/KtzJm1pnbHkWFI6rk1D8fd7R2uo",
-	"4LviAFqxzS5S6psYOGbQEKNUKffphmMGPXmPLZ24G+fI3e8Ds6n/cszg0KTaQEO+dtKyNJGS2mhGqb24",
-	"vru7FRQDRczzAnUjvKVarmUtVsFLTd4LZVpZP4n7gTsSCj2LPngWKxJ/hbI8p1/EWVmWPy4gA9Khh+r+",
-	"57Islxn0Uss+HvxUlnsqI8Rt0sbnPIbnA7qoEh9X2s//O2psyf0xkFMGG2om5OOObx3RNerGXwwoFa6k",
-	"kvx4zAlOt2oO5MoYRaiPkDzEPmnwnrw12tNx8QY5ynXMgHaKeJF7SGJ6R7yvf8l6vsOL7Z7tcRqW/zxh",
-	"1DvVwUl+/BDvpgFWhI7cRYhW2n293Vn1tz/vYOuSBHK6PXi3Y7bT7lKvTWJDcqQFLlE/iA/BRquKNx2y",
-	"2NIuLm5vIIOBnJ/EO5zFTYwljVZCBeeLcnEOWTJ3GrBY79ZP6BnPxw64olqhI+EIm0njbESHulEkrDMr",
-	"Rb2PIo7IY8y5aaCCW+MPjKWWhxfw/jSoh5Di6IUcl5P0yPOlaR6n10MzaYZKB6WSMicdpFVeleWTmA2g",
-	"tUrWacDibx8328we0G+SyF5piZZTKKXywseWkyiK9uvC/Trk74gFziJniGv65wXUn7HK/5uHb3kDTjAz",
-	"jxOOfFATOTPLJijmZr1fxkXj39sOqC/ZHkgZ25NmMUVBBsGprW+rolCmRtUZz9Xr8vVZkZz4XBV6RV9W",
-	"SknL8d8AAAD//zjXNQRMCAAA",
+	"H4sIAAAAAAAC/9RXXW/bNhT9K8TdHjZAtpR2AwoBe0iTtcmwoEGSYQUyP9DStcWGIlXyyo0X6L8PJGX5",
+	"Q0qcpc2QPdmSLslzz7lfvINMl5VWqMhCegcVN7xEQuOfPl7g5xotnR6fIM/RuHdCQQpFeIxA8RIhhY+j",
+	"1nJ0egwRGPxcC4M5pGRqjMBmBZbcrZ5pU3KCFOpa5BABLSu33pIRag4R3I7metS+dD923EHY/DoSZaUN",
+	"BcRUQApzQUU9HWe6jPGmWHCpF/GUq5tRVnAaWTQLkWEsFKFRXMZ+b2iaplmh8w4fFdxvyqX8MIP0+g6+",
+	"NziDFL6L1zzF7YLYWZ/m0ER3UBldoSGBfptMClTu05M8/sOieS53N7W5XuOcdLj09BNmBM2kiaD1L+25",
+	"173/9875Pf8b5wLKlSO/C0vDrvg/grD0f/YJDk3nJjeGL2HoXOuP/dUYbQbO1DnuO8kvPXKGTQQ5EhfS",
+	"r90muImgRGv5HAe+7cBaGUbh/A7fUYsmR5sZUZHQLsEzrYgLZdnJ1dU5Q2fI3DrLuMqZrTATM5GxaW2F",
+	"QmuZ1HORbdn9QAUyyS2xsrbEpsj+qpPkNf7CDpIk+XEMEaCqS0ivf06SZBJBKZQo3YufkqSj2Ik895Xm",
+	"duTMRwtuXM2xzqUO/xlXfI7mwwKN1DzHPDDvfHxnEE+4yu3hggvJp0IKWvY14eGr3CRyqrVErnpMrm23",
+	"DrhAW2llsb95zskVvyYCXEXEXu1DPL9HcjF3Iixps2xL4f8mISPIamODw73ArfgcL8Xfnq6S3wbpD5z0",
+	"XSAc9OPggSTf5WqPGg9KcBaSxZ67jHm6bvbrUHRl62kIush8S2oz+r8O1HBCPQHh2bpy7eRiTYU2L7B7",
+	"RjDV+XIwmjODnDA/pC3QOScckSixh7yJQDzRwZa3Z/NR2AvMUCwwf0Qt9Jg7wVqCNunY2m+ylj2kVk/7",
+	"tks9viWvoqjXlSNQeEuP7osW2gUTPxJiVhtBy0t3SkAzRW7QHNaO3NXTu5V4v/15Be0g6dnyX9dqFkRV",
+	"CHqhZtpjEuR6Dbzl6oZd1pUTj7l8Z20vY4fnpxDBAo0NHXlx4HzSFSpeCUjh9TgZv4bIy+0BxrNVZnpa",
+	"dWgU2239GDPJDTKDPA+NmzQruMolssroqcTSus7sJOFujctCONd2XUz8ketLwj0j8tok7l0imolTINQg",
+	"j/VVkoS5SBGqMH9XlRSZRxB/sg763cYl4lHlqatynvchGvz2zLojw0Ugnm+1kPtpfI/EXBqxIlgOU7bd",
+	"kL4Vb/7d27YOfRPKhoeMnXnaXeSaZ9Ttnu49IN6qgDApLI13pLMPi+ZnUmGJ6ZkX0LIvggrmsmpP/K86",
+	"+gsP/97gMUCgN+ixd9+08DChfMNyo5Yo/LKfz3tPfPEU752sBljftGMGbS1D2dnoNt7XzT5zPXGeuF69",
+	"YmK3ji1Q6qpERSxYQQS1kW3LSeNY6ozLQltK3yRvDmLfRB7aBV/h7k5+0aT5JwAA//+Nj1SgKhIAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

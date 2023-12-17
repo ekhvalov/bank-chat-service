@@ -24,6 +24,7 @@ require (
 	github.com/onsi/gomega v1.28.0
 	github.com/segmentio/kafka-go v0.4.44
 	github.com/stretchr/testify v1.8.4
+	go.uber.org/atomic v1.7.0
 	go.uber.org/goleak v1.2.0
 	go.uber.org/mock v0.3.0
 	go.uber.org/multierr v1.10.0

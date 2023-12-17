@@ -26,8 +26,12 @@ components:
     Event:
       oneOf:
         - $ref: "#/components/schemas/NewChatEvent"
+        - $ref: "#/components/schemas/NewMessageEvent"
       discriminator:
         propertyName: eventType
+        mapping:
+          NewChatEvent: "#/components/schemas/EventType"
+          NewMessageEvent: "#/components/schemas/EventType"
 
     NewChatEvent:
       required: [ eventId, eventType, chatId, clientId, requestId, canTakeMoreProblems ]
@@ -35,7 +39,7 @@ components:
         eventId:
           $ref: "#/components/schemas/EventID"
         eventType:
-          $ref: "#/components/schemas/EventType"
+          type: string
         chatId:
           $ref: "#/components/schemas/ChatID"
         clientId:
@@ -45,10 +49,32 @@ components:
         canTakeMoreProblems:
           type: boolean
 
+    NewMessageEvent:
+      required: [ authorId, body, createdAt, chatId, eventId, eventType, messageId, requestId ]
+      properties:
+        authorId:
+          $ref: "#/components/schemas/ClientID"
+        body:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        chatId:
+          $ref: "#/components/schemas/ChatID"
+        eventId:
+          $ref: "#/components/schemas/EventID"
+        eventType:
+          type: string
+        messageId:
+          $ref: "#/components/schemas/MessageID"
+        requestId:
+          $ref: "#/components/schemas/RequestID"
+
     EventType:
       type: string
       enum:
         - NewChatEvent
+        - NewMessageEvent
 
     EventID:
       type: string
@@ -79,5 +105,13 @@ components:
       format: uuid
       x-go-type: types.RequestID
       x-go-name: RequestID
+      x-go-type-import:
+        path: "github.com/ekhvalov/bank-chat-service/internal/types"
+
+    MessageID:
+      type: string
+      format: uuid
+      x-go-type: types.MessageID
+      x-go-name: MessageID
       x-go-type-import:
         path: "github.com/ekhvalov/bank-chat-service/internal/types"

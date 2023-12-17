@@ -36,13 +36,13 @@ addr = ":8081"
 allow_origins = ["http://localhost:3011", "http://localhost:3001"]
 sec_ws_protocol = "chat-service-protocol"
 [servers.manager.required_access]
-resource = "chat-ui-manager"
+resource = "e2e-testing"
 role = "support-chat-manager"
 
 [services]
 [services.afc_verdicts_processor]
 brokers = ["kafka:9092"]
-consumers = 1
+consumers = 4
 consumer_group = "consumerGroup"
 verdicts_topic = "afc.msg-verdicts"
 verdicts_dlq_topic = "afc.msg-verdicts.dlq"
@@ -65,12 +65,12 @@ idle_duration = "300ms"
 [services.msg_producer]
 brokers = ["kafka:9092"]
 topic = "chat.messages"
-batch_size = 1
+batch_size = 2
 #encrypt_key = "" # Leave it blank to disable encryption.
 encrypt_key = "68566D597133743677397A2443264629"
 
 [services.outbox]
-workers = 2
+workers = 10
 idle_time = "1s"
 reserve_for = "5m"
 

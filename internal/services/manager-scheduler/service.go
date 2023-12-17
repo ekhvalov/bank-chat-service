@@ -17,7 +17,7 @@ import (
 
 const (
 	serviceName                = "manager-scheduler"
-	managerAssignedMsgTemplate = "manager %s will answer you"
+	managerAssignedMsgTemplate = "Manager %s will answer you"
 )
 
 type messagesRepo interface {
@@ -72,6 +72,9 @@ func (s *Service) Run(ctx context.Context) error {
 	for {
 		if s.mngrPool.Size() > 0 {
 			if err := s.assignManagers(ctx); err != nil {
+				if errors.Is(err, context.Canceled) {
+					return nil
+				}
 				return fmt.Errorf("assign managers: %v", err)
 			}
 		}

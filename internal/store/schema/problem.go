@@ -43,5 +43,6 @@ func (Problem) Indexes() []ent.Index {
 		index.Fields("chat_id"),
 		index.Fields("manager_id"),
 		index.Fields("created_at"),
+		index.Fields("resolved_at"),
 	}
 }

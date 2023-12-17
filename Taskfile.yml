@@ -184,7 +184,7 @@ tasks:
     cmds:
       - "echo 'generate api v1 for: {{.TYPE}}'"
       - "mkdir -p {{.DIR}}"
-      - "{{.TOOLS_DIR}}/oapi-codegen -generate types,server,spec -package {{.PKG}} {{.SRC}} > {{.DST}}"
+      - "{{.TOOLS_DIR}}/oapi-codegen --old-config-style -generate types,server,spec -package {{.PKG}} {{.SRC}} > {{.DST}}"
 
   gen:api-v1-e2e:
     internal: true

@@ -171,6 +171,11 @@ var (
 				Unique:  false,
 				Columns: []*schema.Column{ProblemsColumns[3]},
 			},
+			{
+				Name:    "problem_resolved_at",
+				Unique:  false,
+				Columns: []*schema.Column{ProblemsColumns[2]},
+			},
 		},
 	}
 	// Tables holds all the tables in the schema.

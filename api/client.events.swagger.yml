@@ -41,7 +41,7 @@ components:
         requestId:
           $ref: "#/components/schemas/RequestID"
         eventType:
-          $ref: "#/components/schemas/EventType"
+          type: string
         authorId:
           $ref: "#/components/schemas/AuthorID"
         body:
@@ -62,7 +62,7 @@ components:
         requestId:
           $ref: "#/components/schemas/RequestID"
         eventType:
-          $ref: "#/components/schemas/EventType"
+          type: string
 
     MessageBlockedEvent:
       required: [ eventId, messageId, requestId, eventType ]
@@ -74,7 +74,7 @@ components:
         requestId:
           $ref: "#/components/schemas/RequestID"
         eventType:
-          $ref: "#/components/schemas/EventType"
+          type: string
 
     EventType:
       type: string

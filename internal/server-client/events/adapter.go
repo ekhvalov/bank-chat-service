@@ -23,7 +23,7 @@ func (Adapter) Adapt(ev eventstream.Event) (any, error) {
 			Body:      t.MessageBody,
 			CreatedAt: t.Time,
 			ID:        t.ID,
-			EventType: EventTypeNewMessageEvent,
+			EventType: string(EventTypeNewMessageEvent),
 			IsService: t.IsService,
 			MessageID: t.MessageID,
 			RequestID: t.RequestID,
@@ -31,14 +31,14 @@ func (Adapter) Adapt(ev eventstream.Event) (any, error) {
 	case *eventstream.MessageSentEvent:
 		return MessageSentEvent{
 			ID:        t.ID,
-			EventType: EventTypeMessageSentEvent,
+			EventType: string(EventTypeMessageSentEvent),
 			MessageID: t.MessageID,
 			RequestID: t.RequestID,
 		}, nil
 	case *eventstream.MessageBlockedEvent:
 		return MessageBlockedEvent{
 			ID:        t.ID,
-			EventType: EventTypeMessageBlockedEvent,
+			EventType: string(EventTypeMessageBlockedEvent),
 			MessageID: t.MessageID,
 			RequestID: t.RequestID,
 		}, nil

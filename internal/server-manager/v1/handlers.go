@@ -8,6 +8,8 @@ import (
 
 	canreceiveproblems "github.com/ekhvalov/bank-chat-service/internal/usecases/manager/can-receive-problems"
 	freehands "github.com/ekhvalov/bank-chat-service/internal/usecases/manager/free-hands"
+	getchathistory "github.com/ekhvalov/bank-chat-service/internal/usecases/manager/get-chat-history"
+	getchats "github.com/ekhvalov/bank-chat-service/internal/usecases/manager/get-chats"
 )
 
 var _ ServerInterface = (*Handlers)(nil)
@@ -22,11 +24,21 @@ type freeHandsUsecase interface {
 	Handle(ctx context.Context, req freehands.Request) error
 }
 
+type getChatsUsecase interface {
+	Handle(ctx context.Context, req getchats.Request) (getchats.Response, error)
+}
+
+type getChatHistoryUsecase interface {
+	Handle(ctx context.Context, req getchathistory.Request) (getchathistory.Response, error)
+}
+
 //go:generate options-gen -out-filename=handlers_options.gen.go -from-struct=Options
 type Options struct {
 	lg                   *zap.Logger               `option:"mandatory" validate:"required"`
 	canReceiveProblemsUC canReceiveProblemsUsecase `option:"mandatory" validate:"required"`
 	freeHandsUC          freeHandsUsecase          `option:"mandatory" validate:"required"`
+	getChatsUC           getChatsUsecase           `option:"mandatory" validate:"required"`
+	getChatHistoryUC     getChatHistoryUsecase     `option:"mandatory" validate:"required"`
 }
 
 type Handlers struct {

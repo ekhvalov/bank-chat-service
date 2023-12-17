@@ -13,6 +13,7 @@ import (
 	reflect "reflect"
 
 	messagesrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/messages"
+	problemsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/problems"
 	eventstream "github.com/ekhvalov/bank-chat-service/internal/services/event-stream"
 	types "github.com/ekhvalov/bank-chat-service/internal/types"
 	gomock "go.uber.org/mock/gomock"
@@ -54,6 +55,44 @@ func (m *MockmessageRepository) GetMessageByID(ctx context.Context, msgID types.
 func (mr *MockmessageRepositoryMockRecorder) GetMessageByID(ctx, msgID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessageByID", reflect.TypeOf((*MockmessageRepository)(nil).GetMessageByID), ctx, msgID)
+}
+
+// MockproblemsRepo is a mock of problemsRepo interface.
+type MockproblemsRepo struct {
+	ctrl     *gomock.Controller
+	recorder *MockproblemsRepoMockRecorder
+}
+
+// MockproblemsRepoMockRecorder is the mock recorder for MockproblemsRepo.
+type MockproblemsRepoMockRecorder struct {
+	mock *MockproblemsRepo
+}
+
+// NewMockproblemsRepo creates a new mock instance.
+func NewMockproblemsRepo(ctrl *gomock.Controller) *MockproblemsRepo {
+	mock := &MockproblemsRepo{ctrl: ctrl}
+	mock.recorder = &MockproblemsRepoMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockproblemsRepo) EXPECT() *MockproblemsRepoMockRecorder {
+	return m.recorder
+}
+
+// GetProblemByMessageID mocks base method.
+func (m *MockproblemsRepo) GetProblemByMessageID(ctx context.Context, messageID types.MessageID) (*problemsrepo.Problem, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProblemByMessageID", ctx, messageID)
+	ret0, _ := ret[0].(*problemsrepo.Problem)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetProblemByMessageID indicates an expected call of GetProblemByMessageID.
+func (mr *MockproblemsRepoMockRecorder) GetProblemByMessageID(ctx, messageID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProblemByMessageID", reflect.TypeOf((*MockproblemsRepo)(nil).GetProblemByMessageID), ctx, messageID)
 }
 
 // MockeventStream is a mock of eventStream interface.
