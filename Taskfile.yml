@@ -122,10 +122,15 @@ tasks:
   generate:
     aliases: [ "gen" ]
     cmds:
-      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate ./...'
+      - task: gen:go
       - task: gen:types
       - task: ent:gen
       - task: gen:api
+
+  gen:go:
+    cmds:
+      - echo "Run go generate ./..."
+      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate ./...'
 
   gen:types:
     vars:

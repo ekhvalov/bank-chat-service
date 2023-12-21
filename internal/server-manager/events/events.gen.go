@@ -22,9 +22,19 @@ import (
 
 // Defines values for EventType.
 const (
+	EventTypeChatClosedEvent EventType = "ChatClosedEvent"
 	EventTypeNewChatEvent    EventType = "NewChatEvent"
 	EventTypeNewMessageEvent EventType = "NewMessageEvent"
 )
+
+// ChatClosedEvent defines model for ChatClosedEvent.
+type ChatClosedEvent struct {
+	CanTakeMoreProblems bool      `json:"canTakeMoreProblems"`
+	ChatID              ChatID    `json:"chatId"`
+	ID                  ID        `json:"eventId"`
+	EventType           string    `json:"eventType"`
+	RequestID           RequestID `json:"requestId"`
+}
 
 // ChatID defines model for ChatID.
 type ChatID = types.ChatID
@@ -99,6 +109,34 @@ func (t *Event) MergeNewChatEvent(v NewChatEvent) error {
 	return err
 }
 
+// AsChatClosedEvent returns the union data inside the Event as a ChatClosedEvent
+func (t Event) AsChatClosedEvent() (ChatClosedEvent, error) {
+	var body ChatClosedEvent
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromChatClosedEvent overwrites any union data inside the Event as the provided ChatClosedEvent
+func (t *Event) FromChatClosedEvent(v ChatClosedEvent) error {
+	v.EventType = "ChatClosedEvent"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeChatClosedEvent performs a merge with any union data inside the Event, using the provided ChatClosedEvent
+func (t *Event) MergeChatClosedEvent(v ChatClosedEvent) error {
+	v.EventType = "ChatClosedEvent"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JsonMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 // AsNewMessageEvent returns the union data inside the Event as a NewMessageEvent
 func (t Event) AsNewMessageEvent() (NewMessageEvent, error) {
 	var body NewMessageEvent
@@ -141,6 +179,8 @@ func (t Event) ValueByDiscriminator() (interface{}, error) {
 		return nil, err
 	}
 	switch discriminator {
+	case "ChatClosedEvent":
+		return t.AsChatClosedEvent()
 	case "NewChatEvent":
 		return t.AsNewChatEvent()
 	case "NewMessageEvent":
@@ -163,19 +203,19 @@ func (t *Event) UnmarshalJSON(b []byte) error {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7RWT0/bThD9Ktb8flIvThzoBfnWAqpQBVSFnlAOG3tib2PvbnfHSVHk717N2iY2mIZU",
-	"4RRrd/68eW9mNltIdGm0QkUO4i24JMdS+M/zXNDVBX8ttS0FQQxVJVMIgR4NQgyOrFQZhPB7kumJEiUf",
-	"tl7tYWvJP2768moiS6MtcQ4jKIcYMkl5tZgmuoxwla9FodfRQqjVJMkFTRzatUwwkorQKlFEPjDUdQjn",
-	"hUT1L3g7vzHEPxzad0N8uUblA6XSJVaWUgnSlg9KYQwjjbdwgxumrbWF/6KdXFGrVeQv7xl3yPbX6JzI",
-	"8I0udQjGaoOWHm8aRrB/pxXeLiF+2ML/FpevhRugrMO9xgOI9bwj43D1XtGti/aOwnmC4i2gqkqIH4ZC",
-	"vdRh/ryOOoTW4PCqd45jxY/eHrH8YUtuu/aR6LdGItS9WOG1tvjN6kWBpT9uES60LlAorp7TXKV897dm",
-	"aXcG2zeDut+jG+g6bFp5v0vXLp1Hp+0LxSz+qtC9IeL31vDCM8Zu0mLKfdJB6qd6IqNXZT9ZOMrqvB4Z",
-	"9+dyiIpybQ9jbaHTx9HyD5bMoiBMP9GgwVNBOCFZIozMxLEVK9th2BtxNzXH0fmJ+JbPPhs9vcfbYYe6",
-	"j4UF3yU8cGfsHMd2xujt0XYGcyPVUnuFJBWc97NQq+CuMpwh4JYJroUSGdrAa+sghDVaJ7WCGNYn/i0y",
-	"qISREMPH6cl0BqGH5ds8clQt+CPD5klFflINNe5XFFQOXbDUNshQoRUkVRZ4xt00uKUc7UY6DCQFqUan",
-	"PtAUfD621Ir7AL4g3XESVsQZrVwzYKezmV97WlE7gMKYQibeMfrpGED3t+pNXQ2ermEBt189i3UIzDFa",
-	"51/koc0FrrHQpkRFQWMFIVS2gBg2Lo6iQieiyLWj+Gx2Nos2zj/UwxiXp5fPfb3hvP4TAAD///HGCTUo",
-	"CgAA",
+	"H4sIAAAAAAAC/8xWTW/bOBD9K8LsAnuhLSd7CXTbTYIiKJIUTXoKfKClscRa4qjkyG4Q+L8XpCRLitU6",
+	"BpyiJwvkDN+bN19+gZiKkjRqthC9gI0zLKT/vMwkX+ZkMbleo2Z3VBoq0bBCbxBL/ShXeEsGPxla5Fj4",
+	"Y34uESJYEOUoNWwFxJnkm8Td/W1wCRH8FXaoYQMZOrybK2ePDu+wg6fV83j0wDsClo3Sqbs1+K1C+4YX",
+	"PzeGV7Bt3JTBBKKnNoSOWx+zjyBGZZlvBTTxRS+wJFNIhgiqSjmPIWEB3ycpTbQs3GHj1Rw2lu7HTvev",
+	"JqooydSpkpxBBKnirFpMYypCXGVrmdM6XEi9mriAJhbNWsUYKs1otMxD/7AP/jJXtbrH8m39xhh/sWje",
+	"jfGuShNlY6MKpSWT6ZXt811NsUvcVgBpvF9C9PTrwrjDjVO7htiKw4Xcb5xD9ne4uUVrZYqN/byN5nj5",
+	"fyJ8+9o7Kt92H+qqcB0zkEzsTRMBr8Oei/3ObQyO16FzHJNj9PaEggxi/31zM65777BH26N/5qwdH7G7",
+	"CbyL8m1j93WZ7aVDVpyROU61BSXPo+EfnTKDkjH5jwcFnkjGCasCYaQnTp2xommGgy92XXOaPO+Eb/Ts",
+	"qyEObdyOdZ+LS3gHeOTM6BzHZsbo7clmhtNG6SX5DCnOHe7/Uq+Ch6p0CIErmeBWapmiCXxuLQhYo7GK",
+	"NESwPvPbrEQtSwUR/Ds9m85AeFq+zEPL1cJ9pFhvSXRbsuTa/YaDyqINlmSCFDUayUqngVfcToN7ztBs",
+	"lMVAcZAQWv0PT8HjOUvSrg7gA/KDA3EZsSVpWzfY+Wzmxx5pbhpQlmWuYu8YfrWOQPvP801VDV6uYQD3",
+	"H72KWwFOYzTW7/ShzRWuMaeyQM1BbQUCKpNDBBsbhWFOscwzshxdzC5m4cb61T184/r8+rWvN5xvfwQA",
+	"AP//S2FBmksLAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

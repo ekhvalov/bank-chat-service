@@ -18,10 +18,14 @@ import (
 	eventstream "github.com/ekhvalov/bank-chat-service/internal/services/event-stream"
 	managerload "github.com/ekhvalov/bank-chat-service/internal/services/manager-load"
 	managerpool "github.com/ekhvalov/bank-chat-service/internal/services/manager-pool"
+	"github.com/ekhvalov/bank-chat-service/internal/services/outbox"
+	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 	canreceiveproblems "github.com/ekhvalov/bank-chat-service/internal/usecases/manager/can-receive-problems"
+	closechat "github.com/ekhvalov/bank-chat-service/internal/usecases/manager/close-chat"
 	freehands "github.com/ekhvalov/bank-chat-service/internal/usecases/manager/free-hands"
 	getchathistory "github.com/ekhvalov/bank-chat-service/internal/usecases/manager/get-chat-history"
 	getchats "github.com/ekhvalov/bank-chat-service/internal/usecases/manager/get-chats"
+	sendmessage "github.com/ekhvalov/bank-chat-service/internal/usecases/manager/send-message"
 )
 
 const (
@@ -35,6 +39,8 @@ func initServerManager(
 	chatsRepo *chatsrepo.Repo,
 	messagesRepo *messagesrepo.Repo,
 	problemsRepo *problemsrepo.Repo,
+	outboxService *outbox.Service,
+	transactor *store.Database,
 ) (*server.Server, error) {
 	lg := zap.L().Named(logNameServerManager)
 
@@ -43,7 +49,16 @@ func initServerManager(
 		return nil, fmt.Errorf("get swagger: %v", err)
 	}
 
-	v1Handlers, err := initV1ManagerHandlers(lg, cfg.Services.ManagerLoad, managerPool, chatsRepo, messagesRepo, problemsRepo)
+	v1Handlers, err := initV1ManagerHandlers(
+		lg,
+		cfg.Services.ManagerLoad,
+		managerPool,
+		chatsRepo,
+		messagesRepo,
+		problemsRepo,
+		outboxService,
+		transactor,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("create v1Handlers: %v", err)
 	}
@@ -98,6 +113,8 @@ func initV1ManagerHandlers(
 	chatsRepo *chatsrepo.Repo,
 	messagesRepo *messagesrepo.Repo,
 	problemsRepo *problemsrepo.Repo,
+	outboxService *outbox.Service,
+	transactor *store.Database,
 ) (managerv1.Handlers, error) {
 	loadService, err := managerload.New(managerload.NewOptions(cfg.MaxProblemsAtSameTime, problemsRepo))
 	if err != nil {
@@ -124,7 +141,25 @@ func initV1ManagerHandlers(
 		return managerv1.Handlers{}, fmt.Errorf("create getChatHistoryUsecase: %v", err)
 	}
 
-	return managerv1.NewHandlers(
-		managerv1.NewOptions(lg, canReceiveProblemsUsecase, freeHandsUsecase, getChatsUsecase, getChatHistoryUsecase),
+	sendMessageUsecase, err := sendmessage.New(sendmessage.NewOptions(messagesRepo, outboxService, problemsRepo, transactor))
+	if err != nil {
+		return managerv1.Handlers{}, fmt.Errorf("create sendMessageUsecase: %v", err)
+	}
+
+	closeChatUseCase, err := closechat.New(
+		closechat.NewOptions(problemsRepo, messagesRepo, chatsRepo, outboxService, transactor),
 	)
+	if err != nil {
+		return managerv1.Handlers{}, fmt.Errorf("create closeChatUseCase: %v", err)
+	}
+
+	return managerv1.NewHandlers(managerv1.NewOptions(
+		lg,
+		canReceiveProblemsUsecase,
+		freeHandsUsecase,
+		getChatsUsecase,
+		getChatHistoryUsecase,
+		sendMessageUsecase,
+		closeChatUseCase,
+	))
 }

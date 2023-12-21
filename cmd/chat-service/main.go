@@ -30,8 +30,10 @@ import (
 	"github.com/ekhvalov/bank-chat-service/internal/services/outbox"
 	clientmessageblockedjob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/client-message-blocked"
 	clientmessagesentjob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/client-message-sent"
+	closechatjob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/close-chat"
 	managerassignedtoproblemjob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/manager-assigned-to-problem"
 	sendclientmessagejob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/send-client-message"
+	sendmanagermessage "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/send-manager-message"
 	"github.com/ekhvalov/bank-chat-service/internal/store"
 	storegen "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 	websocketstream "github.com/ekhvalov/bank-chat-service/internal/websocket-stream"
@@ -104,6 +106,11 @@ func run() (errReturned error) {
 		return fmt.Errorf("create messages repo: %v", err)
 	}
 
+	chatsRepo, err := chatsrepo.New(chatsrepo.NewOptions(storeDB))
+	if err != nil {
+		return fmt.Errorf("create chats repo: %v", err)
+	}
+
 	problemsRepo, err := problemsrepo.New(problemsrepo.NewOptions(storeDB))
 	if err != nil {
 		return fmt.Errorf("create problems repo: %v", err)
@@ -119,6 +126,7 @@ func run() (errReturned error) {
 		storeDB,
 		msgProducerSvc,
 		messagesRepo,
+		chatsRepo,
 		problemsRepo,
 		managerLoad,
 		eventStream,
@@ -134,12 +142,16 @@ func run() (errReturned error) {
 
 	managerPool := inmemmanagerpool.New()
 
-	chatsRepo, err := chatsrepo.New(chatsrepo.NewOptions(storeDB))
-	if err != nil {
-		return fmt.Errorf("create chats repo: %v", err)
-	}
-
-	serverManager, err := initServerManager(cfg, eventStream, managerPool, chatsRepo, messagesRepo, problemsRepo)
+	serverManager, err := initServerManager(
+		cfg,
+		eventStream,
+		managerPool,
+		chatsRepo,
+		messagesRepo,
+		problemsRepo,
+		outboxSvc,
+		storeDB,
+	)
 	if err != nil {
 		return fmt.Errorf("init manager server: %v", err)
 	}
@@ -235,6 +247,7 @@ func initOutboxService(
 	storeDB *storegen.Database,
 	msgProducer *msgproducer.Service,
 	messagesRepo *messagesrepo.Repo,
+	chatsRepo *chatsrepo.Repo,
 	problemsRepo *problemsrepo.Repo,
 	managerLoad *managerload.Service,
 	eventStream eventstream.EventStream,
@@ -249,7 +262,7 @@ func initOutboxService(
 		return nil, fmt.Errorf("create outbox service: %v", err)
 	}
 
-	jobs, err := createOutboxJobs(msgProducer, messagesRepo, problemsRepo, managerLoad, eventStream, srvLogger)
+	jobs, err := createOutboxJobs(msgProducer, messagesRepo, chatsRepo, problemsRepo, managerLoad, eventStream, srvLogger)
 	if err != nil {
 		return nil, fmt.Errorf("create outbox jobs: %v", err)
 	}
@@ -323,6 +336,7 @@ func initAFCVerdictsProcessor(
 func createOutboxJobs(
 	msgProducer *msgproducer.Service,
 	messagesRepo *messagesrepo.Repo,
+	chatsRepo *chatsrepo.Repo,
 	problemsRepo *problemsrepo.Repo,
 	managerLoad *managerload.Service,
 	eventStream eventstream.EventStream,
@@ -361,6 +375,20 @@ func createOutboxJobs(
 		return nil, fmt.Errorf("create %q job: %v", managerassignedtoproblemjob.Name, err)
 	}
 	jobs = append(jobs, managerAssignedToProblemJob)
+
+	sendManagerMsgJob, err := sendmanagermessage.New(
+		sendmanagermessage.NewOptions(msgProducer, messagesRepo, chatsRepo, eventStream, log),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("create %q job: %v", sendmanagermessage.Name, err)
+	}
+	jobs = append(jobs, sendManagerMsgJob)
+
+	closeChatJob, err := closechatjob.New(closechatjob.NewOptions(problemsRepo, messagesRepo, eventStream, log))
+	if err != nil {
+		return nil, fmt.Errorf("create %q job: %v", closechatjob.Name, err)
+	}
+	jobs = append(jobs, closeChatJob)
 
 	return jobs, nil
 }

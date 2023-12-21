@@ -14,9 +14,19 @@ import (
 
 // Defines values for EventType.
 const (
+	EventTypeChatClosedEvent EventType = "ChatClosedEvent"
 	EventTypeNewChatEvent    EventType = "NewChatEvent"
 	EventTypeNewMessageEvent EventType = "NewMessageEvent"
 )
+
+// ChatClosedEvent defines model for ChatClosedEvent.
+type ChatClosedEvent struct {
+	CanTakeMoreProblems bool      `json:"canTakeMoreProblems"`
+	ChatID              ChatID    `json:"chatId"`
+	ID                  ID        `json:"eventId"`
+	EventType           string    `json:"eventType"`
+	RequestID           RequestID `json:"requestId"`
+}
 
 // ChatID defines model for ChatID.
 type ChatID = types.ChatID
@@ -91,6 +101,34 @@ func (t *Event) MergeNewChatEvent(v NewChatEvent) error {
 	return err
 }
 
+// AsChatClosedEvent returns the union data inside the Event as a ChatClosedEvent
+func (t Event) AsChatClosedEvent() (ChatClosedEvent, error) {
+	var body ChatClosedEvent
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromChatClosedEvent overwrites any union data inside the Event as the provided ChatClosedEvent
+func (t *Event) FromChatClosedEvent(v ChatClosedEvent) error {
+	v.EventType = "ChatClosedEvent"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeChatClosedEvent performs a merge with any union data inside the Event, using the provided ChatClosedEvent
+func (t *Event) MergeChatClosedEvent(v ChatClosedEvent) error {
+	v.EventType = "ChatClosedEvent"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JsonMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 // AsNewMessageEvent returns the union data inside the Event as a NewMessageEvent
 func (t Event) AsNewMessageEvent() (NewMessageEvent, error) {
 	var body NewMessageEvent
@@ -133,6 +171,8 @@ func (t Event) ValueByDiscriminator() (interface{}, error) {
 		return nil, err
 	}
 	switch discriminator {
+	case "ChatClosedEvent":
+		return t.AsChatClosedEvent()
 	case "NewChatEvent":
 		return t.AsNewChatEvent()
 	case "NewMessageEvent":

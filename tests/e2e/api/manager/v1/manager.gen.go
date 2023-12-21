@@ -29,6 +29,7 @@ const (
 // Defines values for ErrorCode.
 const (
 	ErrorCodeManagerOverloadedError ErrorCode = 5000
+	ErrorCodeNoActiveProblemInChat  ErrorCode = 5001
 )
 
 // Chat defines model for Chat.
@@ -47,6 +48,12 @@ type ChatList struct {
 	Chats []Chat `json:"chats"`
 }
 
+// CloseChatRequest defines model for CloseChatRequest.
+type CloseChatRequest = ChatId
+
+// CloseChatResponse defines model for CloseChatResponse.
+type CloseChatResponse = NullDataResponse
+
 // Error defines model for Error.
 type Error struct {
 	// Code contains HTTP error codes and specific business logic error codes (the last must be >= 1000).
@@ -64,10 +71,7 @@ type FreeHandsAvailability struct {
 }
 
 // FreeHandsResponse defines model for FreeHandsResponse.
-type FreeHandsResponse struct {
-	Data  *interface{} `json:"data,omitempty"`
-	Error *Error       `json:"error,omitempty"`
-}
+type FreeHandsResponse = NullDataResponse
 
 // GetChatHistoryRequest defines model for GetChatHistoryRequest.
 type GetChatHistoryRequest struct {
@@ -103,14 +107,44 @@ type Message struct {
 	IsReceived bool            `json:"isReceived"`
 }
 
+// MessageWithoutBody defines model for MessageWithoutBody.
+type MessageWithoutBody struct {
+	AuthorId  types.UserID    `json:"authorId"`
+	CreatedAt time.Time       `json:"createdAt"`
+	Id        types.MessageID `json:"id"`
+}
+
 // MessagesPage defines model for MessagesPage.
 type MessagesPage struct {
 	Messages []Message `json:"messages"`
 	Next     string    `json:"next"`
 }
 
+// NullDataResponse defines model for NullDataResponse.
+type NullDataResponse struct {
+	Data  *interface{} `json:"data,omitempty"`
+	Error *Error       `json:"error,omitempty"`
+}
+
+// SendMessageRequest defines model for SendMessageRequest.
+type SendMessageRequest struct {
+	ChatId      types.ChatID `json:"chatId"`
+	MessageBody string       `json:"messageBody"`
+}
+
+// SendMessageResponse defines model for SendMessageResponse.
+type SendMessageResponse struct {
+	Data  *MessageWithoutBody `json:"data,omitempty"`
+	Error *Error              `json:"error,omitempty"`
+}
+
 // XRequestIDHeader defines model for XRequestIDHeader.
 type XRequestIDHeader = types.RequestID
+
+// PostCloseChatParams defines parameters for PostCloseChat.
+type PostCloseChatParams struct {
+	XRequestID XRequestIDHeader `json:"X-Request-ID"`
+}
 
 // PostFreeHandsParams defines parameters for PostFreeHands.
 type PostFreeHandsParams struct {
@@ -132,8 +166,19 @@ type PostGetFreeHandsBtnAvailabilityParams struct {
 	XRequestID XRequestIDHeader `json:"X-Request-ID"`
 }
 
+// PostSendMessageParams defines parameters for PostSendMessage.
+type PostSendMessageParams struct {
+	XRequestID XRequestIDHeader `json:"X-Request-ID"`
+}
+
+// PostCloseChatJSONRequestBody defines body for PostCloseChat for application/json ContentType.
+type PostCloseChatJSONRequestBody = CloseChatRequest
+
 // PostGetChatHistoryJSONRequestBody defines body for PostGetChatHistory for application/json ContentType.
 type PostGetChatHistoryJSONRequestBody = GetChatHistoryRequest
+
+// PostSendMessageJSONRequestBody defines body for PostSendMessage for application/json ContentType.
+type PostSendMessageJSONRequestBody = SendMessageRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -208,6 +253,11 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// PostCloseChatWithBody request with any body
+	PostCloseChatWithBody(ctx context.Context, params *PostCloseChatParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostCloseChat(ctx context.Context, params *PostCloseChatParams, body PostCloseChatJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// PostFreeHands request
 	PostFreeHands(ctx context.Context, params *PostFreeHandsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -221,6 +271,35 @@ type ClientInterface interface {
 
 	// PostGetFreeHandsBtnAvailability request
 	PostGetFreeHandsBtnAvailability(ctx context.Context, params *PostGetFreeHandsBtnAvailabilityParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostSendMessageWithBody request with any body
+	PostSendMessageWithBody(ctx context.Context, params *PostSendMessageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostSendMessage(ctx context.Context, params *PostSendMessageParams, body PostSendMessageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) PostCloseChatWithBody(ctx context.Context, params *PostCloseChatParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostCloseChatRequestWithBody(c.Server, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostCloseChat(ctx context.Context, params *PostCloseChatParams, body PostCloseChatJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostCloseChatRequest(c.Server, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) PostFreeHands(ctx context.Context, params *PostFreeHandsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -281,6 +360,83 @@ func (c *Client) PostGetFreeHandsBtnAvailability(ctx context.Context, params *Po
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+func (c *Client) PostSendMessageWithBody(ctx context.Context, params *PostSendMessageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostSendMessageRequestWithBody(c.Server, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostSendMessage(ctx context.Context, params *PostSendMessageParams, body PostSendMessageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostSendMessageRequest(c.Server, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// NewPostCloseChatRequest calls the generic PostCloseChat builder with application/json body
+func NewPostCloseChatRequest(server string, params *PostCloseChatParams, body PostCloseChatJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostCloseChatRequestWithBody(server, params, "application/json", bodyReader)
+}
+
+// NewPostCloseChatRequestWithBody generates requests for PostCloseChat with any type of body
+func NewPostCloseChatRequestWithBody(server string, params *PostCloseChatParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/closeChat")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "X-Request-ID", runtime.ParamLocationHeader, params.XRequestID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("X-Request-ID", headerParam0)
+
+	}
+
+	return req, nil
 }
 
 // NewPostFreeHandsRequest generates requests for PostFreeHands
@@ -456,6 +612,59 @@ func NewPostGetFreeHandsBtnAvailabilityRequest(server string, params *PostGetFre
 	return req, nil
 }
 
+// NewPostSendMessageRequest calls the generic PostSendMessage builder with application/json body
+func NewPostSendMessageRequest(server string, params *PostSendMessageParams, body PostSendMessageJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostSendMessageRequestWithBody(server, params, "application/json", bodyReader)
+}
+
+// NewPostSendMessageRequestWithBody generates requests for PostSendMessage with any type of body
+func NewPostSendMessageRequestWithBody(server string, params *PostSendMessageParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/sendMessage")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "X-Request-ID", runtime.ParamLocationHeader, params.XRequestID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("X-Request-ID", headerParam0)
+
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -499,6 +708,11 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// PostCloseChatWithBodyWithResponse request with any body
+	PostCloseChatWithBodyWithResponse(ctx context.Context, params *PostCloseChatParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostCloseChatResponse, error)
+
+	PostCloseChatWithResponse(ctx context.Context, params *PostCloseChatParams, body PostCloseChatJSONRequestBody, reqEditors ...RequestEditorFn) (*PostCloseChatResponse, error)
+
 	// PostFreeHandsWithResponse request
 	PostFreeHandsWithResponse(ctx context.Context, params *PostFreeHandsParams, reqEditors ...RequestEditorFn) (*PostFreeHandsResponse, error)
 
@@ -512,6 +726,33 @@ type ClientWithResponsesInterface interface {
 
 	// PostGetFreeHandsBtnAvailabilityWithResponse request
 	PostGetFreeHandsBtnAvailabilityWithResponse(ctx context.Context, params *PostGetFreeHandsBtnAvailabilityParams, reqEditors ...RequestEditorFn) (*PostGetFreeHandsBtnAvailabilityResponse, error)
+
+	// PostSendMessageWithBodyWithResponse request with any body
+	PostSendMessageWithBodyWithResponse(ctx context.Context, params *PostSendMessageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostSendMessageResponse, error)
+
+	PostSendMessageWithResponse(ctx context.Context, params *PostSendMessageParams, body PostSendMessageJSONRequestBody, reqEditors ...RequestEditorFn) (*PostSendMessageResponse, error)
+}
+
+type PostCloseChatResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *CloseChatResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PostCloseChatResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostCloseChatResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type PostFreeHandsResponse struct {
@@ -602,6 +843,45 @@ func (r PostGetFreeHandsBtnAvailabilityResponse) StatusCode() int {
 	return 0
 }
 
+type PostSendMessageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SendMessageResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PostSendMessageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostSendMessageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// PostCloseChatWithBodyWithResponse request with arbitrary body returning *PostCloseChatResponse
+func (c *ClientWithResponses) PostCloseChatWithBodyWithResponse(ctx context.Context, params *PostCloseChatParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostCloseChatResponse, error) {
+	rsp, err := c.PostCloseChatWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostCloseChatResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostCloseChatWithResponse(ctx context.Context, params *PostCloseChatParams, body PostCloseChatJSONRequestBody, reqEditors ...RequestEditorFn) (*PostCloseChatResponse, error) {
+	rsp, err := c.PostCloseChat(ctx, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostCloseChatResponse(rsp)
+}
+
 // PostFreeHandsWithResponse request returning *PostFreeHandsResponse
 func (c *ClientWithResponses) PostFreeHandsWithResponse(ctx context.Context, params *PostFreeHandsParams, reqEditors ...RequestEditorFn) (*PostFreeHandsResponse, error) {
 	rsp, err := c.PostFreeHands(ctx, params, reqEditors...)
@@ -644,6 +924,49 @@ func (c *ClientWithResponses) PostGetFreeHandsBtnAvailabilityWithResponse(ctx co
 		return nil, err
 	}
 	return ParsePostGetFreeHandsBtnAvailabilityResponse(rsp)
+}
+
+// PostSendMessageWithBodyWithResponse request with arbitrary body returning *PostSendMessageResponse
+func (c *ClientWithResponses) PostSendMessageWithBodyWithResponse(ctx context.Context, params *PostSendMessageParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostSendMessageResponse, error) {
+	rsp, err := c.PostSendMessageWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostSendMessageResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostSendMessageWithResponse(ctx context.Context, params *PostSendMessageParams, body PostSendMessageJSONRequestBody, reqEditors ...RequestEditorFn) (*PostSendMessageResponse, error) {
+	rsp, err := c.PostSendMessage(ctx, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostSendMessageResponse(rsp)
+}
+
+// ParsePostCloseChatResponse parses an HTTP response from a PostCloseChatWithResponse call
+func ParsePostCloseChatResponse(rsp *http.Response) (*PostCloseChatResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostCloseChatResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest CloseChatResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParsePostFreeHandsResponse parses an HTTP response from a PostFreeHandsWithResponse call
@@ -750,28 +1073,58 @@ func ParsePostGetFreeHandsBtnAvailabilityResponse(rsp *http.Response) (*PostGetF
 	return response, nil
 }
 
+// ParsePostSendMessageResponse parses an HTTP response from a PostSendMessageWithResponse call
+func ParsePostSendMessageResponse(rsp *http.Response) (*PostSendMessageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostSendMessageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SendMessageResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"zyahV2637YJPcHsnv2hW/hMAAP//co4OD1gaAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

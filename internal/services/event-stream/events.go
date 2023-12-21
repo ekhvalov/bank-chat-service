@@ -125,3 +125,29 @@ type NewChatEvent struct {
 func (e NewChatEvent) Validate() error {
 	return validator.Validator.Struct(e)
 }
+
+func NewChatClosedEvent(
+	id types.EventID,
+	chatID types.ChatID,
+	requestID types.RequestID,
+	canTakeMoreProblems bool,
+) Event {
+	return &ChatClosedEvent{
+		ID:                  id,
+		ChatID:              chatID,
+		RequestID:           requestID,
+		CanTakeMoreProblems: canTakeMoreProblems,
+	}
+}
+
+type ChatClosedEvent struct {
+	event
+	ID                  types.EventID   `validate:"required"`
+	ChatID              types.ChatID    `validate:"required"`
+	RequestID           types.RequestID `validate:"required"`
+	CanTakeMoreProblems bool
+}
+
+func (e ChatClosedEvent) Validate() error {
+	return validator.Validator.Struct(e)
+}

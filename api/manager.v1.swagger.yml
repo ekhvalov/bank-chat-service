@@ -68,6 +68,45 @@ paths:
               schema:
                 $ref: '#/components/schemas/FreeHandsResponse'
 
+  /sendMessage:
+    post:
+      description: Send new message to the chat.
+      parameters:
+        - $ref: "#/components/parameters/XRequestIDHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageRequest"
+      responses:
+        '200':
+          description: Message created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendMessageResponse"
+
+  /closeChat:
+    post:
+      description: Mark problem as solved and close chat
+      parameters:
+        - $ref: "#/components/parameters/XRequestIDHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CloseChatRequest"
+      responses:
+        '200':
+          description: Chat closed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CloseChatResponse"
+
+
 security:
   - bearerAuth: [ ]
 
@@ -109,8 +148,17 @@ components:
       minimum: 400
       enum:
         - 5000
+        - 5001
       x-enum-varnames:
         - ErrorCodeManagerOverloadedError
+        - ErrorCodeNoActiveProblemInChat
+
+    NullDataResponse:
+      properties:
+        data:
+          type: null
+        error:
+          $ref: '#/components/schemas/Error'
 
     ChatId:
       required: [ chatId ]
@@ -169,7 +217,6 @@ components:
         cursor:
           type: string
 
-
     GetChatHistoryResponse:
       properties:
         data:
@@ -209,6 +256,14 @@ components:
         isReceived:
           type: boolean
 
+    # /closeChat
+
+    CloseChatRequest:
+      $ref: "#/components/schemas/ChatId"
+
+    CloseChatResponse:
+      $ref: "#/components/schemas/NullDataResponse"
+
     # /getFreeHandsBtnAvailability
 
     GetFreeHandsBtnAvailabilityResponse:
@@ -227,8 +282,44 @@ components:
     # /freeHands
 
     FreeHandsResponse:
+      $ref: "#/components/schemas/NullDataResponse"
+
+
+    # /sendMessage
+
+    SendMessageRequest:
+      allOf:
+        - $ref: "#/components/schemas/ChatId"
+        - type: object
+          required: [ messageBody ]
+          properties:
+            messageBody:
+              type: string
+              minLength: 1
+              maxLength: 3000
+
+    SendMessageResponse:
       properties:
         data:
-          type: null
+          $ref: "#/components/schemas/MessageWithoutBody"
         error:
-          $ref: '#/components/schemas/Error'
+          $ref: "#/components/schemas/Error"
+
+    MessageWithoutBody:
+      required: [ id, authorId, createdAt ]
+      properties:
+        id:
+          type: string
+          format: uuid
+          x-go-type: types.MessageID
+          x-go-type-import:
+            path: "github.com/ekhvalov/bank-chat-service/internal/types"
+        authorId:
+          type: string
+          format: uuid
+          x-go-type: types.UserID
+          x-go-type-import:
+            path: "github.com/ekhvalov/bank-chat-service/internal/types"
+        createdAt:
+          type: string
+          format: date-time

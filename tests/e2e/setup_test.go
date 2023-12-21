@@ -55,6 +55,8 @@ var (
 
 	clientsPool  *usersPool
 	managersPool *usersPool
+
+	eventWaitTimeout = 3 * time.Second
 )
 
 var _ = BeforeSuite(func() {
@@ -79,7 +81,12 @@ var _ = BeforeSuite(func() {
 	kcClients := expectEnv("E2E_KEYCLOAK_CLIENTS")   // "client1,client2,client3"
 	kcManagers := expectEnv("E2E_KEYCLOAK_MANAGERS") // "manager1,manager2,manager3"
 
+	t := envWithDefault("E2E_EVENT_WAIT_TIMEOUT", "3s")
+
 	var err error
+	eventWaitTimeout, err = time.ParseDuration(t)
+	Expect(err).ShouldNot(HaveOccurred())
+
 	kc, err = keycloakclient.New(keycloakclient.NewOptions(
 		kcBasePath,
 		kcRealm,
@@ -103,6 +110,14 @@ var _ = BeforeSuite(func() {
 func expectEnv(k string) string {
 	v := os.Getenv(k)
 	Expect(v).NotTo(BeZero(), fmt.Sprintf("Please make sure %q is set correctly.", k))
+	return v
+}
+
+func envWithDefault(k, d string) string {
+	v := os.Getenv(k)
+	if v == "" {
+		return d
+	}
 	return v
 }
 
@@ -250,7 +265,7 @@ func (sc simpleClaims) Valid() error {
 func waitForEvent(stream *wsstream.Stream) {
 	select {
 	case <-stream.EventSignals():
-	case <-time.After(30 * time.Second):
+	case <-time.After(eventWaitTimeout):
 		Fail("no expected event in the stream")
 	}
 }
@@ -258,6 +273,6 @@ func waitForEvent(stream *wsstream.Stream) {
 func waitForOptionalEvent(stream *wsstream.Stream) {
 	select {
 	case <-stream.EventSignals():
-	case <-time.After(30 * time.Second):
+	case <-time.After(eventWaitTimeout):
 	}
 }

@@ -19,6 +19,7 @@ type Message struct {
 	IsVisibleForManager bool
 	IsBlocked           bool
 	IsService           bool
+	InitialRequestID    types.RequestID
 }
 
 func adaptStoreMessage(m *store.Message) Message {
@@ -34,5 +35,6 @@ func adaptStoreMessage(m *store.Message) Message {
 		IsVisibleForManager: m.IsVisibleForManager,
 		IsBlocked:           m.IsBlocked,
 		IsService:           m.IsService,
+		InitialRequestID:    m.InitialRequestID,
 	}
 }

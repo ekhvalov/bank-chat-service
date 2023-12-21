@@ -58,7 +58,10 @@ func (r *Repo) GetProblemMessages(
 	cursor *Cursor,
 ) ([]Message, *Cursor, error) {
 	chatPredicates := []predicate.Chat{chat.HasProblemsWith(problem.ID(problemID))}
-	messagePredicates := []predicate.Message{message.IsVisibleForManager(true)}
+	messagePredicates := []predicate.Message{
+		message.IsVisibleForManager(true),
+		message.ProblemID(problemID),
+	}
 
 	messages, cursor, err := r.getChatMessages(ctx, chatPredicates, messagePredicates, pageSize, cursor)
 	if err != nil {

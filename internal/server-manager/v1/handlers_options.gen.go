@@ -17,6 +17,8 @@ func NewOptions(
 	freeHandsUC freeHandsUsecase,
 	getChatsUC getChatsUsecase,
 	getChatHistoryUC getChatHistoryUsecase,
+	sendMessageUsecase sendMessageUseCase,
+	closeChatUsecase closeChatUseCase,
 	options ...OptOptionsSetter,
 ) Options {
 	o := Options{}
@@ -28,6 +30,8 @@ func NewOptions(
 	o.freeHandsUC = freeHandsUC
 	o.getChatsUC = getChatsUC
 	o.getChatHistoryUC = getChatHistoryUC
+	o.sendMessageUsecase = sendMessageUsecase
+	o.closeChatUsecase = closeChatUsecase
 
 	for _, opt := range options {
 		opt(&o)
@@ -42,6 +46,8 @@ func (o *Options) Validate() error {
 	errs.Add(errors461e464ebed9.NewValidationError("freeHandsUC", _validate_Options_freeHandsUC(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("getChatsUC", _validate_Options_getChatsUC(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("getChatHistoryUC", _validate_Options_getChatHistoryUC(o)))
+	errs.Add(errors461e464ebed9.NewValidationError("sendMessageUsecase", _validate_Options_sendMessageUsecase(o)))
+	errs.Add(errors461e464ebed9.NewValidationError("closeChatUsecase", _validate_Options_closeChatUsecase(o)))
 	return errs.AsError()
 }
 
@@ -76,6 +82,20 @@ func _validate_Options_getChatsUC(o *Options) error {
 func _validate_Options_getChatHistoryUC(o *Options) error {
 	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.getChatHistoryUC, "required"); err != nil {
 		return fmt461e464ebed9.Errorf("field `getChatHistoryUC` did not pass the test: %w", err)
+	}
+	return nil
+}
+
+func _validate_Options_sendMessageUsecase(o *Options) error {
+	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.sendMessageUsecase, "required"); err != nil {
+		return fmt461e464ebed9.Errorf("field `sendMessageUsecase` did not pass the test: %w", err)
+	}
+	return nil
+}
+
+func _validate_Options_closeChatUsecase(o *Options) error {
+	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.closeChatUsecase, "required"); err != nil {
+		return fmt461e464ebed9.Errorf("field `closeChatUsecase` did not pass the test: %w", err)
 	}
 	return nil
 }
