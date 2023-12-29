@@ -122,10 +122,15 @@ tasks:
   generate:
     aliases: [ "gen" ]
     cmds:
-      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate ./...'
+      - task: gen:go
       - task: gen:types
       - task: ent:gen
       - task: gen:api
+
+  gen:go:
+    cmds:
+      - echo "Run go generate ./..."
+      - 'PATH="{{.TOOLS_DIR}}:$PATH" go generate ./...'
 
   gen:types:
     vars:
@@ -146,20 +151,33 @@ tasks:
 
   gen:api:
     vars:
-      API_V1_TYPES: |
+      API_TYPES: |
         client
         manager
     cmds:
-      - for: { var: API_V1_TYPES }
-        task: gen:api-v1
+      - for: { var: API_TYPES }
         vars:
           TYPE: "{{.ITEM}}"
-      - for: { var: API_V1_TYPES }
-        task: gen:api-v1-e2e
-        vars:
-          TYPE: "{{.ITEM}}"
+        task: gen:api-for-type
+#      - for: { var: API_V1_TYPES }
+#        task: gen:api-v1-e2e
+#        vars:
+#          TYPE: "{{.ITEM}}"
+#      - task: gen:api-events
+#      - task: gen:api-events-e2e
+
+  gen:api-for-type:
+    internal: true
+    cmds:
+      - "echo 'generate api for type: {{.TYPE}}'"
+      - task: gen:api-v1
+        vars: { TYPE: "{{.TYPE}}" }
+      - task: gen:api-v1-e2e
+        vars: { TYPE: "{{.TYPE}}" }
       - task: gen:api-events
+        vars: { TYPE: "{{.TYPE}}" }
       - task: gen:api-events-e2e
+        vars: { TYPE: "{{.TYPE}}" }
 
   gen:api-v1:
     internal: true
@@ -169,8 +187,9 @@ tasks:
       DST: "{{.DIR}}/server.gen.go"
       PKG: "{{.TYPE}}v1"
     cmds:
+      - "echo 'generate api v1 for: {{.TYPE}}'"
       - "mkdir -p {{.DIR}}"
-      - "{{.TOOLS_DIR}}/oapi-codegen -generate types,server,spec -package {{.PKG}} {{.SRC}} > {{.DST}}"
+      - "{{.TOOLS_DIR}}/oapi-codegen --old-config-style -generate types,server,spec -package {{.PKG}} {{.SRC}} > {{.DST}}"
 
   gen:api-v1-e2e:
     internal: true
@@ -188,10 +207,10 @@ tasks:
   gen:api-events:
     internal: true
     vars:
-      SRC: ./api/client.events.swagger.yml
-      DST_DIR: ./internal/server-client/events
+      SRC: "./api/{{.TYPE}}.events.swagger.yml"
+      DST_DIR: "./internal/server-{{.TYPE}}/events"
       DST: "{{.DST_DIR}}/events.gen.go"
-      PKG: clientevents
+      PKG: "{{.TYPE}}events"
     cmds:
       - "mkdir -p {{.DST_DIR}}"
       - "{{.TOOLS_DIR}}/oapi-codegen --old-config-style -generate skip-prune,types,spec -package {{.PKG}} -o {{.DST}} {{.SRC}}"
@@ -199,12 +218,12 @@ tasks:
   gen:api-events-e2e:
     internal: true
     vars:
-      SRC: ./api/client.events.swagger.yml
-      DST_DIR: ./tests/e2e/api/client/events
+      SRC: "./api/{{.TYPE}}.events.swagger.yml"
+      DST_DIR: "./tests/e2e/api/{{.TYPE}}/events"
       DST: "{{.DST_DIR}}/events.gen.go"
-      PKG: apiclientevents
+      PKG: "api{{.TYPE}}events"
     cmds:
-      - echo "[E2E] Generate client events..."
+      - "echo '[E2E] Generate {{.TYPE}} events...'"
       - "mkdir -p {{.DST_DIR}}"
       - "{{.TOOLS_DIR}}/oapi-codegen --old-config-style -generate skip-prune,types -package {{.PKG}} {{.SRC}} > {{.DST}}"
 

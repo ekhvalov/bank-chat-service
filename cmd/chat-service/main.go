@@ -14,18 +14,26 @@ import (
 
 	"github.com/ekhvalov/bank-chat-service/internal/config"
 	"github.com/ekhvalov/bank-chat-service/internal/logger"
+	chatsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/chats"
 	jobsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/jobs"
 	messagesrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/messages"
-	clientevents "github.com/ekhvalov/bank-chat-service/internal/server-client/events"
+	problemsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/problems"
 	serverdebug "github.com/ekhvalov/bank-chat-service/internal/server-debug"
 	afcverdictsprocessor "github.com/ekhvalov/bank-chat-service/internal/services/afc-verdicts-processor"
 	eventstream "github.com/ekhvalov/bank-chat-service/internal/services/event-stream"
 	inmemeventstream "github.com/ekhvalov/bank-chat-service/internal/services/event-stream/in-mem"
+	managerload "github.com/ekhvalov/bank-chat-service/internal/services/manager-load"
+	managerpool "github.com/ekhvalov/bank-chat-service/internal/services/manager-pool"
+	inmemmanagerpool "github.com/ekhvalov/bank-chat-service/internal/services/manager-pool/in-mem"
+	managerscheduler "github.com/ekhvalov/bank-chat-service/internal/services/manager-scheduler"
 	msgproducer "github.com/ekhvalov/bank-chat-service/internal/services/msg-producer"
 	"github.com/ekhvalov/bank-chat-service/internal/services/outbox"
 	clientmessageblockedjob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/client-message-blocked"
 	clientmessagesentjob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/client-message-sent"
+	closechatjob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/close-chat"
+	managerassignedtoproblemjob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/manager-assigned-to-problem"
 	sendclientmessagejob "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/send-client-message"
+	sendmanagermessage "github.com/ekhvalov/bank-chat-service/internal/services/outbox/jobs/send-manager-message"
 	"github.com/ekhvalov/bank-chat-service/internal/store"
 	storegen "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 	websocketstream "github.com/ekhvalov/bank-chat-service/internal/websocket-stream"
@@ -98,17 +106,52 @@ func run() (errReturned error) {
 		return fmt.Errorf("create messages repo: %v", err)
 	}
 
-	outboxSvc, err := initOutboxService(cfg.Services.OutboxService, storeDB, msgProducerSvc, messagesRepo, eventStream)
+	chatsRepo, err := chatsrepo.New(chatsrepo.NewOptions(storeDB))
+	if err != nil {
+		return fmt.Errorf("create chats repo: %v", err)
+	}
+
+	problemsRepo, err := problemsrepo.New(problemsrepo.NewOptions(storeDB))
+	if err != nil {
+		return fmt.Errorf("create problems repo: %v", err)
+	}
+
+	managerLoad, err := managerload.New(managerload.NewOptions(cfg.Services.ManagerLoad.MaxProblemsAtSameTime, problemsRepo))
+	if err != nil {
+		return fmt.Errorf("create manager load service: %v", err)
+	}
+
+	outboxSvc, err := initOutboxService(
+		cfg.Services.OutboxService,
+		storeDB,
+		msgProducerSvc,
+		messagesRepo,
+		chatsRepo,
+		problemsRepo,
+		managerLoad,
+		eventStream,
+	)
 	if err != nil {
 		return fmt.Errorf("init outbox service: %v", err)
 	}
 
-	srvClient, err := initServerClient(cfg, storeDB, outboxSvc, eventStream)
+	serverClient, err := initServerClient(cfg, storeDB, outboxSvc, eventStream)
 	if err != nil {
 		return fmt.Errorf("init client server: %v", err)
 	}
 
-	srvManager, err := initServerManager(cfg, storeDB, eventStream)
+	managerPool := inmemmanagerpool.New()
+
+	serverManager, err := initServerManager(
+		cfg,
+		eventStream,
+		managerPool,
+		chatsRepo,
+		messagesRepo,
+		problemsRepo,
+		outboxSvc,
+		storeDB,
+	)
 	if err != nil {
 		return fmt.Errorf("init manager server: %v", err)
 	}
@@ -118,22 +161,50 @@ func run() (errReturned error) {
 		return fmt.Errorf("init AFC verdicts processor: %v", err)
 	}
 
+	managerScheduler, err := initManagerScheduler(
+		cfg.Services.ManagerSchedulerService,
+		managerPool,
+		messagesRepo,
+		outboxSvc,
+		problemsRepo,
+		storeDB,
+		lg,
+	)
+	if err != nil {
+		return fmt.Errorf("init manager scheduler: %v", err)
+	}
+
 	eg, ctx := errgroup.WithContext(ctx)
 
 	// Run servers.
 	eg.Go(func() error { return srvDebug.Run(ctx) })
-	eg.Go(func() error { return srvClient.Run(ctx) })
-	eg.Go(func() error { return srvManager.Run(ctx) })
+	eg.Go(func() error { return serverClient.Run(ctx) })
+	eg.Go(func() error { return serverManager.Run(ctx) })
 
 	// Run services.
 	eg.Go(func() error { return outboxSvc.Run(ctx) })
 	eg.Go(func() error { return afcProcessor.Run(ctx) })
+	eg.Go(func() error { return managerScheduler.Run(ctx) })
 
 	if err = eg.Wait(); err != nil && !errors.Is(err, context.Canceled) {
 		return fmt.Errorf("wait app stop: %v", err)
 	}
 
 	return nil
+}
+
+func initManagerScheduler(
+	cfg config.ManagerSchedulerService,
+	managerPool managerpool.Pool,
+	msgRepo *messagesrepo.Repo,
+	outbox *outbox.Service,
+	problemsRepo *problemsrepo.Repo,
+	txtor *storegen.Database,
+	log *zap.Logger,
+) (*managerscheduler.Service, error) {
+	return managerscheduler.New(
+		managerscheduler.NewOptions(cfg.IdleDuration, managerPool, msgRepo, outbox, problemsRepo, txtor, log),
+	)
 }
 
 func mustInitGlobalLogger(cfg config.Config) {
@@ -176,6 +247,9 @@ func initOutboxService(
 	storeDB *storegen.Database,
 	msgProducer *msgproducer.Service,
 	messagesRepo *messagesrepo.Repo,
+	chatsRepo *chatsrepo.Repo,
+	problemsRepo *problemsrepo.Repo,
+	managerLoad *managerload.Service,
 	eventStream eventstream.EventStream,
 ) (*outbox.Service, error) {
 	repo, err := jobsrepo.New(jobsrepo.NewOptions(storeDB))
@@ -188,7 +262,7 @@ func initOutboxService(
 		return nil, fmt.Errorf("create outbox service: %v", err)
 	}
 
-	jobs, err := createOutboxJobs(msgProducer, messagesRepo, eventStream, srvLogger)
+	jobs, err := createOutboxJobs(msgProducer, messagesRepo, chatsRepo, problemsRepo, managerLoad, eventStream, srvLogger)
 	if err != nil {
 		return nil, fmt.Errorf("create outbox jobs: %v", err)
 	}
@@ -212,7 +286,13 @@ func initMsgProducerService(cfg config.MsgProducerServiceConfig) (*msgproducer.S
 	return msgProducer, nil
 }
 
-func initWebsocketHandler(lg *zap.Logger, allowOrigins []string, secWsProtocol string, eventStream eventstream.EventStream) (
+func initWebsocketHandler(
+	lg *zap.Logger,
+	allowOrigins []string,
+	secWsProtocol string,
+	eventStream eventstream.EventStream,
+	eventsAdepter websocketstream.EventAdapter,
+) (
 	*websocketstream.HTTPHandler,
 	error,
 ) {
@@ -220,7 +300,7 @@ func initWebsocketHandler(lg *zap.Logger, allowOrigins []string, secWsProtocol s
 	wsHandler, err := websocketstream.NewHTTPHandler(websocketstream.NewOptions(
 		lg,
 		eventStream,
-		clientevents.Adapter{},
+		eventsAdepter,
 		websocketstream.JSONEventWriter{},
 		websocketstream.NewUpgrader(allowOrigins, secWsProtocol),
 		shutdownCh,
@@ -253,9 +333,14 @@ func initAFCVerdictsProcessor(
 	))
 }
 
-func createOutboxJobs(msgProducer *msgproducer.Service,
+func createOutboxJobs(
+	msgProducer *msgproducer.Service,
 	messagesRepo *messagesrepo.Repo,
-	eventStream eventstream.EventStream, log *zap.Logger,
+	chatsRepo *chatsrepo.Repo,
+	problemsRepo *problemsrepo.Repo,
+	managerLoad *managerload.Service,
+	eventStream eventstream.EventStream,
+	log *zap.Logger,
 ) ([]outbox.Job, error) {
 	jobs := make([]outbox.Job, 0)
 	sendClientMsgJob, err := sendclientmessagejob.New(sendclientmessagejob.NewOptions(
@@ -269,7 +354,9 @@ func createOutboxJobs(msgProducer *msgproducer.Service,
 	}
 	jobs = append(jobs, sendClientMsgJob)
 
-	clientMessageSentJob, err := clientmessagesentjob.New(clientmessagesentjob.NewOptions(messagesRepo, eventStream, log))
+	clientMessageSentJob, err := clientmessagesentjob.New(
+		clientmessagesentjob.NewOptions(messagesRepo, problemsRepo, eventStream, log),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("create %q job: %v", clientmessagesentjob.Name, err)
 	}
@@ -280,6 +367,28 @@ func createOutboxJobs(msgProducer *msgproducer.Service,
 		return nil, fmt.Errorf("create %q job: %v", clientmessagesentjob.Name, err)
 	}
 	jobs = append(jobs, clientMessageBlockedJob)
+
+	managerAssignedToProblemJob, err := managerassignedtoproblemjob.New(
+		managerassignedtoproblemjob.NewOptions(messagesRepo, problemsRepo, managerLoad, eventStream, log),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("create %q job: %v", managerassignedtoproblemjob.Name, err)
+	}
+	jobs = append(jobs, managerAssignedToProblemJob)
+
+	sendManagerMsgJob, err := sendmanagermessage.New(
+		sendmanagermessage.NewOptions(msgProducer, messagesRepo, chatsRepo, eventStream, log),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("create %q job: %v", sendmanagermessage.Name, err)
+	}
+	jobs = append(jobs, sendManagerMsgJob)
+
+	closeChatJob, err := closechatjob.New(closechatjob.NewOptions(problemsRepo, messagesRepo, eventStream, log))
+	if err != nil {
+		return nil, fmt.Errorf("create %q job: %v", closechatjob.Name, err)
+	}
+	jobs = append(jobs, closeChatJob)
 
 	return jobs, nil
 }

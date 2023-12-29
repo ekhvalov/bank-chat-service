@@ -11,6 +11,7 @@ import (
 	"github.com/ekhvalov/bank-chat-service/internal/store/gen/chat"
 	"github.com/ekhvalov/bank-chat-service/internal/store/gen/message"
 	"github.com/ekhvalov/bank-chat-service/internal/store/gen/predicate"
+	"github.com/ekhvalov/bank-chat-service/internal/store/gen/problem"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 )
 
@@ -38,41 +39,83 @@ func (r *Repo) GetClientChatMessages(
 	pageSize int,
 	cursor *Cursor,
 ) ([]Message, *Cursor, error) {
+	chatPredicates := []predicate.Chat{chat.ClientID(clientID)}
+	messagePredicates := []predicate.Message{message.IsVisibleForClient(true)}
+
+	messages, cursor, err := r.getChatMessages(ctx, chatPredicates, messagePredicates, pageSize, cursor)
+	if err != nil {
+		return nil, nil, fmt.Errorf("get client chat messages: %w", err)
+	}
+
+	return messages, cursor, nil
+}
+
+// GetProblemMessages returns Nth page of messages in the chat for manager side (specific problem).
+func (r *Repo) GetProblemMessages(
+	ctx context.Context,
+	problemID types.ProblemID,
+	pageSize int,
+	cursor *Cursor,
+) ([]Message, *Cursor, error) {
+	chatPredicates := []predicate.Chat{chat.HasProblemsWith(problem.ID(problemID))}
+	messagePredicates := []predicate.Message{
+		message.IsVisibleForManager(true),
+		message.ProblemID(problemID),
+	}
+
+	messages, cursor, err := r.getChatMessages(ctx, chatPredicates, messagePredicates, pageSize, cursor)
+	if err != nil {
+		return nil, nil, fmt.Errorf("get problem messages: %w", err)
+	}
+
+	return messages, cursor, nil
+}
+
+func (r *Repo) getChatMessages(
+	ctx context.Context,
+	chatPredicates []predicate.Chat,
+	messagePredicates []predicate.Message,
+	pageSize int,
+	cursor *Cursor,
+) ([]Message, *Cursor, error) {
 	var limit int
-	predicates := []predicate.Message{message.IsVisibleForClient(true)}
 	if cursor != nil {
 		if err := validateCursor(*cursor); err != nil {
 			return nil, nil, fmt.Errorf("%w: %v", ErrInvalidCursor, err)
 		}
 		limit = cursor.PageSize
-		predicates = append(predicates, message.CreatedAtLT(cursor.LastCreatedAt))
+		messagePredicates = append(messagePredicates, message.CreatedAtLT(cursor.LastCreatedAt))
 	} else {
 		if err := validatePageSize(pageSize); err != nil {
 			return nil, nil, fmt.Errorf("%w: %v", ErrInvalidPageSize, err)
 		}
 		limit = pageSize
 	}
+
 	result, err := r.db.Chat(ctx).
 		Query().
-		Where(chat.ClientID(clientID)).
+		Where(chatPredicates...).
 		QueryMessages().
 		Order(message.ByCreatedAt(sql.OrderDesc())).
-		Where(message.And(predicates...)).
+		Where(message.And(messagePredicates...)).
 		Limit(limit + 1).
 		All(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("query client messages: %v", err)
+		return nil, nil, fmt.Errorf("query chat messages: %v", err)
 	}
+
 	var cur *Cursor
 	if len(result) > limit && result[limit-1] != nil {
 		cur = &Cursor{PageSize: limit, LastCreatedAt: result[limit-1].CreatedAt}
 	}
+
 	messages := make([]Message, 0, limit)
 	for i := 0; i < limit && i < len(result); i++ {
 		if result[i] != nil {
 			messages = append(messages, adaptStoreMessage(result[i]))
 		}
 	}
+
 	return messages, cur, nil
 }
 

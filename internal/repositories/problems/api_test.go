@@ -138,16 +138,71 @@ func (s *ProblemsRepoSuite) Test_CountManagerOpenProblems() {
 	})
 }
 
+func (s *ProblemsRepoSuite) TestResolveAssignedProblem() {
+	s.Run("no problem at all", func() {
+		managerID := types.NewUserID()
+		chatID := s.createChat()
+
+		p, err := s.repo.ResolveAssignedProblem(s.Ctx, chatID, managerID)
+
+		s.Require().ErrorIs(err, problemsrepo.ErrProblemNotFound)
+		s.Nil(p)
+	})
+
+	s.Run("problem already resolved", func() {
+		managerID := types.NewUserID()
+		chatID := s.createChat()
+		_, err := s.Database.Problem(s.Ctx).
+			Create().
+			SetChatID(chatID).
+			SetManagerID(managerID).
+			SetResolvedAt(time.Now()).
+			Save(s.Ctx)
+		s.Require().NoError(err)
+
+		p, err := s.repo.ResolveAssignedProblem(s.Ctx, chatID, managerID)
+
+		s.Require().ErrorIs(err, problemsrepo.ErrProblemNotFound)
+		s.Nil(p)
+	})
+
+	s.Run("problem assigned to other manager", func() {
+		managerID := types.NewUserID()
+		chatID, _ := s.createChatWithProblemAssignedTo(types.NewUserID())
+
+		p, err := s.repo.ResolveAssignedProblem(s.Ctx, chatID, managerID)
+
+		s.Require().ErrorIs(err, problemsrepo.ErrProblemNotFound)
+		s.Nil(p)
+	})
+
+	s.Run("problem successfully resolved", func() {
+		managerID := types.NewUserID()
+		chatID, _ := s.createChatWithProblemAssignedTo(managerID)
+
+		p, err := s.repo.ResolveAssignedProblem(s.Ctx, chatID, managerID)
+
+		s.Require().NoError(err)
+		s.NotNil(p.ResolvedAt)
+	})
+}
+
 func (s *ProblemsRepoSuite) createChatWithProblemAssignedTo(managerID types.UserID) (types.ChatID, types.ProblemID) {
 	s.T().Helper()
 
 	// 1 chat can have only 1 open problem.
 
+	chatID := s.createChat()
+
+	p, err := s.Database.Problem(s.Ctx).Create().SetChatID(chatID).SetManagerID(managerID).Save(s.Ctx)
+	s.Require().NoError(err)
+
+	return chatID, p.ID
+}
+
+func (s *ProblemsRepoSuite) createChat() types.ChatID {
 	chat, err := s.Database.Chat(s.Ctx).Create().SetClientID(types.NewUserID()).Save(s.Ctx)
 	s.Require().NoError(err)
 
-	p, err := s.Database.Problem(s.Ctx).Create().SetChatID(chat.ID).SetManagerID(managerID).Save(s.Ctx)
-	s.Require().NoError(err)
-
-	return chat.ID, p.ID
+	return chat.ID
 }

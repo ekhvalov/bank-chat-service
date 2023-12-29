@@ -36,7 +36,7 @@ type EventType string
 // MessageBlockedEvent defines model for MessageBlockedEvent.
 type MessageBlockedEvent struct {
 	ID        ID        `json:"eventId"`
-	EventType EventType `json:"eventType"`
+	EventType string    `json:"eventType"`
 	MessageID MessageID `json:"messageId"`
 	RequestID RequestID `json:"requestId"`
 }
@@ -47,7 +47,7 @@ type MessageID = types.MessageID
 // MessageSentEvent defines model for MessageSentEvent.
 type MessageSentEvent struct {
 	ID        ID        `json:"eventId"`
-	EventType EventType `json:"eventType"`
+	EventType string    `json:"eventType"`
 	MessageID MessageID `json:"messageId"`
 	RequestID RequestID `json:"requestId"`
 }
@@ -58,7 +58,7 @@ type NewMessageEvent struct {
 	Body      string    `json:"body"`
 	CreatedAt time.Time `json:"createdAt"`
 	ID        ID        `json:"eventId"`
-	EventType EventType `json:"eventType"`
+	EventType string    `json:"eventType"`
 	IsService bool      `json:"isService"`
 	MessageID MessageID `json:"messageId"`
 	RequestID RequestID `json:"requestId"`

@@ -2,11 +2,14 @@ package clientmessagesentjob
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 
 	messagesrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/messages"
+	problemsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/problems"
 	eventstream "github.com/ekhvalov/bank-chat-service/internal/services/event-stream"
 	"github.com/ekhvalov/bank-chat-service/internal/services/outbox"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
@@ -21,15 +24,20 @@ type messageRepository interface {
 	GetMessageByID(ctx context.Context, msgID types.MessageID) (*messagesrepo.Message, error)
 }
 
+type problemsRepo interface {
+	GetProblemByMessageID(ctx context.Context, messageID types.MessageID) (*problemsrepo.Problem, error)
+}
+
 type eventStream interface {
 	Publish(ctx context.Context, userID types.UserID, event eventstream.Event) error
 }
 
 //go:generate options-gen -out-filename=job_options.gen.go -from-struct=Options
 type Options struct {
-	repo     messageRepository `option:"mandatory" validate:"required"`
-	evStream eventStream       `option:"mandatory" validate:"required"`
-	log      *zap.Logger       `option:"mandatory" validate:"required"`
+	messagesRepo messageRepository `option:"mandatory" validate:"required"`
+	problemsRepo problemsRepo      `option:"mandatory" validate:"required"`
+	evStream     eventStream       `option:"mandatory" validate:"required"`
+	log          *zap.Logger       `option:"mandatory" validate:"required"`
 }
 
 func New(opts Options) (*Job, error) {
@@ -54,24 +62,64 @@ func (j *Job) Handle(ctx context.Context, payload string) error {
 		return fmt.Errorf("unvarshal payload: %v", err)
 	}
 
-	msg, err := j.repo.GetMessageByID(ctx, msgID)
+	msg, err := j.messagesRepo.GetMessageByID(ctx, msgID)
 	if err != nil {
 		return fmt.Errorf("get message: %v", err)
 	}
 
-	eventID := types.NewEventID()
-	event := eventstream.NewMessageSentEvent(eventID, types.NewRequestID(), msg.ID)
-	err = j.evStream.Publish(ctx, msg.AuthorID, event)
-	if err != nil {
-		j.log.Error("publish message sent event", zap.Error(err), zap.String("id", msgID.String()))
-		return fmt.Errorf("publish message sent event: %v", err)
-	}
-	j.log.Debug(
-		"MessageSentEvent published",
-		zap.Stringer("event_id", eventID),
-		zap.Stringer("author_id", msg.AuthorID),
-		zap.Stringer("msg_id", msg.ID),
-	)
+	eg, ctx := errgroup.WithContext(ctx)
+	// MessageSentEvent
+	eg.Go(func() error {
+		eventID := types.NewEventID()
+		event := eventstream.NewMessageSentEvent(eventID, types.NewRequestID(), msg.ID)
+		if err := j.evStream.Publish(ctx, msg.AuthorID, event); err != nil {
+			j.log.Error("publish MessageSentEvent", zap.Error(err), zap.Stringer("message_id", msgID))
+			return fmt.Errorf("publish message sent event: %v", err)
+		}
+		j.log.Debug(
+			" published",
+			zap.Stringer("event_id", eventID),
+			zap.String("event_type", "MessageSentEvent"),
+			zap.Stringer("author_id", msg.AuthorID),
+			zap.Stringer("msg_id", msg.ID),
+		)
+		return nil
+	})
 
-	return nil
+	// NewMessageEvent
+	eg.Go(func() error {
+		problem, err := j.problemsRepo.GetProblemByMessageID(ctx, msgID)
+		if err != nil {
+			if errors.Is(err, problemsrepo.ErrProblemNotFound) {
+				return nil // Manager is not assigned, skip.
+			}
+			return fmt.Errorf("get problem by message ID: %v", err)
+		}
+
+		eventID := types.NewEventID()
+		event := eventstream.NewNewMessageEvent(
+			eventID,
+			msg.RequestID,
+			msg.ChatID,
+			msg.ID,
+			msg.AuthorID,
+			msg.CreatedAt,
+			msg.Body,
+			false,
+		)
+		if err := j.evStream.Publish(ctx, problem.ManagerID, event); err != nil {
+			j.log.Error("publish NewMessageEvent", zap.Error(err), zap.Stringer("message_id", msgID))
+		}
+		j.log.Debug(
+			" published",
+			zap.Stringer("event_id", eventID),
+			zap.String("event_type", "NewMessageEvent"),
+			zap.Stringer("author_id", msg.AuthorID),
+			zap.Stringer("msg_id", msg.ID),
+		)
+
+		return nil
+	})
+
+	return eg.Wait()
 }

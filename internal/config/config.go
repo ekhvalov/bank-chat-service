@@ -80,6 +80,7 @@ type ServicesConfig struct {
 	ManagerLoad                 ManagerLoadService          `toml:"manager_load"`
 	OutboxService               OutboxService               `toml:"outbox"`
 	AFCVerdictsProcessorService AFCVerdictsProcessorService `toml:"afc_verdicts_processor"`
+	ManagerSchedulerService     ManagerSchedulerService     `toml:"manager_scheduler"`
 }
 
 type MsgProducerServiceConfig struct {
@@ -91,6 +92,10 @@ type MsgProducerServiceConfig struct {
 
 type ManagerLoadService struct {
 	MaxProblemsAtSameTime int `toml:"max_problems_at_same_time" validate:"min=1"`
+}
+
+type ManagerSchedulerService struct {
+	IdleDuration time.Duration `toml:"idle_duration" validate:"min=100ms,max=1m"`
 }
 
 type OutboxService struct {

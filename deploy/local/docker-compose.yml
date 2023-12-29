@@ -22,7 +22,7 @@ services:
     depends_on:
       - postgres
     command:
-      - start-dev --import-realm
+      - start-dev --import-realm --log-level debug
     environment:
       DB_VENDOR: POSTGRES
       DB_ADDR: postgres

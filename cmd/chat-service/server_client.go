@@ -14,6 +14,7 @@ import (
 	"github.com/ekhvalov/bank-chat-service/internal/server"
 	serverclient "github.com/ekhvalov/bank-chat-service/internal/server-client"
 	errhandlerclient "github.com/ekhvalov/bank-chat-service/internal/server-client/errhandler"
+	clientevents "github.com/ekhvalov/bank-chat-service/internal/server-client/events"
 	clientv1 "github.com/ekhvalov/bank-chat-service/internal/server-client/v1"
 	"github.com/ekhvalov/bank-chat-service/internal/server/errhandler"
 	eventstream "github.com/ekhvalov/bank-chat-service/internal/services/event-stream"
@@ -58,7 +59,13 @@ func initServerClient(
 		return nil, fmt.Errorf("create error handler: %v", err)
 	}
 
-	wsHandler, err := initWebsocketHandler(lg, cfg.Servers.Client.AllowOrigins, cfg.Servers.Client.SecWsProtocol, eventStream)
+	wsHandler, err := initWebsocketHandler(
+		lg,
+		cfg.Servers.Client.AllowOrigins,
+		cfg.Servers.Client.SecWsProtocol,
+		eventStream,
+		clientevents.Adapter{},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("create websocket: %v", err)
 	}
