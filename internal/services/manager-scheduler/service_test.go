@@ -140,6 +140,57 @@ func (s *ManagerSchedulerSuite) TestMoreManagersThanProblems() {
 	}
 }
 
+func (s *ManagerSchedulerSuite) TestNoManagers() {
+	const problems = 100
+	for i := 0; i < problems; i++ {
+		s.createAwaitingManagerProblem()
+	}
+
+	for i := 0; i < 3; i++ {
+		s.runSchedulerFor(period * 2)
+
+		num := s.Store.Problem.Query().Where(problem.ManagerIDNotNil()).CountX(s.Ctx)
+		s.Equal(0, num)
+		s.Equal(0, s.mPool.Size())
+	}
+}
+
+func (s *ManagerSchedulerSuite) TestNoProblems() {
+	const managers = 100
+	for i := 0; i < managers; i++ {
+		s.Require().NoError(s.mPool.Put(s.Ctx, types.NewUserID()))
+	}
+
+	for i := 0; i < 3; i++ {
+		s.runSchedulerFor(period * 2)
+
+		num := s.Store.Problem.Query().Where(problem.ManagerIDNotNil()).CountX(s.Ctx)
+		s.Equal(0, num)
+		s.Equal(managers, s.mPool.Size())
+	}
+}
+
+func (s *ManagerSchedulerSuite) TestManagersSameAsProblems() {
+	const managers = 100
+	for i := 0; i < managers; i++ {
+		s.Require().NoError(s.mPool.Put(s.Ctx, types.NewUserID()))
+	}
+
+	const problems = 100
+	for i := 0; i < problems; i++ {
+		s.createAwaitingManagerProblem()
+	}
+
+	for i := 0; i < 3; i++ {
+		s.runSchedulerFor(period * 10)
+
+		num := s.Store.Problem.Query().Where(problem.ManagerIDNotNil()).CountX(s.Ctx)
+		s.Equal(problems, num)
+		s.Equal(0, s.mPool.Size())
+	}
+
+}
+
 func (s *ManagerSchedulerSuite) runSchedulerFor(timeout time.Duration) {
 	s.T().Helper()
 
