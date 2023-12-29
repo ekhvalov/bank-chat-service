@@ -34,14 +34,11 @@ func (r *Repo) GetOpenProblemChatsForManager(ctx context.Context, managerID type
 				problem.ResolvedAtIsNil(),
 			),
 		).
-		Order(chat.ByCreatedAt(sql.OrderDesc())).
+		Order(chat.ByCreatedAt()).
 		All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("query chats: %v", err)
 	}
-	// if len(chats) == 0 {
-	// 	return nil, ErrChatsNotFound
-	// }
 
 	return adaptStoreChats(chats), nil
 }

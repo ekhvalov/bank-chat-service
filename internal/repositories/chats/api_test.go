@@ -68,7 +68,7 @@ func (s *ChatsRepoSuite) Test_GetOpenProblemChatsForManager() {
 		}
 
 		s.Require().NoError(err)
-		s.Equal([]types.ChatID{chatID2, chatID1}, chatIDs)
+		s.Equal([]types.ChatID{chatID1, chatID2}, chatIDs)
 	})
 
 	s.Run("manager has resolved problem chats", func() {
