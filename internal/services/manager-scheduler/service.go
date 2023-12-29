@@ -102,6 +102,22 @@ func (s *Service) assignManagers(ctx context.Context) error {
 			return fmt.Errorf("get manager from pool: %v", err)
 		}
 
+		err = s.notifyClientAboutAssignment(ctx, problemID, managerID)
+		if err != nil {
+			s.log.Warn("notify client error", zap.Error(err), zap.Stringer("problem_id", problemID))
+			return fmt.Errorf("notify client: %v", err)
+		}
+	}
+	return nil
+}
+
+func (s *Service) notifyClientAboutAssignment(ctx context.Context, problemID types.ProblemID, managerID types.UserID) error {
+	initialMessage, err := s.msgRepo.GetInitialMessageByProblemID(ctx, problemID)
+	if err != nil {
+		return fmt.Errorf("find problem request id: %v", err)
+	}
+
+	return s.txtor.RunInTx(ctx, func(ctx context.Context) error {
 		problem, err := s.problemsRepo.AssignManagerToProblem(ctx, managerID, problemID)
 		if err != nil {
 			s.log.Warn("assign manager to problem error",
@@ -112,23 +128,6 @@ func (s *Service) assignManagers(ctx context.Context) error {
 			return fmt.Errorf("assign manager to problem: %v", err)
 		}
 
-		err = s.notifyClientAboutAssignment(ctx, problem, managerID)
-		if err != nil {
-			s.log.Warn("notify client error", zap.Error(err), zap.Stringer("problem_id", problem.ID))
-			return fmt.Errorf("notify client: %v", err)
-		}
-	}
-	return nil
-}
-
-func (s *Service) notifyClientAboutAssignment(ctx context.Context, problem *problemsrepo.Problem, managerID types.UserID) error {
-	// requestID, err := s.problemsRepo.ProblemInitialMessageRequestID(ctx, problem.ID)
-	initialMessage, err := s.msgRepo.GetInitialMessageByProblemID(ctx, problem.ID)
-	if err != nil {
-		return fmt.Errorf("find problem request id: %v", err)
-	}
-
-	return s.txtor.RunInTx(ctx, func(ctx context.Context) error {
 		text := ManagerAssignedMessageText(managerID)
 		msg, err := s.msgRepo.CreateServiceClientVisible(ctx, types.NewRequestID(), problem.ID, problem.ChatID, text)
 		if err != nil {
