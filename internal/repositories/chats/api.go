@@ -3,6 +3,7 @@ package chatsrepo
 import (
 	"context"
 	"fmt"
+	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 
 	"entgo.io/ent/dialect/sql"
 
@@ -41,4 +42,16 @@ func (r *Repo) GetOpenProblemChatsForManager(ctx context.Context, managerID type
 	}
 
 	return adaptStoreChats(chats), nil
+}
+
+func (r *Repo) GetClientIDByChatID(ctx context.Context, chatID types.ChatID) (types.UserID, error) {
+	ch, err := r.db.Chat(ctx).Get(ctx, chatID)
+	if err != nil {
+		if store.IsNotFound(err) {
+			return types.UserIDNil, ErrChatsNotFound
+		}
+		return types.UserIDNil, fmt.Errorf("get chat: %v", err)
+	}
+
+	return ch.ClientID, nil
 }
