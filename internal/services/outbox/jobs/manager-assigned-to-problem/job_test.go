@@ -132,7 +132,10 @@ func (s *JobSuite) TestHandle_NewChatEventError() {
 
 	errNewChatEvent := errors.New("publish NewChatEvent error")
 	chatEventMatcher := &eventstream.NewChatEventMatcher{NewChatEvent: createNewChatEvent(message, clientID)}
-	s.eventStream.EXPECT().Publish(s.Ctx, managerID, chatEventMatcher).Return(errNewChatEvent)
+	s.eventStream.EXPECT().Publish(gomock.Any(), managerID, chatEventMatcher).Return(errNewChatEvent)
+
+	messageEventMatcher := &eventstream.NewMessageEventMatcher{NewMessageEvent: createNewMessageEvent(message, clientID)}
+	s.eventStream.EXPECT().Publish(gomock.Any(), clientID, messageEventMatcher).Return(nil)
 
 	// Action
 	err := s.job.Handle(s.Ctx, payload)
@@ -156,11 +159,11 @@ func (s *JobSuite) TestHandle_NewMessageEventError() {
 	s.managerLoad.EXPECT().CanManagerTakeProblem(s.Ctx, managerID).Return(false, nil)
 
 	chatEventMatcher := &eventstream.NewChatEventMatcher{NewChatEvent: createNewChatEvent(message, clientID)}
-	s.eventStream.EXPECT().Publish(s.Ctx, managerID, chatEventMatcher).Return(nil)
+	s.eventStream.EXPECT().Publish(gomock.Any(), managerID, chatEventMatcher).Return(nil)
 
 	errNewMessageEvent := errors.New("publish NewMessageEvent error")
 	messageEventMatcher := &eventstream.NewMessageEventMatcher{NewMessageEvent: createNewMessageEvent(message, clientID)}
-	s.eventStream.EXPECT().Publish(s.Ctx, clientID, messageEventMatcher).Return(errNewMessageEvent)
+	s.eventStream.EXPECT().Publish(gomock.Any(), clientID, messageEventMatcher).Return(errNewMessageEvent)
 
 	// Action
 	err := s.job.Handle(s.Ctx, payload)
@@ -187,10 +190,10 @@ func (s *JobSuite) TestHandle() {
 
 			chatEventMatcher := &eventstream.NewChatEventMatcher{NewChatEvent: createNewChatEvent(message, clientID)}
 			chatEventMatcher.NewChatEvent.CanTakeMoreProblems = canTakeMoreProblem
-			s.eventStream.EXPECT().Publish(s.Ctx, managerID, chatEventMatcher).Return(nil)
+			s.eventStream.EXPECT().Publish(gomock.Any(), managerID, chatEventMatcher).Return(nil)
 
 			messageEventMatcher := &eventstream.NewMessageEventMatcher{NewMessageEvent: createNewMessageEvent(message, clientID)}
-			s.eventStream.EXPECT().Publish(s.Ctx, clientID, messageEventMatcher).Return(nil)
+			s.eventStream.EXPECT().Publish(gomock.Any(), clientID, messageEventMatcher).Return(nil)
 
 			// Action
 			err := s.job.Handle(s.Ctx, payload)

@@ -3,6 +3,7 @@ package managerassignedtoproblemjob
 import (
 	"context"
 	"fmt"
+	"golang.org/x/sync/errgroup"
 
 	"go.uber.org/zap"
 
@@ -75,32 +76,42 @@ func (j *Job) Handle(ctx context.Context, payload string) error {
 		return fmt.Errorf("can manager take problem: %v", err)
 	}
 
-	newChatEvent := eventstream.NewNewChatEvent(
-		types.NewEventID(),
-		message.ChatID,
-		pl.ClientID,
-		message.RequestID,
-		canManagerTakeProblem,
-	)
-	err = j.eventStream.Publish(ctx, pl.ManagerID, newChatEvent)
-	if err != nil {
-		return fmt.Errorf("publish NewChatEvent: %v", err)
-	}
+	eg, ctx := errgroup.WithContext(ctx)
 
-	newMessageEvent := eventstream.NewNewMessageEvent(
-		types.NewEventID(),
-		message.RequestID,
-		message.ChatID,
-		message.ID,
-		pl.ClientID,
-		message.CreatedAt,
-		message.Body,
-		message.IsService,
-	)
-	err = j.eventStream.Publish(ctx, pl.ClientID, newMessageEvent)
-	if err != nil {
-		return fmt.Errorf("publish NewMessageEvent: %v", err)
-	}
+	eg.Go(func() error {
+		newChatEvent := eventstream.NewNewChatEvent(
+			types.NewEventID(),
+			message.ChatID,
+			pl.ClientID,
+			message.RequestID,
+			canManagerTakeProblem,
+		)
 
-	return nil
+		if err := j.eventStream.Publish(ctx, pl.ManagerID, newChatEvent); err != nil {
+			return fmt.Errorf("publish NewChatEvent: %v", err)
+		}
+
+		return nil
+	})
+
+	eg.Go(func() error {
+		newMessageEvent := eventstream.NewNewMessageEvent(
+			types.NewEventID(),
+			message.RequestID,
+			message.ChatID,
+			message.ID,
+			pl.ClientID,
+			message.CreatedAt,
+			message.Body,
+			message.IsService,
+		)
+
+		if err := j.eventStream.Publish(ctx, pl.ClientID, newMessageEvent); err != nil {
+			return fmt.Errorf("publish NewMessageEvent: %v", err)
+		}
+
+		return nil
+	})
+
+	return eg.Wait()
 }
