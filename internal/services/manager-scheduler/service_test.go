@@ -188,7 +188,6 @@ func (s *ManagerSchedulerSuite) TestManagersSameAsProblems() {
 		s.Equal(problems, num)
 		s.Equal(0, s.mPool.Size())
 	}
-
 }
 
 func (s *ManagerSchedulerSuite) runSchedulerFor(timeout time.Duration) {

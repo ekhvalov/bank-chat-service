@@ -3,10 +3,10 @@ package chatsrepo
 import (
 	"context"
 	"fmt"
-	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 
 	"entgo.io/ent/dialect/sql"
 
+	store "github.com/ekhvalov/bank-chat-service/internal/store/gen"
 	"github.com/ekhvalov/bank-chat-service/internal/store/gen/chat"
 	"github.com/ekhvalov/bank-chat-service/internal/store/gen/problem"
 	"github.com/ekhvalov/bank-chat-service/internal/types"

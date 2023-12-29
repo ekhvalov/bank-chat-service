@@ -3,9 +3,9 @@ package managerassignedtoproblemjob
 import (
 	"context"
 	"fmt"
-	"golang.org/x/sync/errgroup"
 
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 
 	messagesrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/messages"
 	problemsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/problems"
