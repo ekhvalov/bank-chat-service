@@ -76,10 +76,10 @@ func (s *ChatsRepoSuite) Test_GetOpenProblemChatsForManager() {
 		s.createChatWithResolvedProblem(managerID)
 		s.createChatWithResolvedProblem(managerID)
 
-		chtIDs, err := s.repo.GetOpenProblemChatsForManager(s.Ctx, managerID)
+		chatIDs, err := s.repo.GetOpenProblemChatsForManager(s.Ctx, managerID)
 
 		s.Require().NoError(err)
-		s.Empty(chtIDs)
+		s.Empty(chatIDs)
 	})
 
 	s.Run("another manager has open problem chats", func() {
@@ -87,10 +87,10 @@ func (s *ChatsRepoSuite) Test_GetOpenProblemChatsForManager() {
 		s.createChatWithProblem(types.NewUserID())
 		s.createChatWithProblem(types.NewUserID())
 
-		chtIDs, err := s.repo.GetOpenProblemChatsForManager(s.Ctx, managerID)
+		chatIDs, err := s.repo.GetOpenProblemChatsForManager(s.Ctx, managerID)
 
 		s.Require().NoError(err)
-		s.Empty(chtIDs)
+		s.Empty(chatIDs)
 	})
 
 	s.Run("another manager has resolved problem chats", func() {
@@ -98,10 +98,10 @@ func (s *ChatsRepoSuite) Test_GetOpenProblemChatsForManager() {
 		s.createChatWithResolvedProblem(types.NewUserID())
 		s.createChatWithResolvedProblem(types.NewUserID())
 
-		chtIDs, err := s.repo.GetOpenProblemChatsForManager(s.Ctx, managerID)
+		chatIDs, err := s.repo.GetOpenProblemChatsForManager(s.Ctx, managerID)
 
 		s.Require().NoError(err)
-		s.Empty(chtIDs)
+		s.Empty(chatIDs)
 	})
 
 	s.Run("no problem in chat", func() {
@@ -109,10 +109,10 @@ func (s *ChatsRepoSuite) Test_GetOpenProblemChatsForManager() {
 		s.createChat()
 		s.createChat()
 
-		chtIDs, err := s.repo.GetOpenProblemChatsForManager(s.Ctx, managerID)
+		chatIDs, err := s.repo.GetOpenProblemChatsForManager(s.Ctx, managerID)
 
 		s.Require().NoError(err)
-		s.Empty(chtIDs)
+		s.Empty(chatIDs)
 	})
 }
 
