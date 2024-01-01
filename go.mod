@@ -4,7 +4,6 @@ go 1.20
 
 require (
 	entgo.io/ent v0.12.4
-	github.com/BurntSushi/toml v1.3.2
 	github.com/TheZeroSlave/zapsentry v1.18.0
 	github.com/deepmap/oapi-codegen v1.15.0
 	github.com/getkin/kin-openapi v0.120.0
@@ -17,6 +16,7 @@ require (
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/kazhuravlev/options-gen v0.28.3
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/kkyr/fig v0.4.0
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/oapi-codegen/runtime v1.0.0
@@ -61,7 +61,9 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
+	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

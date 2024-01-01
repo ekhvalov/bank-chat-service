@@ -1,6 +1,8 @@
 package config_test
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -22,4 +24,12 @@ func TestParseAndValidate(t *testing.T) {
 	cfg, err := config.ParseAndValidate(configExamplePath)
 	require.NoError(t, err)
 	assert.NotEmpty(t, cfg.Log.Level)
+}
+
+func TestParseAndValidateWithEnv(t *testing.T) {
+	assert.NoError(t, os.Setenv(fmt.Sprintf("%s_LOG_LEVEL", config.EnvPrefix), "debug"))
+	cfg, err := config.ParseAndValidate(configExamplePath)
+	require.NoError(t, err)
+	assert.NotEmpty(t, cfg.Log.Level)
+	assert.Equal(t, "debug", cfg.Log.Level)
 }

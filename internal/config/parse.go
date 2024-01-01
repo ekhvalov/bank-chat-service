@@ -2,20 +2,20 @@ package config
 
 import (
 	"fmt"
+	"path"
 
-	"github.com/BurntSushi/toml"
-
-	"github.com/ekhvalov/bank-chat-service/internal/validator"
+	"github.com/kkyr/fig"
 )
 
-func ParseAndValidate(filename string) (Config, error) {
+const EnvPrefix = "BANKCHAT"
+
+func ParseAndValidate(filepath string) (Config, error) {
 	var config Config
-	if _, err := toml.DecodeFile(filename, &config); err != nil {
-		return Config{}, fmt.Errorf("decode config: %v", err)
+
+	err := fig.Load(&config, fig.UseEnv(EnvPrefix), fig.File(path.Base(filepath)), fig.Dirs(path.Dir(filepath)))
+	if err != nil {
+		return Config{}, fmt.Errorf("load config: %v", err)
 	}
 
-	if err := validator.Validator.Struct(config); err != nil {
-		return Config{}, fmt.Errorf("struct validate: %v", err)
-	}
 	return config, nil
 }
