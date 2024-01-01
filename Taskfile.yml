@@ -300,6 +300,8 @@ tasks:
         go.uber.org/mock/mockgen@v0.3.0
         mvdan.cc/gofumpt@v0.5.0
         entgo.io/ent/cmd/ent@v0.12.4
+    env:
+      CGO_ENABLED: 0
     cmds:
       - echo "- Install dev tools"
       - mkdir -p "{{.TOOLS_DIR}}"
