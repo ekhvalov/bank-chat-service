@@ -35,7 +35,7 @@ type Options struct {
 	accessRole     string                       `option:"mandatory" validate:"required"`
 	secWsProtocol  string                       `option:"mandatory" validate:"required"`
 	logger         *zap.Logger                  `option:"mandatory" validate:"required"`
-	introspector   middlewares.Introspector     `option:"mandatory" validate:"required"`
+	jwtParser      *middlewares.JWTParser       `option:"mandatory" validate:"required"`
 	errorHandler   echo.HTTPErrorHandler        `option:"mandatory" validate:"required"`
 	wsHandler      *websocketstream.HTTPHandler `option:"mandatory" validate:"required"`
 }
@@ -74,7 +74,7 @@ func New[T HandlersRegistrar](opts Options, registrar T) (*Server, error) {
 			AllowMethods: []string{http.MethodPost},
 		}),
 		middlewares.NewKeycloakTokenAuth(
-			opts.introspector,
+			opts.jwtParser,
 			opts.accessResource,
 			opts.accessRole,
 			opts.secWsProtocol,

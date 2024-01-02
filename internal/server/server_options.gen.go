@@ -21,7 +21,7 @@ func NewOptions(
 	accessRole string,
 	secWsProtocol string,
 	logger *zap.Logger,
-	introspector middlewares.Introspector,
+	jwtParser *middlewares.JWTParser,
 	errorHandler echo.HTTPErrorHandler,
 	wsHandler *websocketstream.HTTPHandler,
 	options ...OptOptionsSetter,
@@ -36,7 +36,7 @@ func NewOptions(
 	o.accessRole = accessRole
 	o.secWsProtocol = secWsProtocol
 	o.logger = logger
-	o.introspector = introspector
+	o.jwtParser = jwtParser
 	o.errorHandler = errorHandler
 	o.wsHandler = wsHandler
 
@@ -54,7 +54,7 @@ func (o *Options) Validate() error {
 	errs.Add(errors461e464ebed9.NewValidationError("accessRole", _validate_Options_accessRole(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("secWsProtocol", _validate_Options_secWsProtocol(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("logger", _validate_Options_logger(o)))
-	errs.Add(errors461e464ebed9.NewValidationError("introspector", _validate_Options_introspector(o)))
+	errs.Add(errors461e464ebed9.NewValidationError("jwtParser", _validate_Options_jwtParser(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("errorHandler", _validate_Options_errorHandler(o)))
 	errs.Add(errors461e464ebed9.NewValidationError("wsHandler", _validate_Options_wsHandler(o)))
 	return errs.AsError()
@@ -102,9 +102,9 @@ func _validate_Options_logger(o *Options) error {
 	return nil
 }
 
-func _validate_Options_introspector(o *Options) error {
-	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.introspector, "required"); err != nil {
-		return fmt461e464ebed9.Errorf("field `introspector` did not pass the test: %w", err)
+func _validate_Options_jwtParser(o *Options) error {
+	if err := validator461e464ebed9.GetValidatorFor(o).Var(o.jwtParser, "required"); err != nil {
+		return fmt461e464ebed9.Errorf("field `jwtParser` did not pass the test: %w", err)
 	}
 	return nil
 }

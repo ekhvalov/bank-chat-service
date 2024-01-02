@@ -2,9 +2,8 @@ package middlewares
 
 import (
 	"errors"
-	"fmt"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 
 	keycloakclient "github.com/ekhvalov/bank-chat-service/internal/clients/keycloak"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
@@ -13,15 +12,15 @@ import (
 var (
 	ErrNoAllowedResources = errors.New("no allowed resources")
 	ErrSubjectNotDefined  = errors.New(`"sub" is not defined`)
-	parser                = &jwt.Parser{}
 )
 
 type claims struct {
-	jwt.StandardClaims
 	Aud            keycloakclient.Audition `json:"aud"`
 	AuthTime       int64                   `json:"auth_time"`
 	Subject        types.UserID            `json:"sub,omitempty"`
 	ResourceAccess map[string]access       `json:"resource_access,omitempty"`
+
+	jwt.RegisteredClaims
 }
 
 func (c claims) HasResourceWithRole(resource, role string) bool {
@@ -47,14 +46,12 @@ func (a access) HasRole(name string) bool {
 	return false
 }
 
-// Valid returns errors:
+// Validate checks validity of the claims (will be called by jwt-go library parser).
+// possible errors:
 // - from StandardClaims validation;
-// - ErrNoAllowedResources, if claims doesn't contain `resource_access` map or it's empty;
+// - ErrNoAllowedResources, if claims doesn't contain `resource_access` map, or it's empty;
 // - ErrSubjectNotDefined, if claims doesn't contain `sub` field or subject is zero UUID.
-func (c claims) Valid() error {
-	if err := c.StandardClaims.Valid(); err != nil {
-		return err
-	}
+func (c claims) Validate() error {
 	if nil == c.ResourceAccess || len(c.ResourceAccess) == 0 {
 		return ErrNoAllowedResources
 	}
@@ -69,13 +66,4 @@ func (c claims) Valid() error {
 
 func (c claims) UserID() types.UserID {
 	return c.Subject
-}
-
-func parseTokenAndClaims(tokenStr string) (*jwt.Token, *claims, error) {
-	c := claims{}
-	t, _, err := parser.ParseUnverified(tokenStr, &c)
-	if err != nil {
-		return nil, nil, fmt.Errorf("parse token: %v", err)
-	}
-	return t, &c, nil
 }

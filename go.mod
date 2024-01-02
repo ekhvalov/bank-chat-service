@@ -1,9 +1,10 @@
 module github.com/ekhvalov/bank-chat-service
 
-go 1.20
+go 1.21.5
 
 require (
 	entgo.io/ent v0.12.4
+	github.com/MicahParks/keyfunc/v3 v3.1.1
 	github.com/TheZeroSlave/zapsentry v1.18.0
 	github.com/deepmap/oapi-codegen v1.15.0
 	github.com/getkin/kin-openapi v0.120.0
@@ -11,6 +12,7 @@ require (
 	github.com/go-playground/validator/v10 v10.15.4
 	github.com/go-resty/resty/v2 v2.9.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/google/uuid v1.3.1
 	github.com/gorilla/websocket v1.5.1
 	github.com/jackc/pgx/v5 v5.4.3
@@ -34,6 +36,7 @@ require (
 
 require (
 	ariga.io/atlas v0.14.1-0.20230918065911-83ad451a4935 // indirect
+	github.com/MicahParks/jwkset v0.5.4 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
