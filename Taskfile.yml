@@ -227,6 +227,22 @@ tasks:
       - "mkdir -p {{.DST_DIR}}"
       - "{{.TOOLS_DIR}}/oapi-codegen --old-config-style -generate skip-prune,types -package {{.PKG}} {{.SRC}} > {{.DST}}"
 
+  gen:deps-graph:
+    vars:
+      INCLUDE: |-
+        ./internal/server/...
+        ./internal/server-manager/...
+        ./internal/server-client/...
+        ./internal/usecases/...
+        ./internal/services/...
+        ./internal/repositories/...
+        ./internal/store
+        ./internal/store/gen
+      EXCLUDE: |-
+        - ./internal/types
+    cmds:
+      - '{{.TOOLS_DIR}}/goda graph -cluster -short "{{.INCLUDE | splitLines | join " "}} {{.EXCLUDE | splitLines | join " " }}" | dot -Tpng -o docs/dependency-graph.png'
+
   ent:new:
     cmds:
       - "{{.TOOLS_DIR}}/ent new --target {{.ENT_SCHEMA}} {{.CLI_ARGS}}"
@@ -296,6 +312,7 @@ tasks:
         github.com/daixiang0/gci@v0.11.2
         github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.15.0
         github.com/kazhuravlev/options-gen/cmd/options-gen@v0.30.0
+        github.com/loov/goda@v0.5.7
         github.com/onsi/ginkgo/v2/ginkgo@v2.13.0
         go.uber.org/mock/mockgen@v0.3.0
         mvdan.cc/gofumpt@v0.5.0

@@ -10,4 +10,12 @@
 ### Setup environment
 
 1. Install [Task](https://taskfile.dev/installation/)
-2. Run `task dev-tools:install`
+2. Run `task tools:install`
+
+### Graphs
+<details>
+  <summary>Dependency Graph</summary>
+
+  ![Dependency Graph](docs/dependency-graph.png)
+</details>
+
