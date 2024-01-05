@@ -19,3 +19,5 @@
   ![Dependency Graph](docs/dependency-graph.png)
 </details>
 
+### Architecture
+[details](docs/ARCHITECTURE.md)
