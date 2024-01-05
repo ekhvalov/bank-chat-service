@@ -1,6 +1,6 @@
 module github.com/ekhvalov/bank-chat-service
 
-go 1.21.5
+go 1.21
 
 require (
 	entgo.io/ent v0.12.4
