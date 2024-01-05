@@ -8,6 +8,7 @@ vars:
     docker-compose.yml
     docker-compose.sentry.yml
     docker-compose.swagger-ui.yml
+    docker-compose.structurizr.yml
   DOCKER_COMPOSE_CMD: |-
     docker compose {{range $file := .DOCKER_COMPOSE_FILES | splitLines -}} -f ./deploy/local/{{$file}} {{end}}
 
