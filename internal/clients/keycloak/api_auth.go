@@ -6,6 +6,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+
+	"github.com/go-resty/resty/v2"
 )
 
 type RPT struct {
@@ -41,4 +43,10 @@ func (c *Client) Auth(ctx context.Context, username, password string) (*RPT, err
 	}
 
 	return &token, nil
+}
+
+func (c *Client) auth(ctx context.Context) *resty.Request {
+	return c.cli.R().
+		SetBasicAuth(c.username, c.password).
+		SetContext(ctx)
 }

@@ -68,9 +68,9 @@ func initServerManager(
 		return nil, fmt.Errorf("create handlers registrar: %v", err)
 	}
 
-	keycloakClient, err := initKeycloakClient(cfg)
+	jwtParser, err := initJWTParser(cfg.Clients.Keycloak)
 	if err != nil {
-		return nil, fmt.Errorf("create keycloak client: %v", err)
+		return nil, fmt.Errorf("create JWTParser: %v", err)
 	}
 
 	errHandler, err := errhandler.New(errhandler.NewOptions(lg, cfg.Global.IsProduction(), errhandlermanager.ResponseBuilder))
@@ -95,7 +95,7 @@ func initServerManager(
 		cfg.Servers.Manager.RequiredAccess.Role,
 		cfg.Servers.Manager.SecWsProtocol,
 		lg,
-		keycloakClient,
+		jwtParser,
 		errHandler.Handle,
 		wsHandler,
 	), handlersRegistrar)

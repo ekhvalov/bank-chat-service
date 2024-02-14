@@ -1,0 +1,1123 @@
+{
+  "id" : 1,
+  "name" : "Bank Chat System",
+  "description" : "System that allows clients to chat with support managers",
+  "lastModifiedDate" : "2024-01-05T08:15:46Z",
+  "lastModifiedAgent" : "structurizr-javascript",
+  "properties" : {
+    "structurizr.dsl" : "IyBodHRwczovL2RvY3Muc3RydWN0dXJpenIuY29tL2RzbC9iYXNpY3MjYmFzaWNzCiMgVG8gc2VlIGRpYWdyYW1zOgojICAgMS4gUnVuIGRlcGVuZGVuY2llcyBDT01QT1NFX1BST0ZJTEVTPXN0cnVjdHVyaXpyLXVpIHRhc2sgZGVwcwojICAgMi4gT3BlbiBodHRwOi8vbG9jYWxob3N0OjgwNzAKd29ya3NwYWNlIHsKICAgIG5hbWUgIkJhbmsgQ2hhdCBTeXN0ZW0iCiAgICBkZXNjcmlwdGlvbiAiU3lzdGVtIHRoYXQgYWxsb3dzIGNsaWVudHMgdG8gY2hhdCB3aXRoIHN1cHBvcnQgbWFuYWdlcnMiCgogICAgbW9kZWwgewogICAgICAgIGNsaWVudCA9IHBlcnNvbiAiQ2xpZW50IiAiQmFuayBjbGllbnQgd2hvIHdhbnRzIHRvIHNvbHZlIGEgcHJvYmxlbSIKICAgICAgICBtYW5hZ2VyID0gcGVyc29uICJNYW5hZ2VyIiAiQmFuayBtYW5hZ2VyIHdobyBjYW4gc29sdmUgdGhlIHByb2JsZW0iCgogICAgICAgIGNoYXRTeXN0ZW0gPSBzb2Z0d2FyZVN5c3RlbSAiQmFuayBDaGF0IFN5c3RlbSIgIlN5c3RlbSB0aGF0IGFsbG93cyBjbGllbnRzIHRvIGNoYXQgd2l0aCBzdXBwb3J0IG1hbmFnZXJzIiB7CiAgICAgICAgICAgIGNsaWVudFdlYkFwcGxpY2F0aW9uID0gY29udGFpbmVyICJDbGllbnQgVUkiICJKYXZhc2NyaXB0IiB7CiAgICAgICAgICAgICAgICB0YWdzICJXZWIgQnJvd3NlciIKICAgICAgICAgICAgfQogICAgICAgICAgICBtYW5hZ2VyV2ViQXBwbGljYXRpb24gPSBjb250YWluZXIgIk1hbmFnZXIgVUkiICJKYXZhc2NyaXB0IiB7CiAgICAgICAgICAgICAgICB0YWdzICJXZWIgQnJvd3NlciIKICAgICAgICAgICAgfQoKICAgICAgICAgICAgY2hhdCA9IGNvbnRhaW5lciAiQ2hhdCIgIkdvbGFuZyIgewogICAgICAgICAgICAgICAgIyBNYW5hZ2VyIGNvbXBvbmVudHMKICAgICAgICAgICAgICAgICMgTWFuYWdlciBoYW5kbGVycwogICAgICAgICAgICAgICAgbWFuYWdlckhhbmRsZXJTZW5kTWVzc2FnZSA9IGNvbXBvbmVudCAiSGFuZGxlclxuIFNlbmRNZXNzYWdlIiAiR29sYW5nIgogICAgICAgICAgICAgICAgbWFuYWdlckhhbmRsZXJHZXRDaGF0cyA9IGNvbXBvbmVudCAiSGFuZGxlclxuIEdldENoYXRzIiAiR29sYW5nIgogICAgICAgICAgICAgICAgbWFuYWdlckhhbmRsZXJGcmVlSGFuZHMgPSBjb21wb25lbnQgIkhhbmRsZXJcbiBGcmVlSGFuZHMiICJHb2xhbmciCiAgICAgICAgICAgICAgICBtYW5hZ2VySGFuZGxlckZyZWVIYW5kc0F2YWlsYWJpbGl0eSA9IGNvbXBvbmVudCAiSGFuZGxlclxuIEZyZWVIYW5kc0F2YWlsYWJpbGl0eSIgIkdvbGFuZyIKICAgICAgICAgICAgICAgIG1hbmFnZXJIYW5kbGVyR2V0Q2hhdEhpc3RvcnkgPSBjb21wb25lbnQgIkhhbmRsZXJcbiBHZXRDaGF0SGlzdG9yeSIgIkdvbGFuZyIKICAgICAgICAgICAgICAgIG1hbmFnZXJIYW5kbGVyQ2xvc2VDaGF0ID0gY29tcG9uZW50ICJIYW5kbGVyXG4gQ2xvc2VDaGF0IiAiR29sYW5nIgoKICAgICAgICAgICAgICAgICMgTWFuYWdlciB1c2UgY2FzZXMKICAgICAgICAgICAgICAgIG1hbmFnZXJVc2VDYXNlU2VuZE1lc3NhZ2UgPSBjb21wb25lbnQgIlVzZSBDYXNlXG4gU2VuZE1lc3NhZ2UiICJHb2xhbmciCiAgICAgICAgICAgICAgICBtYW5hZ2VyVXNlQ2FzZUdldENoYXRzID0gY29tcG9uZW50ICJVc2UgQ2FzZVxuIEdldENoYXRzIiAiR29sYW5nIgogICAgICAgICAgICAgICAgbWFuYWdlclVzZUNhc2VGcmVlSGFuZHMgPSBjb21wb25lbnQgIlVzZSBDYXNlXG4gRnJlZUhhbmRzIiAiR29sYW5nIgogICAgICAgICAgICAgICAgbWFuYWdlclVzZUNhc2VDYW5SZWNlaXZlUHJvYmxlbSA9IGNvbXBvbmVudCAiVXNlIENhc2VcbiBDYW5SZWNlaXZlUHJvYmxlbSIgIkdvbGFuZyIKICAgICAgICAgICAgICAgIG1hbmFnZXJVc2VDYXNlR2V0Q2hhdEhpc3RvcnkgPSBjb21wb25lbnQgIlVzZSBDYXNlXG4gR2V0Q2hhdEhpc3RvcnkiICJHb2xhbmciCiAgICAgICAgICAgICAgICBtYW5hZ2VyVXNlQ2FzZUNsb3NlQ2hhdCA9IGNvbXBvbmVudCAiVXNlIENhc2VcbiBDbG9zZUNoYXQiICJHb2xhbmciCgogICAgICAgICAgICAgICAgIyBDbGllbnQgY29tcG9uZW50cwoKICAgICAgICAgICAgICAgICMgUmVwb3NpdG9yaWVzCiAgICAgICAgICAgICAgICBwcm9ibGVtc1JlcG9zaXRvcnkgPSBjb21wb25lbnQgIlByb2JsZW1zIFJlcG9zaXRvcnkiICJFbnRnbyIKICAgICAgICAgICAgICAgIG1lc3NhZ2VzUmVwb3NpdG9yeSA9IGNvbXBvbmVudCAiTWVzc2FnZXMgUmVwb3NpdG9yeSIgIkVudGdvIgogICAgICAgICAgICAgICAgY2hhdHNSZXBvc2l0b3J5ID0gY29tcG9uZW50ICJDaGF0cyBSZXBvc2l0b3J5IiAiRW50Z28iCiAgICAgICAgICAgICAgICBqb2JzUmVwb3NpdG9yeSA9IGNvbXBvbmVudCAiSm9icyBSZXBvc2l0b3J5IiAiRW50Z28iCgogICAgICAgICAgICAgICAgIyBTZXJ2aWNlcwogICAgICAgICAgICAgICAgbWFuYWdlclBvb2xTZXJ2aWNlID0gY29tcG9uZW50ICJNYW5hZ2VyIFBvb2wgU2VydmljZSIgIkluLW1lbW9yeSIKICAgICAgICAgICAgICAgIG1hbmFnZXJMb2FkU2VydmljZSA9IGNvbXBvbmVudCAiTWFuYWdlciBMb2FkIFNlcnZpY2UiICI/IgogICAgICAgICAgICAgICAgYWZjUHJvY2Vzc29yU2VydmljZSA9IGNvbXBvbmVudCAiQUZDIFByb2Nlc3NvciBTZXJ2aWNlIiAiR29sYW5nIgogICAgICAgICAgICAgICAgb3V0Ym94U2VydmljZSA9IGNvbXBvbmVudCAiT3V0Ym94IFNlcnZpY2UiICJHb2xhbmciCiAgICAgICAgICAgIH0KCgogICAgICAgICAgICBjaGF0RGF0YWJhc2UgPSBjb250YWluZXIgIkRhdGFiYXNlIiAiUG9zdGdyZVNRTCIgewogICAgICAgICAgICAgICAgdGFncyAiRGF0YWJhc2UiCiAgICAgICAgICAgIH0KICAgICAgICAgICAgY2hhdFF1ZXVlID0gY29udGFpbmVyICJRdWV1ZSIgIkthZmthIiB7CiAgICAgICAgICAgICAgICB0YWdzICJRdWV1ZSIKICAgICAgICAgICAgfQogICAgICAgIH0KICAgICAgICBJQU1TeXN0ZW0gPSBzb2Z0d2FyZVN5c3RlbSAiSUFNIFN5c3RlbSIgIlN5c3RlbSB0aGF0IGFsbG93cyBjbGllbnRzLCBhbmQgbWFuYWdlcnMgdG8gYXV0aGVudGljYXRlIiB7CiAgICAgICAgICAgIHRhZ3MgIkV4dGVybmFsIFN5c3RlbSIKICAgICAgICB9CiAgICAgICAgRlBTeXN0ZW0gPSBzb2Z0d2FyZVN5c3RlbSAiRnJhdWQgUHJldmVudGlvbiBTeXN0ZW0iICJNb25pdG9ycyB0aGUgYXBwZWFyYW5jZSBvZiBmcmF1ZCBpbiB0aGUgY2xpZW50cycgbWVzc2FnZXMiIHsKICAgICAgICAgICAgdGFncyAiRXh0ZXJuYWwgU3lzdGVtIgogICAgICAgIH0KCiAgICAgICAgIyBSZWxhdGlvbnNoaXBzIHRvL2Zyb20gY29udGV4dAogICAgICAgIGNsaWVudCAtPiBjaGF0U3lzdGVtICJVc2VzIiAiU2VuZHMsIHJlY2VpdmVzIG1lc3NhZ2VzIgogICAgICAgIG1hbmFnZXIgLT4gY2hhdFN5c3RlbSAiVXNlcyIgIlJlY2VpdmVzLCBzZW5kcyBtZXNzYWdlcyIKICAgICAgICBjaGF0U3lzdGVtIC0+IElBTVN5c3RlbSAiVXNlcyIgIkF1dGhlbnRpY2F0ZXMiCiAgICAgICAgY2hhdFN5c3RlbSAtPiBGUFN5c3RlbSAiVXNlcyIgIkNoZWNrcyBmb3IgZnJhdWQgaW4gbWVzc2FnZXMiCgogICAgICAgICMgUmVsYXRpb25zaGlwcyB0by9mcm9tIGNvbnRhaW5lcnMKICAgICAgICBjbGllbnQgLT4gY2xpZW50V2ViQXBwbGljYXRpb24gIlVzZXMiICJTZW5kcywgcmVjZWl2ZXMgbWVzc2FnZXMiCiAgICAgICAgbWFuYWdlciAtPiBtYW5hZ2VyV2ViQXBwbGljYXRpb24gIlVzZXMiICJSZWNlaXZlcywgc2VuZHMgbWVzc2FnZXMiCiAgICAgICAgbWFuYWdlcldlYkFwcGxpY2F0aW9uIC0+IGNoYXQgIlVzZXMiICJTZW5kcywgcmVjZWl2ZXMgbWVzc2FnZXMiCiAgICAgICAgY2xpZW50V2ViQXBwbGljYXRpb24gLT4gY2hhdCAiVXNlcyIgIlNlbmRzLCByZWNlaXZlcyBtZXNzYWdlcyIKICAgICAgICBjaGF0IC0+IElBTVN5c3RlbSAiVXNlcyIgIkF1dGhlbnRpY2F0ZXMiCiAgICAgICAgRlBTeXN0ZW0gLT4gY2hhdFF1ZXVlICJVc2VzIiAiQ2hlY2tzIGZvciBmcmF1ZCBpbiBtZXNzYWdlcyIKICAgICAgICBjaGF0IC0+IGNoYXREYXRhYmFzZSAiVXNlcyIgIlN0b3JlcyBtZXNzYWdlcyIKICAgICAgICBjaGF0IC0+IGNoYXRRdWV1ZSAiVXNlcyIgIlNlbmRzIG1lc3NhZ2VzIgoKICAgICAgICAjIFJlbGF0aW9uc2hpcHMgdG8vZnJvbSBjb21wb25lbnRzCiAgICAgICAgIyBNYW5hZ2VyIHNlbmQgbWVzc2FnZQogICAgICAgIG1hbmFnZXJXZWJBcHBsaWNhdGlvbiAtPiBtYW5hZ2VySGFuZGxlclNlbmRNZXNzYWdlICJIVFRQIiAiUE9TVCIKICAgICAgICBtYW5hZ2VySGFuZGxlclNlbmRNZXNzYWdlIC0+IG1hbmFnZXJVc2VDYXNlU2VuZE1lc3NhZ2UgIlVzZXMiICJVc2VzIgogICAgICAgIG1hbmFnZXJVc2VDYXNlU2VuZE1lc3NhZ2UgLT4gbWVzc2FnZXNSZXBvc2l0b3J5ICJDcmVhdGVzIgogICAgICAgIG1hbmFnZXJVc2VDYXNlU2VuZE1lc3NhZ2UgLT4gcHJvYmxlbXNSZXBvc2l0b3J5ICJHZXQgYXNzaWduZWQgcHJvYmxlbSIKICAgICAgICBtYW5hZ2VydXNlQ2FzZVNlbmRNZXNzYWdlIC0+IG91dGJveFNlcnZpY2UgIlB1dCBqb2IiCiAgICAgICAgIyBNYW5hZ2VyIGdldCBjaGF0cwogICAgICAgIG1hbmFnZXJXZWJBcHBsaWNhdGlvbiAtPiBtYW5hZ2VySGFuZGxlckdldENoYXRzICJIVFRQIiAiR0VUIgogICAgICAgIG1hbmFnZXJIYW5kbGVyR2V0Q2hhdHMgLT4gbWFuYWdlclVzZUNhc2VHZXRDaGF0cyAiVXNlcyIgIlVzZXMiCiAgICAgICAgbWFuYWdlclVzZUNhc2VHZXRDaGF0cyAtPiBjaGF0c1JlcG9zaXRvcnkgIlVzZXMiICJSZWFkcyIKICAgICAgICAjIE1hbmFnZXIgZnJlZSBoYW5kcwogICAgICAgIG1hbmFnZXJXZWJBcHBsaWNhdGlvbiAtPiBtYW5hZ2VySGFuZGxlckZyZWVIYW5kcyAiSFRUUCIgIlBPU1QiCiAgICAgICAgbWFuYWdlckhhbmRsZXJGcmVlSGFuZHMgLT4gbWFuYWdlclVzZUNhc2VGcmVlSGFuZHMgIlVzZXMiCiAgICAgICAgbWFuYWdlclVzZUNhc2VGcmVlSGFuZHMgLT4gbWFuYWdlclBvb2xTZXJ2aWNlICJDb250YWlucyIKICAgICAgICBtYW5hZ2VyVXNlQ2FzZUZyZWVIYW5kcyAtPiBtYW5hZ2VyTG9hZFNlcnZpY2UgIkNhbk1hbmFnZXJUYWtlUHJvYmxlbSIKICAgICAgICAjIE1hbmFnZXIgY2FuIHRha2UgcHJvYmxlbQogICAgICAgIG1hbmFnZXJXZWJBcHBsaWNhdGlvbiAtPiBtYW5hZ2VySGFuZGxlckZyZWVIYW5kc0F2YWlsYWJpbGl0eSAiSFRUUCIgIlBPU1QiCiAgICAgICAgbWFuYWdlckhhbmRsZXJGcmVlSGFuZHNBdmFpbGFiaWxpdHkgLT4gbWFuYWdlclVzZUNhc2VDYW5SZWNlaXZlUHJvYmxlbSAiVXNlcyIKICAgICAgICBtYW5hZ2VyVXNlQ2FzZUNhblJlY2VpdmVQcm9ibGVtIC0+IG1hbmFnZXJQb29sU2VydmljZSAiQ29udGFpbnMiCiAgICAgICAgbWFuYWdlclVzZUNhc2VDYW5SZWNlaXZlUHJvYmxlbSAtPiBtYW5hZ2VyTG9hZFNlcnZpY2UgIkNhbk1hbmFnZXJUYWtlUHJvYmxlbSIKICAgICAgICAjIE1hbmFnZXIgY2xvc2UgY2hhdAogICAgICAgIG1hbmFnZXJXZWJBcHBsaWNhdGlvbiAtPiBtYW5hZ2VySGFuZGxlckNsb3NlQ2hhdCAiSFRUUCIgIlBPU1QiCiAgICAgICAgbWFuYWdlckhhbmRsZXJDbG9zZUNoYXQgLT4gbWFuYWdlclVzZUNhc2VDbG9zZUNoYXQgIlVzZXMiCiAgICAgICAgbWFuYWdlclVzZUNhc2VDbG9zZUNoYXQgLT4gY2hhdHNSZXBvc2l0b3J5ICJVc2VzIiAiR2V0IGNpZW50IElEIGJ5IGNoYXQgSUQiCiAgICAgICAgbWFuYWdlclVzZUNhc2VDbG9zZUNoYXQgLT4gcHJvYmxlbXNSZXBvc2l0b3J5ICJVc2VzIiAiUmVzb2x2ZSBhc3NpZ25lZCBwcm9ibGVtCiAgICAgICAgbWFuYWdlclVzZUNhc2VDbG9zZUNoYXQgLT4gbWVzc2FnZXNSZXBvc2l0b3J5ICJVc2VzIiAiQ3JlYXRlIHNlcnZpY2UgbWVzc2FnZSIKICAgICAgICBtYW5hZ2VyVXNlQ2FzZUNsb3NlQ2hhdCAtPiBvdXRib3hTZXJ2aWNlICJQdXQgam9iIgogICAgICAgICMgTWFuYWdlciBnZXQgY2hhdCBoaXN0b3J5CiAgICAgICAgbWFuYWdlcldlYkFwcGxpY2F0aW9uIC0+IG1hbmFnZXJIYW5kbGVyR2V0Q2hhdEhpc3RvcnkgIkhUVFAiICJHRVQiCiAgICAgICAgbWFuYWdlckhhbmRsZXJHZXRDaGF0SGlzdG9yeSAtPiBtYW5hZ2VyVXNlQ2FzZUdldENoYXRIaXN0b3J5ICJVc2VzIgogICAgICAgIG1hbmFnZXJVc2VDYXNlR2V0Q2hhdEhpc3RvcnkgLT4gcHJvYmxlbXNSZXBvc2l0b3J5ICJVc2VzIiAiR2V0IHVucmVzb2x2ZWQgcHJvYmxlbSIKICAgICAgICBtYW5hZ2VyVXNlQ2FzZUdldENoYXRIaXN0b3J5IC0+IG1lc3NhZ2VzUmVwb3NpdG9yeSAiVXNlcyIgIkdldCBwcm9ibGVtIG1lc3NhZ2VzIgoKICAgICAgICAjIFJlcG9zaXRvcmllcwogICAgICAgIHByb2JsZW1zUmVwb3NpdG9yeSAtPiBjaGF0RGF0YWJhc2UgIlVzZXMiICJSZWFkcywgd3JpdGVzIgogICAgICAgIGNoYXRzUmVwb3NpdG9yeSAtPiBjaGF0RGF0YWJhc2UgIlVzZXMiICJSZWFkcywgd3JpdGVzIgogICAgICAgIG1lc3NhZ2VzUmVwb3NpdG9yeSAtPiBjaGF0RGF0YWJhc2UgIlVzZXMiICJSZWFkcywgd3JpdGVzIgogICAgICAgIGpvYnNSZXBvc2l0b3J5IC0+IGNoYXREYXRhYmFzZSAiVXNlcyIgIlJlYWRzLCB3cml0ZXMiCgogICAgICAgICMgU2VydmljZXMKICAgICAgICBvdXRib3hTZXJ2aWNlIC0+IGpvYnNSZXBvc2l0b3J5ICJVc2VzIiAiUmVhZHMsIHdyaXRlcyIKICAgICAgICBhZmNQcm9jZXNzb3JTZXJ2aWNlIC0+IG1lc3NhZ2VzUmVwb3NpdG9yeSAiVmlzaWJsZSBmb3IgbWFuYWdlclxuIEJsb2NrIgogICAgICAgIGFmY1Byb2Nlc3NvclNlcnZpY2UgLT4gb3V0Ym94U2VydmljZSAiUHV0IGpvYiIKICAgICAgICBhZmNQcm9jZXNzb3JTZXJ2aWNlIC0+IGNoYXRRdWV1ZSAiVXNlcyIgIlJlYWRzLCB3cml0ZXMiCiAgICB9CgogICAgdmlld3MgewogICAgICAgIHRoZW1lIGh0dHBzOi8vc3RhdGljLnN0cnVjdHVyaXpyLmNvbS90aGVtZXMvZGVmYXVsdC90aGVtZS5qc29uCgogICAgICAgIHN0eWxlcyB7CiAgICAgICAgICAgIGVsZW1lbnQgIkV4dGVybmFsIFN5c3RlbSIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjOTk5OTk5CiAgICAgICAgICAgICAgICBjb2xvciAjZmZmZmZmCiAgICAgICAgICAgIH0KICAgICAgICAgICAgZWxlbWVudCAiV2ViIEJyb3dzZXIiIHsKICAgICAgICAgICAgICAgIHNoYXBlIFdlYkJyb3dzZXIKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJEYXRhYmFzZSIgewogICAgICAgICAgICAgICAgc2hhcGUgQ3lsaW5kZXIKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJRdWV1ZSIgewogICAgICAgICAgICAgICAgc2hhcGUgUGlwZQogICAgICAgICAgICB9CiAgICAgICAgfQoKICAgICAgICBzeXN0ZW1Db250ZXh0IGNoYXRTeXN0ZW0gIkNvbnRleHQiIHsKICAgICAgICAgICAgaW5jbHVkZSAqCiAgICAgICAgfQoKICAgICAgICBjb250YWluZXIgY2hhdFN5c3RlbSAiQ29udGFpbmVyIiB7CiAgICAgICAgICAgIGluY2x1ZGUgKgogICAgICAgIH0KCiAgICAgICAgY29tcG9uZW50IGNoYXQgIkNvbXBvbmVudCIgewogICAgICAgICAgICBpbmNsdWRlICoKICAgICAgICB9CiAgICB9CgogICAgY29uZmlndXJhdGlvbiB7CiAgICAgICAgc2NvcGUgc29mdHdhcmVzeXN0ZW0KICAgIH0KCn0K"
+  },
+  "configuration" : {
+    "scope" : "SoftwareSystem"
+  },
+  "model" : {
+    "people" : [ {
+      "id" : "1",
+      "tags" : "Element,Person",
+      "properties" : {
+        "structurizr.dsl.identifier" : "client"
+      },
+      "name" : "Client",
+      "description" : "Bank client who wants to solve a problem",
+      "relationships" : [ {
+        "id" : "35",
+        "tags" : "Relationship",
+        "properties" : {
+          "structurizr.dsl.identifier" : "8e56a956-35f9-4afa-9792-3abb94507158"
+        },
+        "sourceId" : "1",
+        "destinationId" : "4",
+        "description" : "Uses",
+        "technology" : "Sends, receives messages"
+      }, {
+        "id" : "31",
+        "tags" : "Relationship",
+        "properties" : {
+          "structurizr.dsl.identifier" : "6f74a299-48ff-4a6b-82de-c69e9bae3c0c"
+        },
+        "sourceId" : "1",
+        "destinationId" : "3",
+        "description" : "Uses",
+        "technology" : "Sends, receives messages"
+      } ],
+      "location" : "Unspecified"
+    }, {
+      "id" : "2",
+      "tags" : "Element,Person",
+      "properties" : {
+        "structurizr.dsl.identifier" : "manager"
+      },
+      "name" : "Manager",
+      "description" : "Bank manager who can solve the problem",
+      "relationships" : [ {
+        "id" : "36",
+        "tags" : "Relationship",
+        "properties" : {
+          "structurizr.dsl.identifier" : "0c3dadde-4550-4bf2-8d25-43d7fc482f10"
+        },
+        "sourceId" : "2",
+        "destinationId" : "5",
+        "description" : "Uses",
+        "technology" : "Receives, sends messages"
+      }, {
+        "id" : "32",
+        "tags" : "Relationship",
+        "properties" : {
+          "structurizr.dsl.identifier" : "ab5d6264-a966-4c0b-b923-dfeedca4803a"
+        },
+        "sourceId" : "2",
+        "destinationId" : "3",
+        "description" : "Uses",
+        "technology" : "Receives, sends messages"
+      } ],
+      "location" : "Unspecified"
+    } ],
+    "softwareSystems" : [ {
+      "id" : "30",
+      "tags" : "Element,Software System,External System",
+      "properties" : {
+        "structurizr.dsl.identifier" : "fpsystem"
+      },
+      "name" : "Fraud Prevention System",
+      "description" : "Monitors the appearance of fraud in the clients' messages",
+      "relationships" : [ {
+        "id" : "41",
+        "sourceId" : "30",
+        "destinationId" : "3",
+        "description" : "Uses",
+        "technology" : "Checks for fraud in messages",
+        "linkedRelationshipId" : "40"
+      }, {
+        "id" : "40",
+        "tags" : "Relationship",
+        "properties" : {
+          "structurizr.dsl.identifier" : "53c10302-0dea-49bf-9580-06a2f473327c"
+        },
+        "sourceId" : "30",
+        "destinationId" : "28",
+        "description" : "Uses",
+        "technology" : "Checks for fraud in messages"
+      } ],
+      "location" : "Unspecified",
+      "documentation" : { }
+    }, {
+      "id" : "29",
+      "tags" : "Element,Software System,External System",
+      "properties" : {
+        "structurizr.dsl.identifier" : "iamsystem"
+      },
+      "name" : "IAM System",
+      "description" : "System that allows clients, and managers to authenticate",
+      "location" : "Unspecified",
+      "documentation" : { }
+    }, {
+      "id" : "3",
+      "tags" : "Element,Software System",
+      "properties" : {
+        "structurizr.dsl.identifier" : "chatsystem"
+      },
+      "name" : "Bank Chat System",
+      "description" : "System that allows clients to chat with support managers",
+      "relationships" : [ {
+        "id" : "34",
+        "tags" : "Relationship",
+        "properties" : {
+          "structurizr.dsl.identifier" : "0f1c0b7b-22b4-475a-a1a3-ed18d5230b3f"
+        },
+        "sourceId" : "3",
+        "destinationId" : "30",
+        "description" : "Uses",
+        "technology" : "Checks for fraud in messages"
+      }, {
+        "id" : "33",
+        "tags" : "Relationship",
+        "properties" : {
+          "structurizr.dsl.identifier" : "7fb5e176-d49b-453d-bca2-f6ceca60e5bb"
+        },
+        "sourceId" : "3",
+        "destinationId" : "29",
+        "description" : "Uses",
+        "technology" : "Authenticates"
+      } ],
+      "location" : "Unspecified",
+      "containers" : [ {
+        "id" : "28",
+        "tags" : "Element,Container,Queue",
+        "properties" : {
+          "structurizr.dsl.identifier" : "chatqueue"
+        },
+        "name" : "Queue",
+        "description" : "Kafka",
+        "documentation" : { }
+      }, {
+        "id" : "4",
+        "tags" : "Element,Container,Web Browser",
+        "properties" : {
+          "structurizr.dsl.identifier" : "clientwebapplication"
+        },
+        "name" : "Client UI",
+        "description" : "Javascript",
+        "relationships" : [ {
+          "id" : "38",
+          "tags" : "Relationship",
+          "properties" : {
+            "structurizr.dsl.identifier" : "b3550deb-d97a-482b-b807-015f6bce1519"
+          },
+          "sourceId" : "4",
+          "destinationId" : "6",
+          "description" : "Uses",
+          "technology" : "Sends, receives messages"
+        } ],
+        "documentation" : { }
+      }, {
+        "id" : "5",
+        "tags" : "Element,Container,Web Browser",
+        "properties" : {
+          "structurizr.dsl.identifier" : "managerwebapplication"
+        },
+        "name" : "Manager UI",
+        "description" : "Javascript",
+        "relationships" : [ {
+          "id" : "52",
+          "tags" : "Relationship",
+          "properties" : {
+            "structurizr.dsl.identifier" : "e8ea0eec-97df-4473-a613-811d24761a16"
+          },
+          "sourceId" : "5",
+          "destinationId" : "9",
+          "description" : "HTTP",
+          "technology" : "POST"
+        }, {
+          "id" : "56",
+          "tags" : "Relationship",
+          "properties" : {
+            "structurizr.dsl.identifier" : "0b6e35a8-1a28-4c91-ab29-69ac44fe4fc0"
+          },
+          "sourceId" : "5",
+          "destinationId" : "10",
+          "description" : "HTTP",
+          "technology" : "POST"
+        }, {
+          "id" : "60",
+          "tags" : "Relationship",
+          "properties" : {
+            "structurizr.dsl.identifier" : "080d0db5-2866-4e4a-898c-450021b18484"
+          },
+          "sourceId" : "5",
+          "destinationId" : "12",
+          "description" : "HTTP",
+          "technology" : "POST"
+        }, {
+          "id" : "49",
+          "tags" : "Relationship",
+          "properties" : {
+            "structurizr.dsl.identifier" : "136d920f-6512-4419-9c17-275c71e69761"
+          },
+          "sourceId" : "5",
+          "destinationId" : "8",
+          "description" : "HTTP",
+          "technology" : "GET"
+        }, {
+          "id" : "44",
+          "tags" : "Relationship",
+          "properties" : {
+            "structurizr.dsl.identifier" : "d349b643-4a4a-4fbc-9fec-068a289f936f"
+          },
+          "sourceId" : "5",
+          "destinationId" : "7",
+          "description" : "HTTP",
+          "technology" : "POST"
+        }, {
+          "id" : "66",
+          "tags" : "Relationship",
+          "properties" : {
+            "structurizr.dsl.identifier" : "c0f2a132-f27e-42ac-8eef-2d70f34b2081"
+          },
+          "sourceId" : "5",
+          "destinationId" : "11",
+          "description" : "HTTP",
+          "technology" : "GET"
+        }, {
+          "id" : "37",
+          "tags" : "Relationship",
+          "properties" : {
+            "structurizr.dsl.identifier" : "bc35021d-247e-4a62-b91b-1964f49dc539"
+          },
+          "sourceId" : "5",
+          "destinationId" : "6",
+          "description" : "Uses",
+          "technology" : "Sends, receives messages"
+        } ],
+        "documentation" : { }
+      }, {
+        "id" : "6",
+        "tags" : "Element,Container",
+        "properties" : {
+          "structurizr.dsl.identifier" : "chat"
+        },
+        "name" : "Chat",
+        "description" : "Golang",
+        "relationships" : [ {
+          "id" : "39",
+          "tags" : "Relationship",
+          "properties" : {
+            "structurizr.dsl.identifier" : "3a1e7b2f-958f-4395-8b78-1360a35d5344"
+          },
+          "sourceId" : "6",
+          "destinationId" : "29",
+          "description" : "Uses",
+          "technology" : "Authenticates"
+        }, {
+          "id" : "43",
+          "tags" : "Relationship",
+          "properties" : {
+            "structurizr.dsl.identifier" : "1108d340-df4c-4064-be42-19931ea47f77"
+          },
+          "sourceId" : "6",
+          "destinationId" : "28",
+          "description" : "Uses",
+          "technology" : "Sends messages"
+        }, {
+          "id" : "42",
+          "tags" : "Relationship",
+          "properties" : {
+            "structurizr.dsl.identifier" : "5d1bddeb-b047-4257-8b63-ba33e2a315ce"
+          },
+          "sourceId" : "6",
+          "destinationId" : "27",
+          "description" : "Uses",
+          "technology" : "Stores messages"
+        } ],
+        "components" : [ {
+          "id" : "20",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "messagesrepository"
+          },
+          "name" : "Messages Repository",
+          "description" : "Entgo",
+          "relationships" : [ {
+            "id" : "72",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "6632f76b-3ab6-49c1-ac1e-279b859f90ce"
+            },
+            "sourceId" : "20",
+            "destinationId" : "27",
+            "description" : "Uses",
+            "technology" : "Reads, writes"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "24",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "managerloadservice"
+          },
+          "name" : "Manager Load Service",
+          "description" : "?",
+          "documentation" : { }
+        }, {
+          "id" : "25",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "afcprocessorservice"
+          },
+          "name" : "AFC Processor Service",
+          "description" : "Golang",
+          "relationships" : [ {
+            "id" : "76",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "b85bcb80-943a-4dab-aec1-5b046fcef1c3"
+            },
+            "sourceId" : "25",
+            "destinationId" : "26",
+            "description" : "Put job"
+          }, {
+            "id" : "75",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "9d9f70f4-3850-4c26-97cb-b426166b81a9"
+            },
+            "sourceId" : "25",
+            "destinationId" : "20",
+            "description" : "Visible for manager\n Block"
+          }, {
+            "id" : "77",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "a353e50b-6b12-4e8f-be59-9c92a5075cfc"
+            },
+            "sourceId" : "25",
+            "destinationId" : "28",
+            "description" : "Uses",
+            "technology" : "Reads, writes"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "26",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "outboxservice"
+          },
+          "name" : "Outbox Service",
+          "description" : "Golang",
+          "relationships" : [ {
+            "id" : "74",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "6a776f51-b73c-419e-8a3e-cb9427695fae"
+            },
+            "sourceId" : "26",
+            "destinationId" : "22",
+            "description" : "Uses",
+            "technology" : "Reads, writes"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "22",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "jobsrepository"
+          },
+          "name" : "Jobs Repository",
+          "description" : "Entgo",
+          "relationships" : [ {
+            "id" : "73",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "1b50c7bb-c3ee-4447-9e84-ee9719d5f586"
+            },
+            "sourceId" : "22",
+            "destinationId" : "27",
+            "description" : "Uses",
+            "technology" : "Reads, writes"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "12",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "managerhandlerclosechat"
+          },
+          "name" : "Handler\n CloseChat",
+          "description" : "Golang",
+          "relationships" : [ {
+            "id" : "61",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "8b98bef1-83f4-4630-a739-011af51c92b7"
+            },
+            "sourceId" : "12",
+            "destinationId" : "18",
+            "description" : "Uses"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "18",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "managerusecaseclosechat"
+          },
+          "name" : "Use Case\n CloseChat",
+          "description" : "Golang",
+          "relationships" : [ {
+            "id" : "63",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "20437bdc-3a04-409c-8b1d-01870b445f01"
+            },
+            "sourceId" : "18",
+            "destinationId" : "19",
+            "description" : "Uses",
+            "technology" : "Resolve assigned problem"
+          }, {
+            "id" : "64",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "0c44d903-cb3e-4185-824a-5348684b97ef"
+            },
+            "sourceId" : "18",
+            "destinationId" : "20",
+            "description" : "Uses",
+            "technology" : "Create service message"
+          }, {
+            "id" : "62",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "41b1cdc6-d65d-41a8-a1ff-af8a47797b10"
+            },
+            "sourceId" : "18",
+            "destinationId" : "21",
+            "description" : "Uses",
+            "technology" : "Get cient ID by chat ID"
+          }, {
+            "id" : "65",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "5e35f91a-7f79-4d1b-9581-e9832318b95c"
+            },
+            "sourceId" : "18",
+            "destinationId" : "26",
+            "description" : "Put job"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "9",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "managerhandlerfreehands"
+          },
+          "name" : "Handler\n FreeHands",
+          "description" : "Golang",
+          "relationships" : [ {
+            "id" : "53",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "c8eb9245-02a0-494b-892f-21fb77b30533"
+            },
+            "sourceId" : "9",
+            "destinationId" : "15",
+            "description" : "Uses"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "17",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "managerusecasegetchathistory"
+          },
+          "name" : "Use Case\n GetChatHistory",
+          "description" : "Golang",
+          "relationships" : [ {
+            "id" : "68",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "30fe76ba-6dee-438a-90ff-5d1bf25ac796"
+            },
+            "sourceId" : "17",
+            "destinationId" : "19",
+            "description" : "Uses",
+            "technology" : "Get unresolved problem"
+          }, {
+            "id" : "69",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "74e522ce-843a-48f0-b679-646eb6848110"
+            },
+            "sourceId" : "17",
+            "destinationId" : "20",
+            "description" : "Uses",
+            "technology" : "Get problem messages"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "11",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "managerhandlergetchathistory"
+          },
+          "name" : "Handler\n GetChatHistory",
+          "description" : "Golang",
+          "relationships" : [ {
+            "id" : "67",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "5974a5c6-acdf-4bec-a40d-7c3b265de8e9"
+            },
+            "sourceId" : "11",
+            "destinationId" : "17",
+            "description" : "Uses"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "23",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "managerpoolservice"
+          },
+          "name" : "Manager Pool Service",
+          "description" : "In-memory",
+          "documentation" : { }
+        }, {
+          "id" : "16",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "managerusecasecanreceiveproblem"
+          },
+          "name" : "Use Case\n CanReceiveProblem",
+          "description" : "Golang",
+          "relationships" : [ {
+            "id" : "59",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "6adbf9f2-bd07-4fce-9f4b-3f97c0f2955a"
+            },
+            "sourceId" : "16",
+            "destinationId" : "24",
+            "description" : "CanManagerTakeProblem"
+          }, {
+            "id" : "58",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "176433b5-a9f4-4498-aa91-3d21e23998f0"
+            },
+            "sourceId" : "16",
+            "destinationId" : "23",
+            "description" : "Contains"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "8",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "managerhandlergetchats"
+          },
+          "name" : "Handler\n GetChats",
+          "description" : "Golang",
+          "relationships" : [ {
+            "id" : "50",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "d8248e40-f086-4539-bbce-d2844812b21e"
+            },
+            "sourceId" : "8",
+            "destinationId" : "14",
+            "description" : "Uses",
+            "technology" : "Uses"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "15",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "managerusecasefreehands"
+          },
+          "name" : "Use Case\n FreeHands",
+          "description" : "Golang",
+          "relationships" : [ {
+            "id" : "54",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "d1969e5d-9ad1-4398-a11d-21e5329e5b01"
+            },
+            "sourceId" : "15",
+            "destinationId" : "23",
+            "description" : "Contains"
+          }, {
+            "id" : "55",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "68bcdcf6-0c5d-4912-9870-96dd4b22748f"
+            },
+            "sourceId" : "15",
+            "destinationId" : "24",
+            "description" : "CanManagerTakeProblem"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "10",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "managerhandlerfreehandsavailability"
+          },
+          "name" : "Handler\n FreeHandsAvailability",
+          "description" : "Golang",
+          "relationships" : [ {
+            "id" : "57",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "1721ac18-fa2f-4bdb-9536-69a0217b4188"
+            },
+            "sourceId" : "10",
+            "destinationId" : "16",
+            "description" : "Uses"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "21",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "chatsrepository"
+          },
+          "name" : "Chats Repository",
+          "description" : "Entgo",
+          "relationships" : [ {
+            "id" : "71",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "50e0b93a-c605-41ab-8d4a-a87240441bac"
+            },
+            "sourceId" : "21",
+            "destinationId" : "27",
+            "description" : "Uses",
+            "technology" : "Reads, writes"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "14",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "managerusecasegetchats"
+          },
+          "name" : "Use Case\n GetChats",
+          "description" : "Golang",
+          "relationships" : [ {
+            "id" : "51",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "adaa70b0-6f28-43ce-b57c-00a692dd905b"
+            },
+            "sourceId" : "14",
+            "destinationId" : "21",
+            "description" : "Uses",
+            "technology" : "Reads"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "7",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "managerhandlersendmessage"
+          },
+          "name" : "Handler\n SendMessage",
+          "description" : "Golang",
+          "relationships" : [ {
+            "id" : "45",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "b40c4f72-c974-4472-bb72-5dcadeee0b8c"
+            },
+            "sourceId" : "7",
+            "destinationId" : "13",
+            "description" : "Uses",
+            "technology" : "Uses"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "19",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "problemsrepository"
+          },
+          "name" : "Problems Repository",
+          "description" : "Entgo",
+          "relationships" : [ {
+            "id" : "70",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "4ee9a491-7438-4f7d-8fe0-4c2e04174642"
+            },
+            "sourceId" : "19",
+            "destinationId" : "27",
+            "description" : "Uses",
+            "technology" : "Reads, writes"
+          } ],
+          "documentation" : { }
+        }, {
+          "id" : "13",
+          "tags" : "Element,Component",
+          "properties" : {
+            "structurizr.dsl.identifier" : "managerusecasesendmessage"
+          },
+          "name" : "Use Case\n SendMessage",
+          "description" : "Golang",
+          "relationships" : [ {
+            "id" : "46",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "d5f380f6-1dd3-4cb9-a03b-c249d7cb2c0d"
+            },
+            "sourceId" : "13",
+            "destinationId" : "20",
+            "description" : "Creates"
+          }, {
+            "id" : "48",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "daadb3b6-2d8e-479d-b45e-917e5b32fc42"
+            },
+            "sourceId" : "13",
+            "destinationId" : "26",
+            "description" : "Put job"
+          }, {
+            "id" : "47",
+            "tags" : "Relationship",
+            "properties" : {
+              "structurizr.dsl.identifier" : "1e74c7ad-3725-43ff-b68f-f79d859785b6"
+            },
+            "sourceId" : "13",
+            "destinationId" : "19",
+            "description" : "Get assigned problem"
+          } ],
+          "documentation" : { }
+        } ],
+        "documentation" : { }
+      }, {
+        "id" : "27",
+        "tags" : "Element,Container,Database",
+        "properties" : {
+          "structurizr.dsl.identifier" : "chatdatabase"
+        },
+        "name" : "Database",
+        "description" : "PostgreSQL",
+        "documentation" : { }
+      } ],
+      "documentation" : { }
+    } ]
+  },
+  "documentation" : { },
+  "views" : {
+    "systemContextViews" : [ {
+      "key" : "Context",
+      "order" : 1,
+      "softwareSystemId" : "3",
+      "paperSize" : "A5_Portrait",
+      "dimensions" : {
+        "width" : 1616,
+        "height" : 2016
+      },
+      "enterpriseBoundaryVisible" : true,
+      "elements" : [ {
+        "id" : "1",
+        "x" : 258,
+        "y" : 208
+      }, {
+        "id" : "2",
+        "x" : 958,
+        "y" : 208
+      }, {
+        "id" : "3",
+        "x" : 583,
+        "y" : 908
+      }, {
+        "id" : "29",
+        "x" : 208,
+        "y" : 1508
+      }, {
+        "id" : "30",
+        "x" : 958,
+        "y" : 1508
+      } ],
+      "relationships" : [ {
+        "id" : "41",
+        "vertices" : [ {
+          "x" : 1122,
+          "y" : 1278
+        } ]
+      }, {
+        "id" : "34",
+        "vertices" : [ {
+          "x" : 868,
+          "y" : 1437
+        } ]
+      }, {
+        "id" : "33"
+      }, {
+        "id" : "32"
+      }, {
+        "id" : "31"
+      } ]
+    } ],
+    "containerViews" : [ {
+      "key" : "Container",
+      "order" : 2,
+      "softwareSystemId" : "3",
+      "paperSize" : "A4_Landscape",
+      "dimensions" : {
+        "width" : 3220,
+        "height" : 2425
+      },
+      "externalSoftwareSystemBoundariesVisible" : true,
+      "elements" : [ {
+        "id" : "1",
+        "x" : 208,
+        "y" : 717
+      }, {
+        "id" : "2",
+        "x" : 208,
+        "y" : 1317
+      }, {
+        "id" : "4",
+        "x" : 958,
+        "y" : 717
+      }, {
+        "id" : "5",
+        "x" : 958,
+        "y" : 1317
+      }, {
+        "id" : "27",
+        "x" : 2458,
+        "y" : 1317
+      }, {
+        "id" : "6",
+        "x" : 1710,
+        "y" : 1050
+      }, {
+        "id" : "28",
+        "x" : 2458,
+        "y" : 717
+      }, {
+        "id" : "29",
+        "x" : 1720,
+        "y" : 1945
+      }, {
+        "id" : "30",
+        "x" : 2455,
+        "y" : 185
+      } ],
+      "relationships" : [ {
+        "id" : "37"
+      }, {
+        "id" : "36"
+      }, {
+        "id" : "40"
+      }, {
+        "id" : "35"
+      }, {
+        "id" : "42"
+      }, {
+        "id" : "43"
+      }, {
+        "id" : "38"
+      }, {
+        "id" : "39"
+      } ]
+    } ],
+    "componentViews" : [ {
+      "key" : "Component",
+      "order" : 3,
+      "dimensions" : {
+        "width" : 5816,
+        "height" : 3761
+      },
+      "containerId" : "6",
+      "externalContainerBoundariesVisible" : true,
+      "elements" : [ {
+        "id" : "22",
+        "x" : 3259,
+        "y" : 1661
+      }, {
+        "id" : "11",
+        "x" : 1834,
+        "y" : 609
+      }, {
+        "id" : "23",
+        "x" : 3251,
+        "y" : 2548
+      }, {
+        "id" : "12",
+        "x" : 1814,
+        "y" : 1639
+      }, {
+        "id" : "24",
+        "x" : 3252,
+        "y" : 3345
+      }, {
+        "id" : "13",
+        "x" : 2449,
+        "y" : 1064
+      }, {
+        "id" : "25",
+        "x" : 2424,
+        "y" : 44
+      }, {
+        "id" : "14",
+        "x" : 2502,
+        "y" : 2145
+      }, {
+        "id" : "26",
+        "x" : 3400,
+        "y" : 1101
+      }, {
+        "id" : "15",
+        "x" : 2506,
+        "y" : 2543
+      }, {
+        "id" : "27",
+        "x" : 4364,
+        "y" : 1261
+      }, {
+        "id" : "16",
+        "x" : 2502,
+        "y" : 3345
+      }, {
+        "id" : "17",
+        "x" : 2449,
+        "y" : 614
+      }, {
+        "id" : "28",
+        "x" : 3990,
+        "y" : 66
+      }, {
+        "id" : "18",
+        "x" : 2489,
+        "y" : 1634
+      }, {
+        "id" : "19",
+        "x" : 3385,
+        "y" : 236
+      }, {
+        "id" : "5",
+        "x" : 1002,
+        "y" : 1453
+      }, {
+        "id" : "7",
+        "x" : 1834,
+        "y" : 1059
+      }, {
+        "id" : "8",
+        "x" : 1809,
+        "y" : 2129
+      }, {
+        "id" : "9",
+        "x" : 1821,
+        "y" : 2538
+      }, {
+        "id" : "20",
+        "x" : 3400,
+        "y" : 676
+      }, {
+        "id" : "21",
+        "x" : 3234,
+        "y" : 2131
+      }, {
+        "id" : "10",
+        "x" : 1836,
+        "y" : 2963
+      } ],
+      "relationships" : [ {
+        "id" : "70"
+      }, {
+        "id" : "72"
+      }, {
+        "id" : "71"
+      }, {
+        "id" : "50"
+      }, {
+        "id" : "51"
+      }, {
+        "id" : "74",
+        "vertices" : [ {
+          "x" : 3550,
+          "y" : 1491
+        } ]
+      }, {
+        "id" : "73",
+        "vertices" : [ {
+          "x" : 4204,
+          "y" : 1426
+        } ]
+      }, {
+        "id" : "52",
+        "vertices" : [ {
+          "x" : 1635,
+          "y" : 2320
+        } ]
+      }, {
+        "id" : "76"
+      }, {
+        "id" : "53"
+      }, {
+        "id" : "54"
+      }, {
+        "id" : "75"
+      }, {
+        "id" : "44",
+        "vertices" : [ {
+          "x" : 1659,
+          "y" : 1459
+        } ]
+      }, {
+        "id" : "67"
+      }, {
+        "id" : "66",
+        "vertices" : [ {
+          "x" : 1684,
+          "y" : 809
+        } ]
+      }, {
+        "id" : "45"
+      }, {
+        "id" : "69"
+      }, {
+        "id" : "46"
+      }, {
+        "id" : "68"
+      }, {
+        "id" : "47"
+      }, {
+        "id" : "48"
+      }, {
+        "id" : "49"
+      }, {
+        "id" : "61"
+      }, {
+        "id" : "60"
+      }, {
+        "id" : "63"
+      }, {
+        "id" : "62"
+      }, {
+        "id" : "65"
+      }, {
+        "id" : "64"
+      }, {
+        "id" : "55",
+        "vertices" : [ {
+          "x" : 3190,
+          "y" : 3045
+        } ]
+      }, {
+        "id" : "56",
+        "vertices" : [ {
+          "x" : 1655,
+          "y" : 2805
+        } ]
+      }, {
+        "id" : "77",
+        "vertices" : [ {
+          "x" : 3090,
+          "y" : 146
+        }, {
+          "x" : 3280,
+          "y" : 131
+        } ]
+      }, {
+        "id" : "57"
+      }, {
+        "id" : "58",
+        "vertices" : [ {
+          "x" : 2890,
+          "y" : 3060
+        } ]
+      }, {
+        "id" : "59"
+      } ]
+    } ],
+    "configuration" : {
+      "branding" : { },
+      "styles" : {
+        "elements" : [ {
+          "tag" : "External System",
+          "background" : "#999999",
+          "color" : "#ffffff"
+        }, {
+          "tag" : "Web Browser",
+          "shape" : "WebBrowser"
+        }, {
+          "tag" : "Database",
+          "shape" : "Cylinder"
+        }, {
+          "tag" : "Queue",
+          "shape" : "Pipe"
+        } ]
+      },
+      "themes" : [ "https://static.structurizr.com/themes/default/theme.json" ],
+      "terminology" : { },
+      "metadataSymbols" : "SquareBrackets",
+      "lastSavedView" : "Component"
+    }
+  }
+}

@@ -5,16 +5,16 @@ import "time"
 // Documentation https://pkg.go.dev/github.com/go-playground/validator/v10
 
 type Config struct {
-	Global   GlobalConfig   `toml:"global"`
-	Log      LogConfig      `toml:"log"`
-	Clients  ClientsConfig  `toml:"clients"`
-	Servers  ServersConfig  `toml:"servers"`
-	Services ServicesConfig `toml:"services"`
-	Sentry   SentryConfig   `toml:"sentry"`
+	Global   GlobalConfig   `fig:"global"`
+	Log      LogConfig      `fig:"log"`
+	Clients  ClientsConfig  `fig:"clients"`
+	Servers  ServersConfig  `fig:"servers"`
+	Services ServicesConfig `fig:"services"`
+	Sentry   SentryConfig   `fig:"sentry"`
 }
 
 type GlobalConfig struct {
-	Env string `toml:"env" validate:"required,oneof=dev stage prod"`
+	Env string `fig:"env" validate:"required,oneof=dev stage prod"`
 }
 
 func (gc GlobalConfig) IsProduction() bool {
@@ -22,97 +22,97 @@ func (gc GlobalConfig) IsProduction() bool {
 }
 
 type LogConfig struct {
-	Level string `toml:"level" validate:"required,oneof=debug info warn error"`
+	Level string `fig:"level" validate:"required,oneof=debug info warn error"`
 }
 
 type ClientsConfig struct {
-	Keycloak KeycloakClientConfig `toml:"keycloak" validate:"required"`
-	Postgres PostgresClientConfig `toml:"postgres" validate:"required"`
+	Keycloak KeycloakClientConfig `fig:"keycloak" validate:"required"`
+	Postgres PostgresClientConfig `fig:"postgres" validate:"required"`
 }
 
 type KeycloakClientConfig struct {
-	BasePath     string `toml:"base_path" validate:"required,url"`
-	Realm        string `toml:"realm" validate:"required"`
-	ClientID     string `toml:"client_id" validate:"required"`
-	ClientSecret string `toml:"client_secret" validate:"required"`
-	DebugMode    bool   `toml:"debug_mode"`
+	BasePath     string `fig:"base_path" validate:"required,url"`
+	Realm        string `fig:"realm" validate:"required"`
+	ClientID     string `fig:"client_id" validate:"required"`
+	ClientSecret string `fig:"client_secret" validate:"required"`
+	DebugMode    bool   `fig:"debug_mode"`
 }
 
 type PostgresClientConfig struct {
-	Address   string `toml:"address" validate:"required,hostname_port"`
-	Username  string `toml:"username" validate:"required"`
-	Password  string `toml:"password" validate:"required"`
-	Database  string `toml:"database" validate:"required"`
-	DebugMode bool   `toml:"debug_mode"`
+	Address   string `fig:"address" validate:"required,hostname_port"`
+	Username  string `fig:"username" validate:"required"`
+	Password  string `fig:"password" validate:"required"`
+	Database  string `fig:"database" validate:"required"`
+	DebugMode bool   `fig:"debug_mode"`
 }
 
 type ServersConfig struct {
-	Client  ClientServerConfig  `toml:"client"`
-	Manager ManagerServerConfig `toml:"manager"`
-	Debug   DebugServerConfig   `toml:"debug"`
+	Client  ClientServerConfig  `fig:"client"`
+	Manager ManagerServerConfig `fig:"manager"`
+	Debug   DebugServerConfig   `fig:"debug"`
 }
 
 type ClientServerConfig struct {
-	Addr           string               `toml:"addr" validate:"required,hostname_port"`
-	AllowOrigins   []string             `toml:"allow_origins" validate:"dive,required,http_url"`
-	RequiredAccess RequiredAccessConfig `toml:"required_access"`
-	SecWsProtocol  string               `toml:"sec_ws_protocol" validate:"required"`
+	Addr           string               `fig:"addr" validate:"required,hostname_port"`
+	AllowOrigins   []string             `fig:"allow_origins" validate:"dive,required,http_url"`
+	RequiredAccess RequiredAccessConfig `fig:"required_access"`
+	SecWsProtocol  string               `fig:"sec_ws_protocol" validate:"required"`
 }
 
 type ManagerServerConfig struct {
-	Addr           string               `toml:"addr" validate:"required,hostname_port"`
-	AllowOrigins   []string             `toml:"allow_origins" validate:"dive,required,http_url"`
-	RequiredAccess RequiredAccessConfig `toml:"required_access"`
-	SecWsProtocol  string               `toml:"sec_ws_protocol" validate:"required"`
+	Addr           string               `fig:"addr" validate:"required,hostname_port"`
+	AllowOrigins   []string             `fig:"allow_origins" validate:"dive,required,http_url"`
+	RequiredAccess RequiredAccessConfig `fig:"required_access"`
+	SecWsProtocol  string               `fig:"sec_ws_protocol" validate:"required"`
 }
 
 type RequiredAccessConfig struct {
-	Resource string `toml:"resource" validate:"required"`
-	Role     string `toml:"role" validate:"required"`
+	Resource string `fig:"resource" validate:"required"`
+	Role     string `fig:"role" validate:"required"`
 }
 
 type DebugServerConfig struct {
-	Addr string `toml:"addr" validate:"required,hostname_port"`
+	Addr string `fig:"addr" validate:"required,hostname_port"`
 }
 
 type ServicesConfig struct {
-	MsgProducer                 MsgProducerServiceConfig    `toml:"msg_producer"`
-	ManagerLoad                 ManagerLoadService          `toml:"manager_load"`
-	OutboxService               OutboxService               `toml:"outbox"`
-	AFCVerdictsProcessorService AFCVerdictsProcessorService `toml:"afc_verdicts_processor"`
-	ManagerSchedulerService     ManagerSchedulerService     `toml:"manager_scheduler"`
+	MsgProducer                 MsgProducerServiceConfig    `fig:"msg_producer"`
+	ManagerLoad                 ManagerLoadService          `fig:"manager_load"`
+	OutboxService               OutboxService               `fig:"outbox"`
+	AFCVerdictsProcessorService AFCVerdictsProcessorService `fig:"afc_verdicts_processor"`
+	ManagerSchedulerService     ManagerSchedulerService     `fig:"manager_scheduler"`
 }
 
 type MsgProducerServiceConfig struct {
-	Brokers    []string `toml:"brokers" validate:"dive,required,hostname_port"`
-	Topic      string   `toml:"topic" validate:"required"`
-	BatchSize  int      `toml:"batch_size" validate:"min=1"`
-	EncryptKey string   `toml:"encrypt_key" validate:"omitempty,hexadecimal"`
+	Brokers    []string `fig:"brokers" validate:"dive,required,hostname_port"`
+	Topic      string   `fig:"topic" validate:"required"`
+	BatchSize  int      `fig:"batch_size" validate:"min=1"`
+	EncryptKey string   `fig:"encrypt_key" validate:"omitempty,hexadecimal"`
 }
 
 type ManagerLoadService struct {
-	MaxProblemsAtSameTime int `toml:"max_problems_at_same_time" validate:"min=1"`
+	MaxProblemsAtSameTime int `fig:"max_problems_at_same_time" validate:"min=1"`
 }
 
 type ManagerSchedulerService struct {
-	IdleDuration time.Duration `toml:"idle_duration" validate:"min=100ms,max=1m"`
+	IdleDuration time.Duration `fig:"idle_duration" validate:"min=100ms,max=1m"`
 }
 
 type OutboxService struct {
-	Workers    int           `toml:"workers" validate:"min=1"`
-	IdleTime   time.Duration `toml:"idle_time" validate:"required"`
-	ReserveFor time.Duration `toml:"reserve_for" validate:"required"`
+	Workers    int           `fig:"workers" validate:"min=1"`
+	IdleTime   time.Duration `fig:"idle_time" validate:"required"`
+	ReserveFor time.Duration `fig:"reserve_for" validate:"required"`
 }
 
 type AFCVerdictsProcessorService struct {
-	Brokers               []string `toml:"brokers" validate:"dive,required,hostname_port"`
-	Consumers             int      `toml:"consumers" validate:"min=1,max=16"`
-	ConsumerGroup         string   `toml:"consumer_group" validate:"required"`
-	VerdictsTopic         string   `toml:"verdicts_topic" validate:"required"`
-	VerdictsSignPublicKey string   `toml:"verdicts_signing_public_key" validate:"omitempty,min=1"`
-	VerdictsDLQTopic      string   `toml:"verdicts_dlq_topic" validate:"required"`
+	Brokers               []string `fig:"brokers" validate:"dive,required,hostname_port"`
+	Consumers             int      `fig:"consumers" validate:"min=1,max=16"`
+	ConsumerGroup         string   `fig:"consumer_group" validate:"required"`
+	VerdictsTopic         string   `fig:"verdicts_topic" validate:"required"`
+	VerdictsSignPublicKey string   `fig:"verdicts_signing_public_key" validate:"omitempty,min=1"`
+	VerdictsDLQTopic      string   `fig:"verdicts_dlq_topic" validate:"required"`
 }
 
 type SentryConfig struct {
-	DSN string `toml:"dsn" validate:"omitempty,http_url"`
+	DSN string `fig:"dsn" validate:"omitempty,http_url"`
 }

@@ -8,6 +8,7 @@ vars:
     docker-compose.yml
     docker-compose.sentry.yml
     docker-compose.swagger-ui.yml
+    docker-compose.structurizr-ui.yml
   DOCKER_COMPOSE_CMD: |-
     docker compose {{range $file := .DOCKER_COMPOSE_FILES | splitLines -}} -f ./deploy/local/{{$file}} {{end}}
 
@@ -57,6 +58,8 @@ tasks:
       - "{{.DOCKER_COMPOSE_CMD}} logs {{.CLI_ARGS}}"
 
   deps:stop:
+    env:
+      COMPOSE_PROFILES: "swagger-ui,structurizr-ui"
     cmds:
       - "{{.DOCKER_COMPOSE_CMD}} stop"
 
@@ -89,6 +92,24 @@ tasks:
     status:
       - test -f .env
       - grep SENTRY_SECRET_KEY .env
+
+  deps:swagger-ui:
+    aliases: [ deps:swagger ]
+    desc: "Start Swagger UI"
+    env:
+      COMPOSE_PROFILES: swagger-ui
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} up -d swagger-ui"
+      - echo "Swagger UI is available at http://localhost:8080"
+
+  deps:structurizr-ui:
+    aliases: [ deps:structurizr ]
+    desc: "Start Structurizr UI"
+    env:
+      COMPOSE_PROFILES: structurizr-ui
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} up -d structurizr-ui"
+      - echo "Structurizr UI is available at http://localhost:8070"
 
   tidy:
     - echo "- Tidy"
@@ -227,6 +248,22 @@ tasks:
       - "mkdir -p {{.DST_DIR}}"
       - "{{.TOOLS_DIR}}/oapi-codegen --old-config-style -generate skip-prune,types -package {{.PKG}} {{.SRC}} > {{.DST}}"
 
+  gen:deps-graph:
+    vars:
+      INCLUDE: |-
+        ./internal/server/...
+        ./internal/server-manager/...
+        ./internal/server-client/...
+        ./internal/usecases/...
+        ./internal/services/...
+        ./internal/repositories/...
+        ./internal/store
+        ./internal/store/gen
+      EXCLUDE: |-
+        - ./internal/types
+    cmds:
+      - '{{.TOOLS_DIR}}/goda graph -cluster -short "{{.INCLUDE | splitLines | join " "}} {{.EXCLUDE | splitLines | join " " }}" | dot -Tpng -o docs/dependency-graph.png'
+
   ent:new:
     cmds:
       - "{{.TOOLS_DIR}}/ent new --target {{.ENT_SCHEMA}} {{.CLI_ARGS}}"
@@ -296,10 +333,13 @@ tasks:
         github.com/daixiang0/gci@v0.11.2
         github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.15.0
         github.com/kazhuravlev/options-gen/cmd/options-gen@v0.30.0
+        github.com/loov/goda@v0.5.7
         github.com/onsi/ginkgo/v2/ginkgo@v2.13.0
         go.uber.org/mock/mockgen@v0.3.0
         mvdan.cc/gofumpt@v0.5.0
         entgo.io/ent/cmd/ent@v0.12.4
+    env:
+      CGO_ENABLED: 0
     cmds:
       - echo "- Install dev tools"
       - mkdir -p "{{.TOOLS_DIR}}"
