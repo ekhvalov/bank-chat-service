@@ -8,7 +8,7 @@ vars:
     docker-compose.yml
     docker-compose.sentry.yml
     docker-compose.swagger-ui.yml
-    docker-compose.structurizr.yml
+    docker-compose.structurizr-ui.yml
   DOCKER_COMPOSE_CMD: |-
     docker compose {{range $file := .DOCKER_COMPOSE_FILES | splitLines -}} -f ./deploy/local/{{$file}} {{end}}
 
@@ -58,6 +58,8 @@ tasks:
       - "{{.DOCKER_COMPOSE_CMD}} logs {{.CLI_ARGS}}"
 
   deps:stop:
+    env:
+      COMPOSE_PROFILES: "swagger-ui,structurizr-ui"
     cmds:
       - "{{.DOCKER_COMPOSE_CMD}} stop"
 
@@ -90,6 +92,24 @@ tasks:
     status:
       - test -f .env
       - grep SENTRY_SECRET_KEY .env
+
+  deps:swagger-ui:
+    aliases: [ deps:swagger ]
+    desc: "Start Swagger UI"
+    env:
+      COMPOSE_PROFILES: swagger-ui
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} up -d swagger-ui"
+      - echo "Swagger UI is available at http://localhost:8080"
+
+  deps:structurizr-ui:
+    aliases: [ deps:structurizr ]
+    desc: "Start Structurizr UI"
+    env:
+      COMPOSE_PROFILES: structurizr-ui
+    cmds:
+      - "{{.DOCKER_COMPOSE_CMD}} up -d structurizr-ui"
+      - echo "Structurizr UI is available at http://localhost:8070"
 
   tidy:
     - echo "- Tidy"
