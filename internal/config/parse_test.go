@@ -26,8 +26,8 @@ func TestParseAndValidate(t *testing.T) {
 	assert.NotEmpty(t, cfg.Log.Level)
 }
 
-func TestParseAndValidateWithEnv(t *testing.T) {
-	assert.NoError(t, os.Setenv(fmt.Sprintf("%s_LOG_LEVEL", config.EnvPrefix), "debug"))
+func TestParseAndValidate_ReplaceLogLevelByEnv(t *testing.T) {
+	require.NoError(t, os.Setenv(fmt.Sprintf("%s_LOG_LEVEL", config.EnvPrefix), "debug"))
 	cfg, err := config.ParseAndValidate(configExamplePath)
 	require.NoError(t, err)
 	assert.NotEmpty(t, cfg.Log.Level)
