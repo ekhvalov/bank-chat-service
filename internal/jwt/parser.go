@@ -1,4 +1,4 @@
-package middlewares
+package internaljwt
 
 import (
 	"fmt"
@@ -6,12 +6,12 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-//go:generate mockgen -source=$GOFILE -destination=mocks/keycloak_mock.gen.go -typed -package=middlewaresmocks
+//go:generate mockgen -source=$GOFILE -destination=mocks/parser_mock.gen.go -typed -package=jwtmocks
 type KeyFuncProvider interface {
 	Keyfunc(token *jwt.Token) (any, error)
 }
 
-//go:generate options-gen -out-filename=keycloak_jwt_parser_options.gen.go -from-struct=JWTParserOptions
+//go:generate options-gen -out-filename=parser_options.gen.go -from-struct=JWTParserOptions
 type JWTParserOptions struct {
 	keyFuncProvider KeyFuncProvider `option:"mandatory" validate:"required"`
 	issuer          string          `option:"mandatory" validate:"required"`
@@ -31,8 +31,6 @@ func NewJWTParser(opts JWTParserOptions) (*JWTParser, error) {
 		),
 	}, nil
 }
-
-// q: write documentation
 
 type JWTParser struct {
 	JWTParserOptions

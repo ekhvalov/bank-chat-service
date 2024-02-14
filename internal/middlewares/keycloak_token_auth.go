@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -10,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	keycloakclient "github.com/ekhvalov/bank-chat-service/internal/clients/keycloak"
+	internaljwt "github.com/ekhvalov/bank-chat-service/internal/jwt"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 )
 
@@ -18,28 +17,15 @@ const tokenCtxKey = "user-token"
 
 var ErrNoRequiredResourceRole = errors.New("no required resource role")
 
-type Introspector interface {
-	IntrospectToken(ctx context.Context, token string) (*keycloakclient.IntrospectTokenResult, error)
-}
-
 // NewKeycloakTokenAuth returns a middleware that implements "active" authentication:
 // each request is verified by the Keycloak server.
-func NewKeycloakTokenAuth(parser *JWTParser, resource, role, secWsProtocol string) echo.MiddlewareFunc {
+func NewKeycloakTokenAuth(parser *internaljwt.JWTParser, resource, role, secWsProtocol string) echo.MiddlewareFunc {
 	return middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		// KeyLookup:  "header:" + echo.HeaderAuthorization,
 		KeyLookup: "header:Authorization,header:Sec-WebSocket-Protocol",
-		// AuthScheme: "Bearer",
 		Validator: func(auth string, eCtx echo.Context) (bool, error) {
 			tokenStr := extractToken(auth, secWsProtocol)
-			// if result, err := introspector.IntrospectToken(eCtx.Request().Context(), tokenStr); err != nil {
-			// 	return false, err
-			// } else if !result.Active {
-			// 	return false, nil
-			// }
-			// token, c, err := parseTokenAndClaims(tokenStr)
 
 			c := claims{}
-			// t, _, err := parser.ParseUnverified(tokenStr, &c)
 			token, err := parser.ParseWithClaims(tokenStr, &c)
 			if err != nil {
 				// var ve *jwt.ValidationError
@@ -56,9 +42,6 @@ func NewKeycloakTokenAuth(parser *JWTParser, resource, role, secWsProtocol strin
 				return false, fmt.Errorf("parse token: %w", err)
 			}
 
-			// if err := c.Validate(); err != nil {
-			// 	return false, err
-			// }
 			if !c.HasResourceWithRole(resource, role) {
 				return false, ErrNoRequiredResourceRole
 			}

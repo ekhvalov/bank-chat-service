@@ -17,8 +17,9 @@ import (
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 
+	internaljwt "github.com/ekhvalov/bank-chat-service/internal/jwt"
+	jwtmocks "github.com/ekhvalov/bank-chat-service/internal/jwt/mocks"
 	"github.com/ekhvalov/bank-chat-service/internal/middlewares"
-	middlewaresmocks "github.com/ekhvalov/bank-chat-service/internal/middlewares/mocks"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 )
 
@@ -39,12 +40,11 @@ type KeycloakTokenAuthSuite struct {
 	publicKey       *rsa.PublicKey
 	privateKey      *rsa.PrivateKey
 	keyFunc         jwt.Keyfunc
-	keyFuncProvider *middlewaresmocks.MockKeyFuncProvider
-	// introspector    *middlewaresmocks.MockIntrospector
-	authMdlwr echo.MiddlewareFunc
-	req       *http.Request
-	resp      *httptest.ResponseRecorder
-	ctx       echo.Context
+	keyFuncProvider *jwtmocks.MockKeyFuncProvider
+	authMdlwr       echo.MiddlewareFunc
+	req             *http.Request
+	resp            *httptest.ResponseRecorder
+	ctx             echo.Context
 }
 
 func (s *KeycloakTokenAuthSuite) SetupTest() {
@@ -57,10 +57,9 @@ func (s *KeycloakTokenAuthSuite) SetupTest() {
 	s.Require().NoError(err)
 
 	s.keyFunc = func(token *jwt.Token) (interface{}, error) { return s.publicKey, nil }
-	s.keyFuncProvider = middlewaresmocks.NewMockKeyFuncProvider(s.ctrl)
-	jwtParser, err := middlewares.NewJWTParser(middlewares.NewJWTParserOptions(s.keyFuncProvider, issuer))
+	s.keyFuncProvider = jwtmocks.NewMockKeyFuncProvider(s.ctrl)
+	jwtParser, err := internaljwt.NewJWTParser(internaljwt.NewJWTParserOptions(s.keyFuncProvider, issuer))
 	s.Require().NoError(err)
-	// s.introspector = middlewaresmocks.NewMockIntrospector(s.ctrl)
 	s.authMdlwr = middlewares.NewKeycloakTokenAuth(jwtParser, requiredResource, requiredRole, secWsProtocol)
 	s.Require().NoError(err)
 

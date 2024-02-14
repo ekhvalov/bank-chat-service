@@ -4,7 +4,7 @@ package server
 import (
 	fmt461e464ebed9 "fmt"
 
-	"github.com/ekhvalov/bank-chat-service/internal/middlewares"
+	internaljwt "github.com/ekhvalov/bank-chat-service/internal/jwt"
 	websocketstream "github.com/ekhvalov/bank-chat-service/internal/websocket-stream"
 	errors461e464ebed9 "github.com/kazhuravlev/options-gen/pkg/errors"
 	validator461e464ebed9 "github.com/kazhuravlev/options-gen/pkg/validator"
@@ -21,7 +21,7 @@ func NewOptions(
 	accessRole string,
 	secWsProtocol string,
 	logger *zap.Logger,
-	jwtParser *middlewares.JWTParser,
+	jwtParser *internaljwt.JWTParser,
 	errorHandler echo.HTTPErrorHandler,
 	wsHandler *websocketstream.HTTPHandler,
 	options ...OptOptionsSetter,

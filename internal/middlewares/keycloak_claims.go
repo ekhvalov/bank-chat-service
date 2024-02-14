@@ -5,7 +5,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
-	keycloakclient "github.com/ekhvalov/bank-chat-service/internal/clients/keycloak"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 )
 
@@ -15,12 +14,10 @@ var (
 )
 
 type claims struct {
-	Aud            keycloakclient.Audition `json:"aud"`
-	AuthTime       int64                   `json:"auth_time"`
-	Subject        types.UserID            `json:"sub,omitempty"`
-	ResourceAccess map[string]access       `json:"resource_access,omitempty"`
-
 	jwt.RegisteredClaims
+
+	Subject        types.UserID      `json:"sub,omitempty"`
+	ResourceAccess map[string]access `json:"resource_access,omitempty"`
 }
 
 func (c claims) HasResourceWithRole(resource, role string) bool {
@@ -48,19 +45,21 @@ func (a access) HasRole(name string) bool {
 
 // Validate checks validity of the claims (will be called by jwt-go library parser).
 // possible errors:
-// - from StandardClaims validation;
 // - ErrNoAllowedResources, if claims doesn't contain `resource_access` map, or it's empty;
 // - ErrSubjectNotDefined, if claims doesn't contain `sub` field or subject is zero UUID.
 func (c claims) Validate() error {
 	if nil == c.ResourceAccess || len(c.ResourceAccess) == 0 {
 		return ErrNoAllowedResources
 	}
+
 	if c.Subject.IsZero() {
 		return ErrSubjectNotDefined
 	}
-	if nil == c.Aud {
+
+	if nil == c.Audience || len(c.Audience) == 0 {
 		return ErrNoAllowedResources
 	}
+
 	return nil
 }
 
