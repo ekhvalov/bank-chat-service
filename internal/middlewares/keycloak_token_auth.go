@@ -1,17 +1,15 @@
 package middlewares
 
-//go:generate mockgen -source=$GOFILE -destination=mocks/introspector_mock.gen.go -package=middlewaresmocks Introspector
-
 import (
-	"context"
 	"errors"
+	"fmt"
 	"strings"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	keycloakclient "github.com/ekhvalov/bank-chat-service/internal/clients/keycloak"
+	internaljwt "github.com/ekhvalov/bank-chat-service/internal/jwt"
 	"github.com/ekhvalov/bank-chat-service/internal/types"
 )
 
@@ -19,34 +17,35 @@ const tokenCtxKey = "user-token"
 
 var ErrNoRequiredResourceRole = errors.New("no required resource role")
 
-type Introspector interface {
-	IntrospectToken(ctx context.Context, token string) (*keycloakclient.IntrospectTokenResult, error)
-}
-
 // NewKeycloakTokenAuth returns a middleware that implements "active" authentication:
 // each request is verified by the Keycloak server.
-func NewKeycloakTokenAuth(introspector Introspector, resource, role, secWsProtocol string) echo.MiddlewareFunc {
+func NewKeycloakTokenAuth(parser *internaljwt.JWTParser, resource, role, secWsProtocol string) echo.MiddlewareFunc {
 	return middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		// KeyLookup:  "header:" + echo.HeaderAuthorization,
 		KeyLookup: "header:Authorization,header:Sec-WebSocket-Protocol",
-		// AuthScheme: "Bearer",
 		Validator: func(auth string, eCtx echo.Context) (bool, error) {
-			tokenStr := parseToken(auth, secWsProtocol)
-			if result, err := introspector.IntrospectToken(eCtx.Request().Context(), tokenStr); err != nil {
-				return false, err
-			} else if !result.Active {
-				return false, nil
-			}
-			token, c, err := parseTokenAndClaims(tokenStr)
+			tokenStr := extractToken(auth, secWsProtocol)
+
+			c := claims{}
+			token, err := parser.ParseWithClaims(tokenStr, &c)
 			if err != nil {
-				return false, err
+				// var ve *jwt.ValidationError
+				// if ok := errors.As(err, &ve); ok {
+				// 	switch {
+				// 	case errors.Is(ve.Inner, ErrSubjectNotDefined):
+				// 		return false, ErrSubjectNotDefined
+				// 	case errors.Is(ve.Inner, ErrNoAllowedResources):
+				// 		return false, ErrNoAllowedResources
+				// 	case ve.Errors&jwt.ValidationErrorUnverifiable != 0:
+				// 		return false, ve.Inner
+				// 	}
+				// }
+				return false, fmt.Errorf("parse token: %w", err)
 			}
-			if err := c.Valid(); err != nil {
-				return false, err
-			}
+
 			if !c.HasResourceWithRole(resource, role) {
 				return false, ErrNoRequiredResourceRole
 			}
+
 			eCtx.Set(tokenCtxKey, token)
 			return true, nil
 		},
@@ -79,7 +78,7 @@ func userID(eCtx echo.Context) (types.UserID, bool) {
 	return userIDProvider.UserID(), true
 }
 
-func parseToken(auth, secWsProtocol string) string {
+func extractToken(auth, secWsProtocol string) string {
 	if strings.HasPrefix(auth, secWsProtocol) {
 		return strings.TrimLeft(auth[len(secWsProtocol):], ", ")
 	}

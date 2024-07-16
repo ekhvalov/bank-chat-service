@@ -9,10 +9,12 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/MicahParks/keyfunc/v3"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/ekhvalov/bank-chat-service/internal/config"
+	internaljwt "github.com/ekhvalov/bank-chat-service/internal/jwt"
 	"github.com/ekhvalov/bank-chat-service/internal/logger"
 	chatsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/chats"
 	jobsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/jobs"
@@ -391,4 +393,20 @@ func createOutboxJobs(
 	jobs = append(jobs, closeChatJob)
 
 	return jobs, nil
+}
+
+func initJWTParser(cfg config.KeycloakClientConfig) (*internaljwt.JWTParser, error) {
+	url := fmt.Sprintf("%s/realms/%s/protocol/openid-connect/certs", cfg.BasePath, cfg.Realm)
+	jwks, err := keyfunc.NewDefault([]string{url})
+	if err != nil {
+		return nil, fmt.Errorf("create keyfunc: %v", err)
+	}
+
+	issuer := fmt.Sprintf("%s/realms/%s", cfg.BasePath, cfg.Realm)
+	jwtParser, err := internaljwt.NewJWTParser(internaljwt.NewJWTParserOptions(jwks, issuer))
+	if err != nil {
+		return nil, fmt.Errorf("create jwt parser: %v", err)
+	}
+
+	return jwtParser, nil
 }

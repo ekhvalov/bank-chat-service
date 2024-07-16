@@ -1,0 +1,11 @@
+version: "3.8"
+
+# https://docs.structurizr.com/lite/installation#docker
+services:
+  structurizr-ui:
+    image: structurizr/lite
+    profiles: [ "structurizr-ui" ]
+    ports:
+      - "8070:8080"
+    volumes:
+      - ../../docs:/usr/local/structurizr

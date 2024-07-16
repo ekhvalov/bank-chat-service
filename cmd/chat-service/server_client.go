@@ -5,8 +5,6 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/ekhvalov/bank-chat-service/internal/buildinfo"
-	keycloakclient "github.com/ekhvalov/bank-chat-service/internal/clients/keycloak"
 	"github.com/ekhvalov/bank-chat-service/internal/config"
 	chatsrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/chats"
 	messagesrepo "github.com/ekhvalov/bank-chat-service/internal/repositories/messages"
@@ -49,9 +47,9 @@ func initServerClient(
 		return nil, fmt.Errorf("create handlers registrar: %v", err)
 	}
 
-	keycloakClient, err := initKeycloakClient(cfg)
+	jwtParser, err := initJWTParser(cfg.Clients.Keycloak)
 	if err != nil {
-		return nil, fmt.Errorf("create keycloak client: %v", err)
+		return nil, fmt.Errorf("create JWTParser: %v", err)
 	}
 
 	errHandler, err := errhandler.New(errhandler.NewOptions(lg, cfg.Global.IsProduction(), errhandlerclient.ResponseBuilder))
@@ -77,7 +75,7 @@ func initServerClient(
 		cfg.Servers.Client.RequiredAccess.Role,
 		cfg.Servers.Client.SecWsProtocol,
 		lg,
-		keycloakClient,
+		jwtParser,
 		errHandler.Handle,
 		wsHandler,
 	), handlersRegistrar)
@@ -86,17 +84,6 @@ func initServerClient(
 	}
 
 	return s, nil
-}
-
-func initKeycloakClient(cfg config.Config) (*keycloakclient.Client, error) {
-	return keycloakclient.New(keycloakclient.NewOptions(
-		cfg.Clients.Keycloak.BasePath,
-		cfg.Clients.Keycloak.Realm,
-		cfg.Clients.Keycloak.ClientID,
-		cfg.Clients.Keycloak.ClientSecret,
-		keycloakclient.WithDebugMode(cfg.Clients.Keycloak.DebugMode),
-		keycloakclient.WithUserAgent(fmt.Sprintf("chat-service/%s", buildinfo.BuildInfo.Main.Version)),
-	))
 }
 
 func initV1ClientHandlers(lg *zap.Logger, storeDB *storegen.Database, outboxSvc *outbox.Service) (clientv1.Handlers, error) {

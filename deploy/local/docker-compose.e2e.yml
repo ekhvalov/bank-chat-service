@@ -62,7 +62,7 @@ services:
 #      - zookeeper
 
   client:
-    image: golang:1.20.4
+    image: golang:1.21.5
     depends_on:
       - kafka
       - postgres
@@ -72,7 +72,7 @@ services:
     working_dir: /src
     environment:
       GOCOVERDIR: /src/tools/coverage/e2e
-    command: bash -c 'go build -buildvcs=false -cover ./cmd/chat-service && trap - "" SIGTERM; ./chat-service -config ./configs/config.e2e.toml'
+    command: bash -c 'sleep 15 && go build -buildvcs=false -cover ./cmd/chat-service && trap - "" SIGTERM; ./chat-service -config ./configs/config.e2e.toml'
 
 
   afc_emulator:
@@ -109,7 +109,7 @@ services:
     command: /bin/sh -c 'sleep 30 && afc'
 
   tester:
-    image: golang:1.20.4
+    image: golang:1.21.5
     depends_on:
       - client
     volumes:

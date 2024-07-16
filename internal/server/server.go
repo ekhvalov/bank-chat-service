@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
+	internaljwt "github.com/ekhvalov/bank-chat-service/internal/jwt"
 	"github.com/ekhvalov/bank-chat-service/internal/middlewares"
 	serverclient "github.com/ekhvalov/bank-chat-service/internal/server-client"
 	clientv1 "github.com/ekhvalov/bank-chat-service/internal/server-client/v1"
@@ -35,7 +36,7 @@ type Options struct {
 	accessRole     string                       `option:"mandatory" validate:"required"`
 	secWsProtocol  string                       `option:"mandatory" validate:"required"`
 	logger         *zap.Logger                  `option:"mandatory" validate:"required"`
-	introspector   middlewares.Introspector     `option:"mandatory" validate:"required"`
+	jwtParser      *internaljwt.JWTParser       `option:"mandatory" validate:"required"`
 	errorHandler   echo.HTTPErrorHandler        `option:"mandatory" validate:"required"`
 	wsHandler      *websocketstream.HTTPHandler `option:"mandatory" validate:"required"`
 }
@@ -74,7 +75,7 @@ func New[T HandlersRegistrar](opts Options, registrar T) (*Server, error) {
 			AllowMethods: []string{http.MethodPost},
 		}),
 		middlewares.NewKeycloakTokenAuth(
-			opts.introspector,
+			opts.jwtParser,
 			opts.accessResource,
 			opts.accessRole,
 			opts.secWsProtocol,
